@@ -22,3 +22,6 @@
 [submodule ".vim/bundle/l9.vim"]
 	path = .vim/bundle/l9.vim
 	url = git://github.com/vim-scripts/L9.git
+[submodule ".vim/bundle/repeat.vim"]
+	path = .vim/bundle/repeat.vim
+	url = git://github.com/tpope/vim-repeat.git
