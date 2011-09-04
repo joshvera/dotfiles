@@ -1,7 +1,7 @@
 set nocompatible " Make vim more useful
 
 " Load Pathogen
-runtime bundle/vim-pathogen/autoload/pathogen.vim
+runtime bundle/pathogen.vim/autoload/pathogen.vim
 call pathogen#infect()
 
 filetype plugin indent on " Enable detection, plugins and indenting
