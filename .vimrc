@@ -1,10 +1,22 @@
 set nocompatible " Make vim more useful
-filetype plugin indent off
 
+" Load Pathogen
 runtime bundle/vim-pathogen/autoload/pathogen.vim
 call pathogen#infect()
 
+filetype plugin indent on " Enable detection, plugins and indenting
+
+" Change mapleader from \ to ,
+let mapleader=","
+
+set shortmess=atI " Abbreviate prompts and disable intro
+syntax on " Turn on syntax highlighting
+syntax sync minlines=256 " I don't know what it does but it makes it fast
+
+
 set backspace=indent,eol,start
+
+set nojoinspaces
 
 set tabstop=4
 set shiftwidth=4
@@ -14,12 +26,14 @@ set autoindent " Copy the indentation from the last line when starting new line
 set hidden "When a buffer is brought to the foreground, remember undo history and marks.
 
 set encoding=utf-8
-set scrolloff=3
+
+set scrolloff=3 "Keep 3 lines above and below cursor at all times
+
 set wildchar=<TAB> "Character for CLI expansion (TAB-completion)
 set wildmenu "Hitting TAB in command mode will show possible completions above command line
 set wildmode=list:longest "Complete only until point of ambiguity
+
 set cursorline " Highlight the current line
-"set ttyfast "Send more characters at a give time.
 set ruler " show the cursor position at all times
 set laststatus=2
 set undofile
@@ -29,17 +43,16 @@ set formatoptions=rcn1
 set equalalways
 set autoread
 set number
-set foldmethod=syntax
-set foldlevelstart=0
+
+set foldmethod=syntax "Fold based on syntax
+set nofoldenable "Start off with folds open
+
 set autochdir
 
 set nocursorcolumn
 set nocursorline
 
-syntax on " Turn on syntax highlighting
-syntax sync minlines=256 " I don't know what it does but it makes it fast
 
-let mapleader=","
 
 " Don't use the shitty search regex
 nnoremap / /\v
@@ -52,8 +65,6 @@ set incsearch
 set showmatch
 set hls is ic scs
 
-nnoremap <leader><space> :noh<CR>
-nmap <silent> <leader>/ :nohlsearch<CR>
 inoremap jj <ESC>
 noremap <silent> <C-o> :FSSplitRight<CR>
 noremap <silent> <C-Down>  <ESC><C-w>j
@@ -61,7 +72,14 @@ noremap <silent> <C-Up>    <ESC><C-w>k
 noremap <silent> <C-Left>  <ESC><C-w>h
 noremap <silent> <C-Right> <ESC><C-w>l
 nnoremap <silent> <C-n> :noh<CR>
-nnoremap ; :
+
+noremap ;; ; "Double semicolon takes us to Ex mode
+map ; :
+
+nnoremap <silent> <C-l> :nohl<CR><C-l>
+nnoremap <leader><space> :noh<CR>
+nmap <silent> <leader>/ :nohlsearch<CR>
+
 nnoremap <Down> <C-w>j
 nnoremap <Up> <C-w>k
 nnoremap <Left> <C-w>h
