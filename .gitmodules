@@ -40,3 +40,6 @@
 [submodule ".vim/bundle/ruby.vim"]
 	path = .vim/bundle/ruby.vim
 	url = git://github.com/vim-ruby/vim-ruby.git
+[submodule ".vim/bundle/snipmate.vim"]
+	path = .vim/bundle/snipmate.vim
+	url = git://github.com/msanders/snipmate.vim.git
