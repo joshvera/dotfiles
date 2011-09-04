@@ -19,6 +19,8 @@ alias emacs='open -a /Applications/Emacs.app $@'
 export EDITOR="mvim"
 
 # Git aliases
+alias g="git "
+alias gr='git reset '
 alias gs='git status '
 alias gst='git status '
 alias ga='git add'
