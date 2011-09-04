@@ -31,3 +31,6 @@
 [submodule ".vim/bundle/abolish.vim"]
 	path = .vim/bundle/abolish.vim
 	url = git://github.com/tpope/vim-abolish.git
+[submodule ".vim/bundle/commentary.vim"]
+	path = .vim/bundle/commentary.vim
+	url = git://github.com/tpope/vim-commentary.git
