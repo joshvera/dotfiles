@@ -16,9 +16,6 @@
 [submodule ".vim/bundle/fugitive.vim"]
 	path = .vim/bundle/fugitive.vim
 	url = git://github.com/tpope/vim-fugitive.git
-[submodule ".vim/bundle/fuzzyfinder.vim"]
-	path = .vim/bundle/fuzzyfinder.vim
-	url = git://github.com/vim-scripts/FuzzyFinder.git
 [submodule ".vim/bundle/l9.vim"]
 	path = .vim/bundle/l9.vim
 	url = git://github.com/vim-scripts/L9.git
@@ -49,3 +46,6 @@
 [submodule ".vim/bundle/pathogen.vim"]
 	path = .vim/bundle/pathogen.vim
 	url = git://github.com/tpope/vim-pathogen.git
+[submodule ".vim/bundle/command-t.vim"]
+	path = .vim/bundle/command-t.vim
+	url = git://github.com/wincent/Command-T.git

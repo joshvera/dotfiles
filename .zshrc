@@ -17,7 +17,7 @@ function git(){
 
 alias emacs='open -a /Applications/Emacs.app $@'
 export EDITOR="mvim"
-
+export VISUAL='mvim -f'
 # Git aliases
 alias gsb="git submodule "
 alias g="git "

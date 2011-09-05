@@ -124,7 +124,6 @@ noremap <silent> <C-Up>    <ESC><C-w>k
 noremap <silent> <C-Left>  <ESC><C-w>h
 noremap <silent> <C-Right> <ESC><C-w>l
 nnoremap <silent> <C-n> :noh<CR>
-
 noremap ;; ; "Double semicolon takes us to Ex mode
 map ; :
 
@@ -149,8 +148,8 @@ nnoremap <leader>` :e ~/.vimrc<CR>
 nnoremap <leader>_ <C-w>_
 nnoremap <leader>h :noh<CR>
 nnoremap <leader>H :syntax sync fromstart<CR>
-nnoremap <leader>b :FufBuffer<CR>
-nnoremap <leader>f :FufFile<CR>
+nnoremap <leader>b :CommandTBuffer<CR>
+nnoremap <leader>f :CommandT<CR>
 nnoremap <tab> %
 vnoremap <tab> %
 
