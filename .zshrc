@@ -56,3 +56,4 @@ fi
 
 [[ $EMACS = t ]] && unsetopt zle
 
+alias vim="mvim -v"
