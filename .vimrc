@@ -32,7 +32,6 @@ set ignorecase " Ignore case when searching
 set smartcase " Ignore case if search pattern is all lower case
 set smarttab " Insert tabs on the start of a line according to shiftwidth not tab stop
 set scrolloff=3 "Keep 3 lines above and below cursor at all times
-set virtualedit=all " Allow cursor to go into 'invalid' spaces
 set hlsearch " Highlight search terms
 set incsearch " Show search matches as you type
 set gdefault " search/replace "globally" (on a line) by default
@@ -91,9 +90,6 @@ set nocursorline
 " Don't use the shitty search regex
 nnoremap / /\v
 vnoremap / /\v
-
-set gdefault
-set incsearch
 
 " Use Q for formatting the current paragraph (or visual selection)
 vmap Q gq
@@ -201,11 +197,15 @@ set undodir=~/.vimundo
 
 " Conflict markers {{{
 " highlight conflict markers
-match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
+match ErrorMsg '<<<<<<<\\|=======\\|>>>>>>>'
 
 " shortcut to jump to next conflict marker
-nmap <silent> <leader>c /^\(<\\|=\\|>\)\{7\}\([^=].\+\)\?$<CR>
+nnoremap <leader>c /<<<<<<<\\|=======\\|>>>>>>><CR>
 
 " visual shifting (builtin-repeat)
 vnoremap < <gv
 vnoremap > >gv
+
+autocmd BufWritePre *.m :%s/\s\+$//e
+
+
