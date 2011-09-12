@@ -114,7 +114,14 @@ nmap <leader>r :YRShow<CR>
 
 inoremap jj <ESC>
 " Open corresponding header
-noremap <silent> <C-o> :FSSplit<CR>
+noremap <silent> <C-o> :FSSplitRight<CR>
+
+
+autocmd BufEnter *.h let b:fswitchdst = 'c,cpp,m'
+autocmd BufEnter *.c,*.cpp,*.h let b:fswitchdst = 'h'
+
+
+
 noremap <silent> <C-Down>  <ESC><C-w>j
 noremap <silent> <C-Up>    <ESC><C-w>k
 noremap <silent> <C-Left>  <ESC><C-w>h
