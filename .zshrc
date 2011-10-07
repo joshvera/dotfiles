@@ -36,20 +36,5 @@ alias sporkify='bundle exec spork cucumber & bundle exec spork'
 
 AUTOFEATURE='true'
 
-
-# RVM
-[[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm
-
-# Tramp mode hanging in Emacs
-if [[ "$TERM" == "dumb" ]]; then
-  unsetopt zle
-  unsetopt prompt_cr
-  unsetopt prompt_subst
-  unfunction precmd
-  unfunction preexec
-  PS1='$ '
-fi
-
-[[ $EMACS = t ]] && unsetopt zle
-
 alias vim="mvim -v"
+eval "$(rbenv init -)"
