@@ -6,14 +6,10 @@ export ZSH_THEME="robbyrussell"
 source $ZSH/oh-my-zsh.sh
 
 # Paths
-export PATH=/Users/joshuavera/.rvm/gems/ruby-1.9.2-p180/bin/:/usr/local/share/npm/bin:~/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin:$PATH
+export PATH=~/.rbenv/bin:/usr/local/share/npm/bin:~/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin:$PATH
 
 export VIM_APP_DIR=/Applications
 export NODE_PATH=/usr/local/lib/node
-
-function git(){
-    hub "$@"
-}
 
 alias emacs='open -a /Applications/Emacs.app $@'
 export EDITOR="mvim"
