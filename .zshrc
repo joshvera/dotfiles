@@ -17,7 +17,8 @@ export VISUAL='mvim -f'
 # Git aliases
 alias gsb="git submodule "
 alias g="git "
-alias gr='git reset '
+alias grc='git rebase --continue'
+alias gra='git rebase --abort'
 alias gs='git status '
 alias gst='git status '
 alias ga='git add'
