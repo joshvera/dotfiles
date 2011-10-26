@@ -9,7 +9,6 @@ source $ZSH/oh-my-zsh.sh
 export PATH=/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:~/.rbenv/bin:/usr/local/share/npm/bin:~/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin:$PATH
 
 export VIM_APP_DIR=/Applications
-export NODE_PATH=/usr/local/lib/node
 
 alias emacs='open -a /Applications/Emacs.app $@'
 export EDITOR="mvim"
@@ -40,3 +39,4 @@ AUTOFEATURE='true'
 export JAVA_OPTS=-Xmx768m
 alias vim="mvim -v"
 eval "$(rbenv init -)"
+export NODE_PATH=/usr/local/lib/node_modules
