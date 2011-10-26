@@ -37,5 +37,6 @@ alias sporkify='bundle exec spork cucumber & bundle exec spork'
 
 AUTOFEATURE='true'
 
+export JAVA_OPTS=-Xmx768m
 alias vim="mvim -v"
 eval "$(rbenv init -)"
