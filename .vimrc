@@ -72,7 +72,7 @@ set undofile
 set nomodeline
 
 set textwidth=80
-set formatoptions=rcn1
+set formatoptions=rco1 " Don't wrap paragraphs after 1 letter words
 set equalalways
 set autoread
 
@@ -170,6 +170,9 @@ nmap <leader><tab> :Sscratch<CR><C-W>x<C-J>
 nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
 
+nnoremap <C-x>o <C-w>w
+nnoremap <C-x>O <C-w>W
+
 " Sudo to write
 cmap w!! w !sudo tee % >/dev/null
 
@@ -212,5 +215,7 @@ vnoremap < <gv
 vnoremap > >gv
 
 autocmd BufWritePre *.m :%s/\s\+$//e
-
+autocmd BufWritePre *.m :retab!
+autocmd BufWritePre *.h :retab!
+autocmd BufWritePre *.h :%s/\s\+$//e
 
