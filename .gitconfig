@@ -5,7 +5,10 @@
 	autocrlf = input
 	quotepath = false
 	editor = "mvim -v"
-	excludesfile = /Users/joshuavera/.globalgitignore
+	excludesfile = ~/.globalgitignore
+	fsyncobjectfiles = true
+	preloadindex = true
+	whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 [alias]
     co = checkout
     ci = commit
@@ -18,6 +21,12 @@
     id = !echo `git log -n 1 --pretty=%H` | pbcopy
     staged = diff --cached
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	patches = log -p --reverse
+[diff]
+	renames = copies
+	mnemonicprefix = true
+[status]
+	submodulesummary = true
 [apply]
 	whitespace = nowarn
 [color]
@@ -26,5 +35,7 @@
 	branch = auto
 [branch]
     autosetuprebase = always
+[branch "master"]
+    mergeoptions = --no-ff --no-commit
 [push]
-	default = tracking
+	default = upstream
