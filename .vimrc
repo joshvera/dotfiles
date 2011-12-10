@@ -189,6 +189,7 @@ set visualbell " Don't beep
 
 set nobackup " Don't keep backup files
 set noswapfile " Don't keep swap files
+set nobackup
 
 autocmd FocusLost * :wa " Save when losing focus
 
