@@ -6,11 +6,14 @@ export ZSH_THEME="robbyrussell"
 source $ZSH/oh-my-zsh.sh
 
 # Paths
-export PATH=/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:~/.rbenv/bin:/usr/local/share/npm/bin:~/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin:$PATH
+export PATH=/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:~/.rbenv/bin:/usr/local/share/npm/bin:$HOME/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X11/bin:$PATH
 
 export VIM_APP_DIR=/Applications
 
 alias emacs='open -a /Applications/Emacs.app $@'
+alias emacs='emacsclient'
+alias e='emacs'
+
 export EDITOR="mvim"
 export VISUAL='mvim -f'
 # Git aliases
