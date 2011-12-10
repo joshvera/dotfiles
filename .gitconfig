@@ -1,14 +1,14 @@
 [user]
-	name = Josh Vera
-	email = josh@joshvera.com
+    name = Josh Vera
+    email = josh@joshvera.com
 [core]
-	autocrlf = input
-	quotepath = false
-	editor = "mvim -v"
-	excludesfile = ~/.globalgitignore
-	fsyncobjectfiles = true
-	preloadindex = true
-	whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
+    autocrlf = input
+    quotepath = false
+    editor = "mvim -v"
+    excludesfile = ~/.globalgitignore
+    fsyncobjectfiles = true
+    preloadindex = true
+    whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 [alias]
     co = checkout
     ci = commit
@@ -21,21 +21,22 @@
     id = !echo `git log -n 1 --pretty=%H` | pbcopy
     staged = diff --cached
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-	patches = log -p --reverse
+    patches = log -p --reverse
+    sup = submodule update --init --recursive
 [diff]
-	renames = copies
-	mnemonicprefix = true
+    renames = copies
+    mnemonicprefix = true
 [status]
-	submodulesummary = true
+    submodulesummary = true
 [apply]
-	whitespace = nowarn
+    whitespace = nowarn
 [color]
-	diff = auto
-	status = auto
-	branch = auto
+    diff = auto
+    status = auto
+    branch = auto
 [branch]
     autosetuprebase = always
 [branch "master"]
     mergeoptions = --no-ff --no-commit
 [push]
-	default = upstream
+    default = upstream
