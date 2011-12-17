@@ -170,7 +170,7 @@ nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
 
 nnoremap <C-x>o <C-w>w
-nnoremap <C-x>O <C-w>W
+nnoremap <C-x>0 <C-w>q
 
 " Sudo to write
 cmap w!! w !sudo tee % >/dev/null
