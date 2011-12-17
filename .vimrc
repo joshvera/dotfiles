@@ -193,8 +193,9 @@ set nobackup
 
 autocmd FocusLost * :wa " Save when losing focus
 
-colorscheme solarized
+set guifont=Inconsolata:h18
 set background=dark
+colorscheme solarized
 
 set guifont=Inconsolata:h18
 noremap <leader>a :Ack<Space>
@@ -219,4 +220,6 @@ autocmd BufWritePre *.m :%s/\s\+$//e
 autocmd BufWritePre *.m :retab!
 autocmd BufWritePre *.h :retab!
 autocmd BufWritePre *.h :%s/\s\+$//e
+
+nnoremap <leader>t :PeepOpen<CR>
 
