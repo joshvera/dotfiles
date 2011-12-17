@@ -49,3 +49,6 @@
 [submodule ".vim/bundle/coffee-script.vim"]
 	path = .vim/bundle/coffee-script.vim
 	url = https://github.com/kchmck/vim-coffee-script.git
+[submodule "git-diff-grep"]
+	path = git-diff-grep
+	url = git://github.com/oscardelben/git-diff-grep.git
