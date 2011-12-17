@@ -152,6 +152,9 @@ nnoremap <leader>h :noh<CR>
 nnoremap <leader>H :syntax sync fromstart<CR>
 nnoremap <leader>b :CommandTBuffer<CR>
 nnoremap <leader>f :CommandT<CR>
+let g:CommandTMaxHeight=5
+
+" <Tab> to move back and forth matching pair
 nnoremap <tab> %
 vnoremap <tab> %
 
