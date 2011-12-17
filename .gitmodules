@@ -4,9 +4,6 @@
 [submodule ".vim/bundle/ack.vim"]
 	path = .vim/bundle/ack.vim
 	url = git://github.com/mileszs/ack.vim.git
-[submodule ".vim/bundle/nerdtree"]
-	path = .vim/bundle/nerdtree
-	url = git://github.com/scrooloose/nerdtree.git
 [submodule ".vim/bundle/repeat.vim"]
 	path = .vim/bundle/repeat.vim
 	url = git://github.com/tpope/vim-repeat.git

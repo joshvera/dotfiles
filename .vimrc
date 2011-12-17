@@ -8,6 +8,7 @@ Bundle 'gmarick/vundle'
 Bundle 'Solarized'
 Bundle 'tpope/vim-fugitive'
 Bundle 'cocoa.vim'
+Bundle 'scrooloose/nerdtree'
 
 
 set guifont=Inconsolata:h18
