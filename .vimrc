@@ -161,12 +161,6 @@ vnoremap <tab> %
 " Reselect text that was just pasted with ,v
 nnoremap <leader>v V`]
 
-" Yank/past to the OS clipboard
-nmap <leader>y "+y
-nmap <leader>Y "+yy
-nmap <leader>p "+p
-nmap <leader>P "+P
-
 " Scratch
 nmap <leader><tab> :Sscratch<CR><C-W>x<C-J>
 
