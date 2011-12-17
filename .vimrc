@@ -6,6 +6,7 @@ set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 Bundle 'gmarick/vundle'
 Bundle 'Solarized'
+Bundle 'tpope/vim-fugitive'
 
 set guifont=Inconsolata:h18
 set background=dark
