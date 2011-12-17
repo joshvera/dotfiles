@@ -1,10 +1,15 @@
 " Use Vim settings
 set nocompatible
+filetype off
 
-" Load Pathogen
-runtime bundle/pathogen.vim/autoload/pathogen.vim
-call pathogen#infect()
-call pathogen#helptags()
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+Bundle 'gmarick/vundle'
+Bundle 'Solarized'
+
+set guifont=Inconsolata:h18
+set background=dark
+colorscheme solarized
 
 filetype plugin indent on " Enable detection, plugins and indenting
 
@@ -195,9 +200,6 @@ set nobackup
 
 autocmd FocusLost * :wa " Save when losing focus
 
-set guifont=Inconsolata:h18
-set background=dark
-colorscheme solarized
 
 set nosplitbelow " Don't do it.
 
