@@ -52,3 +52,6 @@
 [submodule "git-diff-grep"]
 	path = git-diff-grep
 	url = git://github.com/oscardelben/git-diff-grep.git
+[submodule ".vim/bundle/vundle"]
+	path = .vim/bundle/vundle
+	url = git://github.com/gmarik/vundle.git
