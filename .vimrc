@@ -26,7 +26,7 @@ set expandtab " Expand tabs to spaces
 set shiftround " Use multiple of shiftwidth when indenting '>' and '<'
 set backspace=indent,eol,start " Allow backspacing over everything in insert mode
 set autoindent " always set autoindenting
-set copyindent " copy the previous indentation on autoindenting 
+set copyindent " copy the previous indentation on autoindenting
 set number " Always show line numbers
 set showmatch " Set show matching parenthesis
 set ignorecase " Ignore case when searching
@@ -47,7 +47,7 @@ set encoding=utf-8
 set laststatus=2 " Always show a status line
 
 " Vim Behavior
-set hidden "Hide buffers instead of closing them 
+set hidden "Hide buffers instead of closing them
 set switchbuf=useopen           " reveal already opened files from the
                                 " quickfix window instead of opening new
                                 " buffers
@@ -145,6 +145,7 @@ nnoremap <leader>w <C-w>v<C-w>l
 nnoremap <leader>= <C-W>=
 " Search/replace
 nnoremap <leader>s :%s/\v
+
 " Open .vimrc
 nnoremap <leader>` :e ~/.vimrc<CR>
 nnoremap <leader>_ <C-w>_
@@ -174,15 +175,18 @@ nnoremap <C-x>O <C-w>W
 " Sudo to write
 cmap w!! w !sudo tee % >/dev/null
 
-" Strip all trailing whitespace from a file, using ,w
+" Strip all trailing whitespace from a file, using ,W
 nnoremap <leader>W :%s/\s\+$//<CR>:let @/=''<CR>
 
 map <F1> :NERDTreeToggle<CR><CR>
 
+noremap <leader>a :Ack<Space>
+noremap <leader>e :e<Space>
+
 set history=1000 " Increase history from 20 default to 1000
 set undolevels=1000
 set title " Show the filename in the window titlebar
-set noerrorbells " Don't beep 
+set noerrorbells " Don't beep
 set visualbell " Don't beep
 
 set nobackup " Don't keep backup files
@@ -195,9 +199,7 @@ set guifont=Inconsolata:h18
 set background=dark
 colorscheme solarized
 
-set guifont=Inconsolata:h18
-noremap <leader>a :Ack<Space>
-set nosplitbelow
+set nosplitbelow " Don't do it.
 
 autocmd BufWinEnter,BufNewFile * silent tabo
 
