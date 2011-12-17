@@ -7,10 +7,11 @@ call vundle#rc()
 Bundle 'gmarick/vundle'
 Bundle 'Solarized'
 Bundle 'tpope/vim-fugitive'
+Bundle 'cocoa.vim'
+
 
 set guifont=Inconsolata:h18
 set background=dark
-colorscheme solarized
 
 filetype plugin indent on " Enable detection, plugins and indenting
 
