@@ -1,9 +1,10 @@
 " Use Vim settings
-set nocompatible 
+set nocompatible
 
 " Load Pathogen
 runtime bundle/pathogen.vim/autoload/pathogen.vim
 call pathogen#infect()
+call pathogen#helptags()
 
 filetype plugin indent on " Enable detection, plugins and indenting
 
