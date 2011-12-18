@@ -4,17 +4,46 @@ filetype off
 
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
-Bundle 'gmarick/vundle'
+Bundle 'bufkill.vim'
+Bundle 'YankRing.vim'
 Bundle 'Solarized'
+Bundle "Markdown"
+Bundle 'UltiSnips'
+Bundle "ragtag.vim"
+Bundle 'pangloss/vim-javascript'
+Bundle 'surround.vim'
+Bundle 'matchit.zip'
+Bundle "scrooloose/snipmate-snippets"
+Bundle 'ruby.vim'
+Bundle "git.zip"
 Bundle 'tpope/vim-fugitive'
 Bundle 'cocoa.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'Lokaltog/vim-easymotion'
 Bundle 'vim-scripts/a.vim'
-Bundle 'wincent/Command-T'
+Bundle 'kien/ctrlp.vim'
 Bundle 'shemerey/vim-peepopen'
 Bundle 'tpope/vim-rails.git'
+Bundle 'taglist.vim'
 Bundle 'ack.vim'
+Bundle "tpope/vim-endwise"
+Bundle "tComment"
+nnoremap // :TComment<CR>
+vnoremap // :TComment<CR>
+Bundle "scrooloose/syntastic"
+Bundle 'kchmck/vim-coffee-script'
+Bundle 'leshill/vim-json'
+Bundle 'delimitMate.vim'
+Bundle "ZoomWin"
+noremap <leader>o :ZoomWin<CR>
+vnoremap <leader>o <C-C>:ZoomWin<CR>
+inoremap <leader>o <C-O>:ZoomWin<CR>
+
+noremap <C-W>+o :ZoomWin<CR>
+Bundle "ragtag.vim"
+Bundle "repeat.vim"
+Bundle "SuperTab"
+
 
 set guifont=Inconsolata:h18
 set background=dark
@@ -28,7 +57,8 @@ set shortmess=atI " Abbreviate prompts and disable intro
 syntax on " Turn on syntax highlighting
 syntax sync minlines=256 " I don't know what it does but it makes it fast
 
-
+set timeoutlen=250
+set pastetoggle=<F8>
 
 set nojoinspaces
 
@@ -240,3 +270,12 @@ let g:CommandTMaxFiles = 10000
 let g:CommandTMaxDepth = 5
 let g:CommandTMaxHeight = 10
 let g:CommandTMatchWindowReverse = 1
+
+"Auto commands
+au BufRead,BufNewFile {Gemfile,Rakefile,Capfile,*.rake,config.ru}     set ft=ruby
+au BufRead,BufNewFile {*.md,*.mkd,*.markdown}                         set ft=markdown
+au BufRead,BufNewFile {COMMIT_EDITMSG}                                set ft=gitcommit
+
+au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal g'\"" | endif " restore position in file
+
+
