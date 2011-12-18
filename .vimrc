@@ -11,6 +11,7 @@ Bundle 'cocoa.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'Lokaltog/vim-easymotion'
 Bundle 'vim-scripts/a.vim'
+Bundle 'wincent/Command-T'
 
 
 set guifont=Inconsolata:h18
@@ -162,8 +163,7 @@ nnoremap <leader>_ <C-w>_
 nnoremap <leader>h :noh<CR>
 nnoremap <leader>H :syntax sync fromstart<CR>
 nnoremap <leader>b :CommandTBuffer<CR>
-nnoremap <leader>f :CommandT<CR>
-let g:CommandTMaxHeight=5
+nnoremap <leader>f :<CR>
 
 " <Tab> to move back and forth matching pair
 nnoremap <tab> %
@@ -191,7 +191,7 @@ nnoremap <leader>W :%s/\s\+$//<CR>:let @/=''<CR>
 map <F1> :NERDTreeToggle<CR><CR>
 
 noremap <leader>a :Ack<Space>
-noremap <leader>e :e<Space>
+noremap <leader>e :CommandT<CR>
 
 set history=1000 " Increase history from 20 default to 1000
 set undolevels=1000
@@ -230,3 +230,11 @@ autocmd BufWritePre *.h :%s/\s\+$//e
 
 nnoremap <leader>t :PeepOpen<CR>
 
+let g:EasyMotion_mapping_f = '<leader>f'
+let g:EasyMotion_mapping_F = '<leader>F'
+let g:EasyMotion_mapping_t = '<leader>t'
+let g:EasyMotion_mapping_T = '<leader>T'
+let g:CommandTMaxFiles = 10000
+let g:CommandTMaxDepth = 5
+let g:CommandTMaxHeight = 10
+let g:CommandTMatchWindowReverse = 1
