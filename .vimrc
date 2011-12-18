@@ -13,6 +13,7 @@ Bundle 'Lokaltog/vim-easymotion'
 Bundle 'vim-scripts/a.vim'
 Bundle 'wincent/Command-T'
 Bundle 'shemerey/vim-peepopen'
+Bundle 'tpope/vim-rails.git'
 
 
 set guifont=Inconsolata:h18
