@@ -9,6 +9,7 @@ Bundle 'Solarized'
 Bundle 'tpope/vim-fugitive'
 Bundle 'cocoa.vim'
 Bundle 'scrooloose/nerdtree'
+Bundle 'Logaltog/vim-easymotion'
 
 
 set guifont=Inconsolata:h18
