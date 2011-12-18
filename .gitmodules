@@ -1,9 +1,6 @@
 [submodule ".oh-my-zsh"]
 	path = .oh-my-zsh
 	url = git://github.com/robbyrussell/oh-my-zsh.git
-[submodule ".vim/bundle/ack.vim"]
-	path = .vim/bundle/ack.vim
-	url = git://github.com/mileszs/ack.vim.git
 [submodule ".vim/bundle/repeat.vim"]
 	path = .vim/bundle/repeat.vim
 	url = git://github.com/tpope/vim-repeat.git
