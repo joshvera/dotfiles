@@ -10,6 +10,7 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'cocoa.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'Lokaltog/vim-easymotion'
+Bundle 'vim-scripts/a.vim'
 
 
 set guifont=Inconsolata:h18
