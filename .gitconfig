@@ -23,20 +23,33 @@
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
     patches = log -p --reverse
     sup = submodule update --init --recursive
+	wtf = blame
+	bg = branch
+	fg = checkout
+	rba = rebase --abort
+	rbc = rebase --continue
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+	whitespace = trailing-space,space-before-tab
 [diff]
     renames = copies
     mnemonicprefix = true
 [status]
     submodulesummary = true
-[apply]
-    whitespace = nowarn
-[color]
-    diff = auto
-    status = auto
-    branch = auto
 [branch]
-    autosetuprebase = always
+	autosetuprebase = always
 [branch "master"]
     mergeoptions = --no-ff --no-commit
 [push]
     default = upstream
+[merge]
+	stat = true
+[rebase]
+    stat = true
+[pack]
+    windowMemory = 1g
+[advice]
+    pushNonFastForward = false
+    statusHints = false
