@@ -1,54 +1,139 @@
-" Use Vim settings
+" Use Vim settings, rather then Vi settings (much better!).
+" This must be first, because it changes other options as a side effect.
 set nocompatible
+
+"Turning off filetype for vundle.
 filetype off
 
+" =============== Vundle Initialization ===============
+" This loads all the plugins into ~/.vim/bundle
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
-Bundle 'bufkill.vim'
-Bundle 'YankRing.vim'
-Bundle 'Solarized'
+Bundle "vundle"
+Bundle "kana/vim-textobj-user"
+Bundle "bufkill.vim"
+Bundle "YankRing.vim"
+Bundle "Solarized"
 Bundle "Markdown"
-Bundle 'UltiSnips'
+Bundle "UltiSnips"
 Bundle "ragtag.vim"
-Bundle 'pangloss/vim-javascript'
-Bundle 'surround.vim'
-Bundle 'matchit.zip'
+Bundle "pangloss/vim-javascript"
+Bundle "surround.vim"
 Bundle "scrooloose/snipmate-snippets"
-Bundle 'ruby.vim'
+Bundle "ruby.vim"
 Bundle "git.zip"
-Bundle 'tpope/vim-fugitive'
-Bundle 'cocoa.vim'
-Bundle 'scrooloose/nerdtree'
-Bundle 'Lokaltog/vim-easymotion'
-Bundle 'vim-scripts/a.vim'
-Bundle 'kien/ctrlp.vim'
-Bundle 'shemerey/vim-peepopen'
-Bundle 'tpope/vim-rails.git'
-Bundle 'taglist.vim'
-Bundle 'ack.vim'
+Bundle "tpope/vim-fugitive"
+Bundle "cocoa.vim"
+Bundle "scrooloose/nerdtree"
+Bundle "Lokaltog/vim-easymotion"
+Bundle "vim-scripts/a.vim"
+Bundle "kien/ctrlp.vim"
+Bundle "tpope/vim-rails.git"
+Bundle "taglist.vim"
+Bundle "ack.vim"
 Bundle "tpope/vim-endwise"
 Bundle "tComment"
+Bundle "scrooloose/syntastic"
+Bundle "kchmck/vim-coffee-script"
+Bundle "leshill/vim-json"
+Bundle "delimitMate.vim"
+Bundle "ZoomWin"
+Bundle "ragtag.vim"
+Bundle "repeat.vim"
+Bundle "ervandew/SuperTab"
+Bundle "austintaylor/vim-indentobject"
+
+map <unique> <silent> <Leader>o <Plug>PeepOpen
+Bundle "shemerey/vim-peepopen"
+ 
+" ================ General Config ====================
+set number                      "Line numbers are good
+set backspace=indent,eol,start  "Allow backspace in insert mode
+set history=1000                "Store lots of :cmdline history
+set showcmd                     "Show incomplete cmds down the bottom
+set showmode                    "Show current mode down the bottom
+set gcr=a:blinkon0              "Disable cursor blink
+
+set autoread                    "Reload files changed outside vim
+
+" This makes vim act like all other editors, buffers can
+" exist in the background without being in a window. 
+" http://items.sjbach.com/319/configuring-vim-right
+set hidden
+
+" ======================= Style ==========================
+set guifont=Inconsolata:h18
+set background=dark
+
+
+" ================ Search Settings  =================
+
+set incsearch        "Find the next match as we type the search
+set hlsearch         "Hilight searches by default
+set viminfo="100,f1  "Save up to 100 marks, enable capital marks
+
+" ================ Turn Off Swap Files ==============
+
+set noswapfile
+set nobackup
+set nowb
+
+" ================ Persistent Undo ==================
+" Keep undo history across sessions, by storing in file.
+" Only works in MacVim (gui) mode.
+
+if has("gui_running")
+  set undodir=~/.vim/backups
+  set undofile
+endif
+
+" ================ Indentation ======================
+
+set autoindent
+set smartindent
+set smarttab
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
+set expandtab
+
+filetype plugin on
+
+" Display tabs and trailing spaces visually
+set list listchars=tab:\ \ ,trail:·
+
+set linebreak    "Wrap lines at convenient points
+
+" ================ Folds ============================
+
+set foldmethod=indent   "fold based on indent
+set foldnestmax=3       "deepest fold is 3 levels
+set nofoldenable        "dont fold by default
+
+" ================ Completion =======================
+
+set wildmode=list:longest
+set wildmenu "enable ctrl-n and ctrl-p to scroll thru matches
+set wildignore=*.o,*.obj,*~ "stuff to ignore when tab completing
+
+set wildchar=<TAB> "Character for CLI expansion (TAB-completion)
+
+" ================ Scrolling ========================
+
+set scrolloff=3 "Start scrolling when we"re 3 lines away from margins
+set sidescrolloff=15
+set sidescroll=1
+
+
 nnoremap // :TComment<CR>
 vnoremap // :TComment<CR>
-Bundle "scrooloose/syntastic"
-Bundle 'kchmck/vim-coffee-script'
-Bundle 'leshill/vim-json'
-Bundle 'delimitMate.vim'
-Bundle "ZoomWin"
 noremap <leader>o :ZoomWin<CR>
 vnoremap <leader>o <C-C>:ZoomWin<CR>
 inoremap <leader>o <C-O>:ZoomWin<CR>
 
 noremap <C-W>+o :ZoomWin<CR>
-Bundle "ragtag.vim"
-Bundle "repeat.vim"
-Bundle "SuperTab"
 
 
-set guifont=Inconsolata:h18
-set background=dark
-
-filetype plugin indent on " Enable detection, plugins and indenting
 
 " Change mapleader from \ to ,
 let mapleader=","
@@ -62,22 +147,14 @@ set pastetoggle=<F8>
 
 set nojoinspaces
 
-set tabstop=4 " A tab is four spaces
-set shiftwidth=4 " Number of spaces to use for autoindenting
-set softtabstop=4 " When hitting <BS>, pretend like a tab is removed
 set expandtab " Expand tabs to spaces
 set shiftround " Use multiple of shiftwidth when indenting '>' and '<'
-set backspace=indent,eol,start " Allow backspacing over everything in insert mode
 set autoindent " always set autoindenting
 set copyindent " copy the previous indentation on autoindenting
-set number " Always show line numbers
 set showmatch " Set show matching parenthesis
 set ignorecase " Ignore case when searching
 set smartcase " Ignore case if search pattern is all lower case
 set smarttab " Insert tabs on the start of a line according to shiftwidth not tab stop
-set scrolloff=3 "Keep 3 lines above and below cursor at all times
-set hlsearch " Highlight search terms
-set incsearch " Show search matches as you type
 set gdefault " search/replace "globally" (on a line) by default
 set listchars=tab:▸\ ,trail:·,extends:#,nbsp:·
 
@@ -90,26 +167,10 @@ set encoding=utf-8
 set laststatus=2 " Always show a status line
 
 " Vim Behavior
-set hidden "Hide buffers instead of closing them
 set switchbuf=useopen           " reveal already opened files from the
                                 " quickfix window instead of opening new
                                 " buffers
-set history=1000                " remember more commands and search history
 set undolevels=1000             " use many muchos levels of undo
-if v:version >= 730
-    set undofile                " keep a persistent backup file
-    set undodir=~/.vim/.undo,~/tmp,/tmp
-endif
-set nobackup                    " do not keep backup files, it's 70's style cluttering
-set noswapfile                  " do not write annoying intermediate swap files,
-                                "    who did ever restore from swap files anyway?
-set directory=~/.vim/.tmp,~/tmp,/tmp
-                                " store swap files in one of these directories
-                                "    (in case swapfile is ever turned on)
-
-set wildchar=<TAB> "Character for CLI expansion (TAB-completion)
-set wildmenu " Make tab completion act like bash
-set wildmode=list:longest "Complete only until point of ambiguity
 
 set ruler " show the cursor position at all times
 set undofile
@@ -118,11 +179,6 @@ set nomodeline
 set textwidth=80
 set formatoptions=rco1 " Don't wrap paragraphs after 1 letter words
 set equalalways
-set autoread
-
-set foldmethod=syntax "Fold based on syntax
-set nofoldenable "Start off with folds open
-set foldopen=block,hor,insert,jump,mark,percent,quickfix,search,tag,undo " which commands trigger auto-unfold
 
 set autochdir
 
@@ -153,7 +209,7 @@ nnoremap j gj
 nnoremap k gk
 
 " YankRing stuff
-let g:yankring_history_dir = '$HOME/.vim/.tmp'
+let g:yankring_history_dir = "$HOME/.vim/.tmp"
 nmap <leader>r :YRShow<CR>
 
 inoremap jj <ESC>
@@ -163,6 +219,9 @@ let g:alternateExtensions_m = "h"
 noremap <silent> <C-^> :A<CR>
 noremap <silent> <C-o> :AV<CR>
 
+
+noremap <leader>p "0p
+noremap <leader>P "0P
 
 noremap <silent> <C-Down>  <ESC><C-w>j
 noremap <silent> <C-Up>    <ESC><C-w>k
@@ -194,12 +253,10 @@ nnoremap <leader>` :e ~/.vimrc<CR>
 nnoremap <leader>_ <C-w>_
 nnoremap <leader>h :noh<CR>
 nnoremap <leader>H :syntax sync fromstart<CR>
-nnoremap <leader>b :CommandTBuffer<CR>
-nnoremap <leader>f :<CR>
 
-" <Tab> to move back and forth matching pair
-nnoremap <tab> %
-vnoremap <tab> %
+"  <Tab> to move back and forth matching pair
+"nnoremap <tab> %
+"vnoremap <tab> %
 
 " Reselect text that was just pasted with ,v
 nnoremap <leader>v V`]
@@ -223,17 +280,12 @@ nnoremap <leader>W :%s/\s\+$//<CR>:let @/=''<CR>
 map <F1> :NERDTreeToggle<CR><CR>
 
 noremap <leader>a :Ack<Space>
-noremap <leader>e :CommandT<CR>
 
 set history=1000 " Increase history from 20 default to 1000
 set undolevels=1000
 set title " Show the filename in the window titlebar
 set noerrorbells " Don't beep
 set visualbell " Don't beep
-
-set nobackup " Don't keep backup files
-set noswapfile " Don't keep swap files
-set nobackup
 
 autocmd FocusLost * :wa " Save when losing focus
 
@@ -246,7 +298,7 @@ set undodir=~/.vimundo
 
 " Conflict markers {{{
 " highlight conflict markers
-match ErrorMsg '<<<<<<<\\|=======\\|>>>>>>>'
+match ErrorMsg "<<<<<<<\\|=======\\|>>>>>>>"
 
 " shortcut to jump to next conflict marker
 nnoremap <leader>c /<<<<<<<\\|=======\\|>>>>>>><CR>
@@ -260,22 +312,21 @@ autocmd BufWritePre *.m :retab!
 autocmd BufWritePre *.h :retab!
 autocmd BufWritePre *.h :%s/\s\+$//e
 
+inoremap <ctrl-D> 
 nnoremap <leader>t :PeepOpen<CR>
 
-let g:EasyMotion_mapping_f = '<leader>f'
-let g:EasyMotion_mapping_F = '<leader>F'
-let g:EasyMotion_mapping_t = '<leader>t'
-let g:EasyMotion_mapping_T = '<leader>T'
-let g:CommandTMaxFiles = 10000
-let g:CommandTMaxDepth = 5
-let g:CommandTMaxHeight = 10
-let g:CommandTMatchWindowReverse = 1
+let g:EasyMotion_mapping_f = "<leader>f"
+let g:EasyMotion_mapping_F = "<leader>F"
 
 "Auto commands
+"
 au BufRead,BufNewFile {Gemfile,Rakefile,Capfile,*.rake,config.ru}     set ft=ruby
+" 
 au BufRead,BufNewFile {*.md,*.mkd,*.markdown}                         set ft=markdown
+" gitcommit 
 au BufRead,BufNewFile {COMMIT_EDITMSG}                                set ft=gitcommit
 
 au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal g'\"" | endif " restore position in file
 
-
+" CtrlP
+let g:ctrlp_working_path_mode = 2
