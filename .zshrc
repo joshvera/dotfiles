@@ -1,7 +1,7 @@
 # Path to oh-my-zsh configuration
 export ZSH=$HOME/.oh-my-zsh
 # Themes in ~/.oh-my-zsh/themes/
-export ZSH_THEME="robbyrussell"
+export ZSH_THEME="random"
 
 plugins=(git ruby rails vi-mode)
 source $ZSH/oh-my-zsh.sh
@@ -61,20 +61,20 @@ zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*:match:*' original only
 zstyle ':completion:*:approximate:*' max-errors 1 numeric
 
-function zle-line-init zle-keymap-select {
-    export RPROMPT="${${KEYMAP/vicmd/[%*]}/main/-- INSERT --}"
-    zle reset-prompt
-}
+# function zle-line-init zle-keymap-select {
+#     export RPROMPT="${${KEYMAP/vicmd/[%*]}/main/-- INSERT --}"
+#     zle reset-prompt
+# }
 
-function zle-line-finish {
-    export RPROMPT='[%*]'
-    zle reset-prompt
-}
+# function zle-line-finish {
+#     export RPROMPT='[%*]'
+#     zle reset-prompt
+# }
 
-zle -N zle-line-init
-zle -N zle-keymap-select
-zle -N zle-line-finish
-export RPROMPT='[%*]'
+# zle -N zle-line-init
+# zle -N zle-keymap-select
+# zle -N zle-line-finish
+# export RPROMPT='[%*]'
 
 bindkey -M viins '' backward-char
 bindkey -M viins '' forward-char
@@ -84,6 +84,4 @@ bindkey -M viins 'jj' vi-cmd-mode
 
 # Rbenv
 eval "$(rbenv init -)"
-
-export TERM="xterm-256color"
 

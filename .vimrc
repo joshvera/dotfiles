@@ -42,8 +42,6 @@ Bundle "ragtag.vim"
 Bundle "repeat.vim"
 Bundle "ervandew/SuperTab"
 Bundle "austintaylor/vim-indentobject"
-
-map <unique> <silent> <Leader>o <Plug>PeepOpen
 Bundle "shemerey/vim-peepopen"
  
 " ================ General Config ====================
