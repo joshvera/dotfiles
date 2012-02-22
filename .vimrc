@@ -310,14 +310,14 @@ autocmd BufWritePre *.m :retab!
 autocmd BufWritePre *.h :retab!
 autocmd BufWritePre *.h :%s/\s\+$//e
 
-inoremap <ctrl-D> 
+inoremap <CTRL-D> <BS>
 nnoremap <leader>t :PeepOpen<CR>
+
 
 let g:EasyMotion_mapping_f = "<leader>f"
 let g:EasyMotion_mapping_F = "<leader>F"
 
 "Auto commands
-"
 au BufRead,BufNewFile {Gemfile,Rakefile,Capfile,*.rake,config.ru}     set ft=ruby
 " 
 au BufRead,BufNewFile {*.md,*.mkd,*.markdown}                         set ft=markdown
