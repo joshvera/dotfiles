@@ -1,4 +1,6 @@
-.vim/.tmp/
+.vim/.tmp
 .DS_Store
 .ssh/
 .vim/.netrwhist
+xcuserdata
+doc/tags
