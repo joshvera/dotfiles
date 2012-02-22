@@ -1,9 +1,17 @@
 # Path to oh-my-zsh configuration
 export ZSH=$HOME/.oh-my-zsh
 # Themes in ~/.oh-my-zsh/themes/
-export ZSH_THEME="random"
+export ZSH_THEME="fwalch"
 
-plugins=(git ruby rails vi-mode)
+# Example aliases
+alias zshconfig="vim ~/.zshrc"
+alias ohmyzsh="vim ~/.oh-my-zsh"
+
+# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
+# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+plugins=(git vi-mode)
+
 source $ZSH/oh-my-zsh.sh
 
 # Flags for package installations
@@ -21,8 +29,6 @@ source ~/.secrets
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
 
-
-# Paths
 export PATH=/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:/usr/local/share/npm/bin:/Users/joshvera/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:~/.rbenv/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X9/bin
 
 # Vim
