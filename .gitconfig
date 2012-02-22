@@ -41,11 +41,13 @@
 [branch]
 	autosetuprebase = always
 [branch "master"]
-    mergeoptions = --no-ff --no-commit
+    rebase = true
+    mergeoptions = --no-commit
 [push]
     default = upstream
 [merge]
 	stat = true
+	ff = false
 [rebase]
     stat = true
 [pack]
