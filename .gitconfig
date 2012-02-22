@@ -48,6 +48,7 @@
 [merge]
 	stat = true
 	ff = false
+	tool = fugitive
 [rebase]
     stat = true
 [pack]
@@ -55,3 +56,5 @@
 [advice]
     pushNonFastForward = false
     statusHints = false
+[mergetool "fugitive"]
+	cmd = mvim -f -c \"Gdiff\" \"$MERGED\"
