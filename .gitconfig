@@ -1,6 +1,6 @@
 [user]
-    name = Josh Vera
-    email = josh@joshvera.com
+	name = Josh Vera
+	email = josh@joshvera.com
 [core]
     autocrlf = input
     quotepath = false
@@ -42,7 +42,6 @@
 	autosetuprebase = always
 [branch "master"]
     rebase = true
-    mergeoptions = --no-commit
 [push]
     default = upstream
 [merge]
