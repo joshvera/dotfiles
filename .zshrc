@@ -25,11 +25,14 @@ export HOMEBREW_USE_CLANG
 # Things I don't want to publish to github
 source ~/.secrets
 
+
+export CLOJURESCRIPT_HOME=/Users/joshvera/vendor/clojurescript
+export PATH=~/.rbenv/shims:/Users/joshvera/vendor/WebKit/Tools/Scripts:/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:/usr/local/share/npm/bin:/Users/joshvera/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X9/bin
+export PATH=$PATH:$CLOJURESCRIPT_HOME/bin:$CLOJURESCRIPT_HOME/script
+
 # Configuration
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
-
-export PATH=/usr/local/Cellar/node/0.4.12/bin:/Applications/Emacs.app/Contents/MacOS/bin:/usr/local/share/npm/bin:/Users/joshvera/.cabal/bin:~/.lein/bin:/usr/local/bin:/usr/local/sbin:~/.rbenv/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/X9/bin
 
 # Vim
 export VIM_APP_DIR=/Applications
@@ -46,10 +49,11 @@ export JAVA_OPTS=-Xmx768m
 export NODE_PATH=/usr/local/lib/node_modules
 
 # Hub
-function git(){hub "$@"}
+# function git(){hub "$@"}
 
 # Give me my bash style incremental search
 bindkey '^R' history-incremental-search-backward
+bindkey '^S' history-incremental-search-forward
 
 # Vim mode
 bindkey -v
@@ -67,27 +71,26 @@ zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*:match:*' original only
 zstyle ':completion:*:approximate:*' max-errors 1 numeric
 
-# function zle-line-init zle-keymap-select {
-#     export RPROMPT="${${KEYMAP/vicmd/[%*]}/main/-- INSERT --}"
-#     zle reset-prompt
-# }
-
-# function zle-line-finish {
-#     export RPROMPT='[%*]'
-#     zle reset-prompt
-# }
-
-# zle -N zle-line-init
-# zle -N zle-keymap-select
-# zle -N zle-line-finish
-# export RPROMPT='[%*]'
-
-bindkey -M viins '' backward-char
+bindkey -M viins '
+' backward-char
 bindkey -M viins '' forward-char
 bindkey -M viins '^A' beginning-of-line
 bindkey -M viins '^e' end-of-line
 bindkey -M viins 'jj' vi-cmd-mode
 
-# Rbenv
-eval "$(rbenv init -)"
+export TERM=xterm-256color
 
+if [ -n "$INSIDE_EMACS" ]; then
+    chpwd() { print -P "\033AnSiTc %d" }
+    print -P "\033AnSiTu %n"
+    print -P "\033AnSiTc %d"
+fi
+
+export YABBLY_HOME="/Users/joshvera/Projects/Yabbly/yabbly-home"
+
+alias pgstart='pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start'
+alias pgstop='pg_ctl -D /usr/local/var/postgres stop -s -m fast'
+
+export PATH=/Applications/Xcode45-DP1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode45-DP1.app/Contents/Developer/usr/bin:$PATH
+
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi

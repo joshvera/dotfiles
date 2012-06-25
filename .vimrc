@@ -9,11 +9,30 @@ filetype off
 " This loads all the plugins into ~/.vim/bundle
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
-Bundle "vundle"
-Bundle "kana/vim-textobj-user"
+
+Bundle "tmhedberg/matchit"
+Bundle "vim-ruby/vim-ruby"
+Bundle "tpope/vim-rake"
+Bundle "tpope/vim-bundler"
+Bundle "tpope/vim-rails"
+Bundle "nelstrom/vim-textobj-rubyblock"
+Bundle "ecomba/vim-ruby-refactoring"
+autocmd FileType ruby,eruby,yaml set tw=80 ai sw=2 sts=2 et
+if has("autocmd")
+    autocmd FileType ruby set omnifunc=rubycomplete#Complete
+    autocmd FileType ruby let g:rubycomplete_buffer_loading=1
+    autocmd FileType ruby let g:rubycomplete_classes_in_global=1
+endif
+
+Bundle "scratch.vim"
+Bundle "Lokaltog/vim-powerline"
+Bundle "tpope/vim-haml"
+Bundle 'alfredodeza/jacinto.vim'
+
 Bundle "bufkill.vim"
 Bundle "YankRing.vim"
-Bundle "Solarized"
+Bundle "kana/vim-textobj-user"
+Bundle "altercation/vim-colors-solarized"
 Bundle "Markdown"
 Bundle "UltiSnips"
 Bundle "ragtag.vim"
@@ -23,17 +42,19 @@ Bundle "scrooloose/snipmate-snippets"
 Bundle "ruby.vim"
 Bundle "git.zip"
 Bundle "tpope/vim-fugitive"
-Bundle "cocoa.vim"
+Bundle "b4winckler/vim-objc"
 Bundle "scrooloose/nerdtree"
 Bundle "Lokaltog/vim-easymotion"
 Bundle "vim-scripts/a.vim"
 Bundle "kien/ctrlp.vim"
-Bundle "tpope/vim-rails.git"
 Bundle "taglist.vim"
 Bundle "ack.vim"
 Bundle "tpope/vim-endwise"
 Bundle "tComment"
 Bundle "scrooloose/syntastic"
+let g:syntastic_enable_signs=1
+let g:syntastic_auto_loc_list=1
+
 Bundle "kchmck/vim-coffee-script"
 Bundle "leshill/vim-json"
 Bundle "delimitMate.vim"
@@ -210,7 +231,7 @@ nnoremap k gk
 let g:yankring_history_dir = "$HOME/.vim/.tmp"
 nmap <leader>r :YRShow<CR>
 
-inoremap jj <ESC>
+inoremap jk <ESC>
 " Open corresponding header
 let g:alternateExtensions_h = "m,mm,c,cpp"
 let g:alternateExtensions_m = "h"
@@ -305,17 +326,16 @@ nnoremap <leader>c /<<<<<<<\\|=======\\|>>>>>>><CR>
 vnoremap < <gv
 vnoremap > >gv
 
-autocmd BufWritePre *.m :%s/\s\+$//e
-autocmd BufWritePre *.m :retab!
-autocmd BufWritePre *.h :retab!
-autocmd BufWritePre *.h :%s/\s\+$//e
+ autocmd BufWritePre *.m :%s/\s\+$//e
+ autocmd BufWritePre *.m :retab!
+ autocmd BufWritePre *.h :retab!
+ autocmd BufWritePre *.h :%s/\s\+$//e
 
 inoremap <CTRL-D> <BS>
 nnoremap <leader>t :PeepOpen<CR>
 
 
-let g:EasyMotion_mapping_f = "<leader>f"
-let g:EasyMotion_mapping_F = "<leader>F"
+let g:EasyMotion_mapping_f = "<space>"
 
 "Auto commands
 au BufRead,BufNewFile {Gemfile,Rakefile,Capfile,*.rake,config.ru}     set ft=ruby

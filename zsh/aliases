@@ -1,7 +1,6 @@
 # Emacs
-alias e='emacs'
+alias e='emacsclient'
 alias emacsclient='/usr/local/Cellar/emacs/HEAD/bin/emacsclient'
-alias emacs='emacsclient'
 
 # Git aliases
 alias gsb="git submodule "
@@ -28,9 +27,3 @@ alias sporkify='bundle exec spork cucumber & bundle exec spork'
 
 # Vim
 alias vim="mvim -v"
-
-# Rbenv
-eval "$(rbenv init -)"
-
-# Node
-export NODE_PATH=/usr/local/lib/node_modules
