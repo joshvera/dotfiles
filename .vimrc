@@ -17,6 +17,7 @@ Bundle "tpope/vim-bundler"
 Bundle "tpope/vim-rails"
 Bundle "nelstrom/vim-textobj-rubyblock"
 Bundle "ecomba/vim-ruby-refactoring"
+
 autocmd FileType ruby,eruby,yaml set tw=80 ai sw=2 sts=2 et
 if has("autocmd")
     autocmd FileType ruby set omnifunc=rubycomplete#Complete
@@ -34,8 +35,6 @@ Bundle "YankRing.vim"
 Bundle "kana/vim-textobj-user"
 Bundle "altercation/vim-colors-solarized"
 Bundle "Markdown"
-Bundle "UltiSnips"
-Bundle "ragtag.vim"
 Bundle "pangloss/vim-javascript"
 Bundle "surround.vim"
 Bundle "scrooloose/snipmate-snippets"
@@ -231,7 +230,7 @@ nnoremap k gk
 let g:yankring_history_dir = "$HOME/.vim/.tmp"
 nmap <leader>r :YRShow<CR>
 
-inoremap jk <ESC>
+inoremap jj <ESC>
 " Open corresponding header
 let g:alternateExtensions_h = "m,mm,c,cpp"
 let g:alternateExtensions_m = "h"
@@ -266,6 +265,8 @@ nnoremap <leader>w <C-w>v<C-w>l
 nnoremap <leader>= <C-W>=
 " Search/replace
 nnoremap <leader>s :%s/\v
+nnoremap <leader>x :bn <CR>
+nnoremap <leader>z :bN <CR>
 
 " Open .vimrc
 nnoremap <leader>` :e ~/.vimrc<CR>
@@ -334,7 +335,6 @@ vnoremap > >gv
 inoremap <CTRL-D> <BS>
 nnoremap <leader>t :PeepOpen<CR>
 
-
 let g:EasyMotion_mapping_f = "<space>"
 
 "Auto commands
@@ -344,7 +344,12 @@ au BufRead,BufNewFile {*.md,*.mkd,*.markdown}                         set ft=mar
 " gitcommit 
 au BufRead,BufNewFile {COMMIT_EDITMSG}                                set ft=gitcommit
 
+autocmd FileType c,m,cpp,java autocmd BufWritePre <buffer> :%s/\s\+$//e
+
 au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal g'\"" | endif " restore position in file
 
 " CtrlP
 let g:ctrlp_working_path_mode = 2
+
+let g:syntastic_ruby_exec = 'ruby'
+let g:syntastic_ruby_exec = '~/.rbenv/versions/1.9.2-p320/bin/ruby'
