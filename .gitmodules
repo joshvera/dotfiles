@@ -13,9 +13,6 @@
 [submodule ".vim/bundle/commentary.vim"]
 	path = .vim/bundle/commentary.vim
 	url = git://github.com/tpope/vim-commentary.git
-[submodule ".vim/bundle/markdown.vim"]
-	path = .vim/bundle/markdown.vim
-	url = git://github.com/tpope/vim-markdown.git
 [submodule ".vim/bundle/ruby.vim"]
 	path = .vim/bundle/ruby.vim
 	url = git://github.com/vim-ruby/vim-ruby.git
@@ -25,9 +22,6 @@
 [submodule ".vim/bundle/bufkill.vim"]
 	path = .vim/bundle/bufkill.vim
 	url = git://github.com/vim-scripts/bufkill.vim.git
-[submodule ".vim/bundle/pathogen.vim"]
-	path = .vim/bundle/pathogen.vim
-	url = git://github.com/tpope/vim-pathogen.git
 [submodule ".vim/bundle/coffee-script.vim"]
 	path = .vim/bundle/coffee-script.vim
 	url = https://github.com/kchmck/vim-coffee-script.git

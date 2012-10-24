@@ -1,6 +1,10 @@
+[hub]
+    protocol = https
+[credential]
+    helper = osxkeychain
 [user]
 	name = Josh Vera
-	email = josh@joshvera.com
+	email = vera@github.com
 [core]
     autocrlf = input
     quotepath = false
@@ -10,6 +14,7 @@
     preloadindex = true
     whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 [alias]
+    annihilate = reset --hard origin/master
     co = checkout
     ci = commit
     st = status
