@@ -5,3 +5,5 @@
 xcuserdata
 doc/tags
 .netrwhist
+.vim/bundle
+.vim/backups
