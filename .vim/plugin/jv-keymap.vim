@@ -8,11 +8,9 @@ let mapleader=","
 
 " alias yw to yank the entire word 'yank inner word'
 " even if the cursor is halfway inside the word
-" FIXME: will not properly repeat when you use a dot (tie into repeat.vim)
-nnoremap ,yw yiww
+nnoremap ,yw yiw
 
 " ,ow = 'overwrite word', replace a word with what's in the yank buffer
-" FIXME: will not properly repeat when you use a dot (tie into repeat.vim)
 nnoremap ,ow "_diwhp
 
 "make Y consistent with C and D
@@ -70,8 +68,8 @@ imap <C-a> <esc>^a
 inoremap <C-d> <Del>
 
 " ==== NERD tree
-" Cmd-Shift-N for nerd tree
-nmap <D-N> :NERDTreeToggle<CR>
+" Cmd-Shift-O for nerd tree
+nmap <D-O> :NERDTreeToggle<CR>
 
 " Open the project tree and expose current file in the nerdtree with Ctrl-\
 nnoremap <silent> <C-\> :NERDTreeFind<CR>
@@ -80,6 +78,8 @@ nnoremap <silent> <C-\> :NERDTreeFind<CR>
 " ,oq to open it back up (rare)
 nmap <silent> ,qc :CloseSingleConque<CR>:cclose<CR>
 nmap <silent> ,qo :copen<CR>
+
+nmap <leader>g :Gstatus<CR>
 
 " move up/down quickly by using Cmd-j, Cmd-k
 " which will move us around by functions
@@ -94,13 +94,14 @@ autocmd FileType rspec map <buffer> <D-k> {
 map <D-/> :TComment<CR>
 imap <D-/> <Esc>:TComment<CR>i
 
-"GitGrep - open up a git grep line, with a quote started for the search
+" GitGrep - open up a git grep line, with a quote started for the search
 nnoremap ,gg :GitGrep ""<left>
 "GitGrep Current Partial
 nnoremap ,gcp :GitGrepCurrentPartial<CR>
 "GitGrep Current File
 nnoremap ,gcf :call GitGrep(expand("%:t:r"))<CR>
 
+set noexpandtab
 " hit ,f to find the definition of the current class
 " this uses ctags. the standard way to get this is Ctrl-]
 nnoremap <silent> ,f <C-]>
@@ -130,7 +131,11 @@ nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
 
 nnoremap <C-x>o <C-w>w
+nnoremap <C-x>O <C-w>W
 nnoremap <C-x>0 <C-w>q
+
+nnoremap <C-x>3 <C-w>v
+nnoremap <C-x>2 <C-w>s
 
 " Sudo to write
 cmap w!! w !sudo tee % >/dev/null
@@ -187,6 +192,11 @@ nnoremap <silent> <right> <C-w>l
 nnoremap <silent> <up> <C-w>k
 nnoremap <silent> <down> <C-w>j
 
+nnoremap <silent> <C-h> <C-w>h
+nnoremap <silent> <C-l> <C-w>l
+nnoremap <silent> <C-k> <C-w>k
+nnoremap <silent> <C-j> <C-w>j
+
 " Zoom in and out of current window with ,gz
 map <silent> ,gz <C-w>o
 
@@ -221,7 +231,7 @@ nnoremap <silent> <F7> :let notabs=!notabs<Bar>:if notabs<Bar>:tabo<Bar>:else<Ba
 " " Conflict markers {{{
 " " highlight conflict markers
 match ErrorMsg "<<<<<<<\\|=======\\|>>>>>>>"
-" 
+ 
 " " shortcut to jump to next conflict marker
 nnoremap <leader>c /<<<<<<<\\|=======\\|>>>>>>>/<CR>
 
@@ -242,18 +252,22 @@ au BufRead,BufNewFile {COMMIT_EDITMSG}                                set ft=git
 
 au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal g'\"" | endif " restore position in file
 
+" Set explicit ruby path
 let g:syntastic_ruby_exec = 'ruby'
 let g:syntastic_ruby_exec = '~/.rbenv/versions/1.9.2-p320/bin/ruby'
-
-" CtrlP local directory to nearest .git
-let g:ctrlp_working_path_mode = 2
 
 " ============================
 " Shortcuts for everyday tasks
 " ============================
 
 " CtrlP
-nnoremap <C-b> :CtrlPBuffer<CR>
+nnoremap <leader>b :CtrlPBuffer<CR>
+nnoremap <leader>f :CtrlP<CR>
+
+nnoremap <leader>bd :Bclose<CR>
+
+" CtrlP local directory to nearest .git
+let g:ctrlp_working_path_mode = 2
 
 " copy current filename into system clipboard - mnemonic: (c)urrent(f)ilename
 " this is helpful to paste someone the path you're looking at
@@ -288,5 +302,17 @@ vmap <D-A> :Tabularize /
 " Get the current highlight group. Useful for then remapping the color
 map ,hi :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">" . " FG:" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"fg#")<CR>
 
+" Haddock
 let g:haddock_browser = "open"
 let g:haddock_browser_callformat = "%s %s"
+
+" D-i to print Haskell type
+au FileType haskell nnoremap <buffer> <D-i> :HdevtoolsType<CR>
+
+" D-u to print Haskell type info
+au FileType haskell nnoremap <buffer> <D-u> :HdevtoolsInfo<CR>
+
+" D-y to clear Haskell info
+au FileType haskell nnoremap <buffer> <silent> <D-y> :HdevtoolsClear<CR>
+
+nmap <C-x>k :Kwbd<CR>
