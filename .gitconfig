@@ -1,19 +1,19 @@
 [hub]
     protocol = https
-[credential]
-    helper = osxkeychain
+    helper = /opt/boxen/bin/boxen-git-credential
 [user]
-	name = Josh Vera
-	email = vera@github.com
+    name = Josh Vera
+    email = vera@github.com
 [core]
     autocrlf = input
     quotepath = false
     editor = "mvim -v"
-    excludesfile = ~/.globalgitignore
+    excludesfile = /opt/boxen/config/git/gitignore
     fsyncobjectfiles = true
     preloadindex = true
     whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 [alias]
+    sup = submodule update --init --recursive
     annihilate = reset --hard origin/master
     co = checkout
     ci = commit
@@ -28,31 +28,31 @@
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
     patches = log -p --reverse
     sup = submodule update --init --recursive
-	wtf = blame
-	bg = branch
-	fg = checkout
-	rba = rebase --abort
-	rbc = rebase --continue
+    wtf = blame
+    bg = branch
+    fg = checkout
+    rba = rebase --abort
+    rbc = rebase --continue
 [color]
     diff = auto
     status = auto
     branch = auto
-	whitespace = trailing-space,space-before-tab
+    whitespace = trailing-space,space-before-tab
 [diff]
     renames = copies
     mnemonicprefix = true
 [status]
     submodulesummary = true
 [branch]
-	autosetuprebase = always
+    autosetuprebase = always
 [branch "master"]
     rebase = true
 [push]
     default = upstream
 [merge]
-	stat = true
-	ff = false
-	tool = fugitive
+    stat = true
+    ff = false
+    tool = fugitive
 [rebase]
     stat = true
 [pack]
@@ -61,4 +61,6 @@
     pushNonFastForward = false
     statusHints = false
 [mergetool "fugitive"]
-	cmd = mvim -f -c \"Gdiff\" \"$MERGED\"
+    cmd = mvim -f -c \"Gdiff\" \"$MERGED\"
+[credential]
+    helper = /opt/boxen/bin/boxen-git-credential
