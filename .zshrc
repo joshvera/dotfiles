@@ -1,7 +1,5 @@
 # Path to oh-my-zsh configuration
 export ZSH=$HOME/.oh-my-zsh
-# Themes in ~/.oh-my-zsh/themes/
-export ZSH_THEME="fwalch"
 
 # Example aliases
 alias zshconfig="vim ~/.zshrc"
@@ -11,9 +9,14 @@ alias ohmyzsh="vim ~/.oh-my-zsh"
 # # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # # Example format: plugins=(rails git textmate ruby lighthouse)
 if [ -n "$INSIDE_EMACS" ]; then
+    chpwd() { print -P "\033AnSiTc %d" }
+    print -P "\033AnSiTu %n"
+    print -P "\033AnSiTc %d"
+    export ZSH_THEME="lambda"
     plugins=(git)
 else
-    plugins=(vi-mode git)
+    export ZSH_THEME="fwalch"
+    plugins=(vi-mode git brew coffee github pip)
 fi
 
 source $ZSH/oh-my-zsh.sh
@@ -30,11 +33,7 @@ export HOMEBREW_USE_CLANG
 source ~/.secrets
 
 
-# export PATH=~/.cabal/bin
-# export PATH=bin:/opt/github/rbenv/shims:node_modules/.bin:/opt/github/bin:/opt/github/homebrew/bin:/opt/github/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:~/.cabal/bin
-# Add clojurescript binaries to PATH
-# export CLOJURESCRIPT_HOME=/Users/joshvera/vendor/clojurescript
-# export PATH=$PATH:$CLOJURESCRIPT_HOME/bin:$CLOJURESCRIPT_HOME/script
+export PATH=~/.cabal/bin:$PATH
 
 # Configuration
 source ~/dotfiles/zsh/aliases
@@ -77,23 +76,19 @@ zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*:match:*' original only
 zstyle ':completion:*:approximate:*' max-errors 1 numeric
 
+# emacs vim bindings
 bindkey -M viins '' forward-char
 bindkey -M viins '' backward-char
 bindkey -M viins '^A' beginning-of-line
 bindkey -M viins '^e' end-of-line
-bindkey -M viins 'jj' vi-cmd-mode
 bindkey -M viins '^k' delete-line
+
+# jj to escape
+bindkey -M viins 'jj' vi-cmd-mode
 
 export TERM=xterm-256color
 
-if [ -n "$INSIDE_EMACS" ]; then
-    chpwd() { print -P "\033AnSiTc %d" }
-    print -P "\033AnSiTu %n"
-    print -P "\033AnSiTc %d"
-else
-    plugins=(vi-mode git)
-fi
+# GitHub
+source /opt/boxen/env.sh
 
-# Github
-source /opt/github/env.sh
-
+export SHELL=/opt/boxen/homebrew/bin/zsh
