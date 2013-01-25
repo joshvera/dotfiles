@@ -3,6 +3,8 @@
 " This loads all the plugins into ~/.vim/bundle
 source ~/.vim/bundles.vim
 
+
+" Set spacing and ruby complete
 autocmd FileType ruby,eruby,yaml set tw=80 ai sw=2 sts=2 et
 if has("autocmd")
     autocmd FileType ruby set omnifunc=rubycomplete#Complete
@@ -17,14 +19,11 @@ let g:syntastic_auto_loc_list=1
 " ================ General Config ====================
 
 set number                      "Line numbers are good
-set backspace=indent,eol,start  "Allow backspace in insert mode
 set history=1000                "Store lots of :cmdline history
-set showcmd                     "Show incomplete cmds down the bottom
 set showmode                    "Show current mode down the bottom
 set gcr=a:blinkon0              "Disable cursor blink
 set visualbell                  "No sounds
 set noerrorbells                "Don't beep
-set autoread                    "Reload files changed outside vim
 set autochdir
 
 " This makes vim act like all other editors, buffers can
@@ -41,37 +40,23 @@ set background=dark
 
 " ================ Search Settings  =================
 
-set incsearch        "Find the next match as we type the search
 set hlsearch         "Hilight searches by default
-set viminfo='100,f1  "Save up to 100 marks, enable capital marks
-
-" ================ Turn Off Swap Files ==============
-
-set noswapfile
-set nobackup
-set nowritebackup
+set viminfo='100,f1,%  "Save up to 100 marks, enable capital marks,buffers
 
 " ================ Persistent Undo ==================
 " Keep undo history across sessions, by storing in file.
 " Only works all the time.
 
 silent !mkdir ~/.vim/backups > /dev/null 2>&1
-set undodir=~/.vim/backups
-set undofile
 
 " ================ Indentation ======================
 
 set copyindent " copy the previous indentation on autoindenting
-" set autoindent
+set noautoindent
 set smartindent
-set smarttab " Insert tabs on the start of a line according to shiftwidth not tab stop
 set shiftwidth=4
 set softtabstop=4
 set tabstop=4
-set expandtab " Expand tabs to spaces
-set shiftround " Use multiple of shiftwidth when indenting '>' and '<'
-
-autocmd FileType h,m setlocal tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab
 
 " Display tabs and trailing spaces visually
 set listchars=tab:▸\ ,trail:·,extends:#,nbsp:·
@@ -89,7 +74,6 @@ set nofoldenable        "dont fold by default
 " ================ Completion =======================
 
 set wildmode=list:longest
-set wildmenu                "enable ctrl-n and ctrl-p to scroll thru matches
 set wildignore=*.o,*.obj,*~ "stuff to ignore when tab completing
 set wildignore+=*vim/backups*
 set wildignore+=*sass-cache*
@@ -118,14 +102,11 @@ set pastetoggle=<F6>
 set nojoinspaces
 
 " ================ Searching ========================
-set showmatch " Set show matching parenthesis
 set ignorecase " Ignore case when searching
-set smartcase " Ignore case if search pattern is all lower case
 set gdefault " search/replace "globally" (on a line) by default
 
 "Editor Layout
 set encoding=utf-8
-set laststatus=2 " Always show a mode line
 
 "Vim Behavior
 set switchbuf=useopen           "Reveal already opened files from the
@@ -133,11 +114,10 @@ set switchbuf=useopen           "Reveal already opened files from the
                                 "buffers
 set undolevels=1000             "Use many muchos levels of undo
 
-"Show the cursor position at all times
-set ruler 
-
 "Turn on persistent undo
 set undofile
+
+set undodir=~/.vim/undodir
 
 set textwidth=80
 
@@ -145,8 +125,11 @@ set textwidth=80
 set equalalways
 
 "Automatically change the current working directory
-" set autochdir
+set autochdir
 
 set title "Show the filename in the window titlebar
 
 set nosplitbelow "Don't do it.
+
+set noswapfile
+
