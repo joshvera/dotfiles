@@ -7,3 +7,5 @@ doc/tags
 .netrwhist
 .vim/bundle
 .vim/backups
+.vim/undodir
+.rbenv-version
