@@ -27,7 +27,7 @@ export CXXFLAGS="$CFLAGS"
 export MAKEFLAGS="-j9"
 
 # Homebrew flags
-export HOMEBREW_USE_CLANG
+export HOMEBREW_CC="clang"
 
 # Things I don't want to publish to github
 source ~/.secrets
