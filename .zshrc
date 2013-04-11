@@ -32,7 +32,6 @@ export HOMEBREW_CC="clang"
 # Things I don't want to publish to github
 source ~/.secrets
 
-
 export PATH=~/.cabal/bin:$PATH
 
 # Configuration
@@ -53,8 +52,14 @@ export JAVA_OPTS=-Xmx768m
 # Node
 export NODE_PATH=/usr/local/lib/node_modules
 
+# Term
+export TERM=xterm-256color
+
+# Shell
+export SHELL=/opt/boxen/homebrew/bin/zsh
+
 # Hub
-# function git(){hub "$@"}
+function git(){hub "$@"}
 
 # Give me my bash style incremental search
 bindkey '^R' history-incremental-search-backward
@@ -86,9 +91,5 @@ bindkey -M viins '^k' delete-line
 # jj to escape
 bindkey -M viins 'jj' vi-cmd-mode
 
-export TERM=xterm-256color
-
 # GitHub
 source /opt/boxen/env.sh
-
-export SHELL=/opt/boxen/homebrew/bin/zsh
