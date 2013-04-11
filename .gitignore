@@ -9,3 +9,7 @@ doc/tags
 .vim/backups
 .vim/undodir
 .rbenv-version
+.build
+.ycm_extra_conf.py*
+tags
+Pods
