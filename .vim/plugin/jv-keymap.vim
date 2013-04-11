@@ -101,6 +101,8 @@ nnoremap ,gcp :GitGrepCurrentPartial<CR>
 "GitGrep Current File
 nnoremap ,gcf :call GitGrep(expand("%:t:r"))<CR>
 
+nnoremap ,gco :Gread<CR>
+
 set noexpandtab
 " hit ,f to find the definition of the current class
 " this uses ctags. the standard way to get this is Ctrl-]
