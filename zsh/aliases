@@ -34,7 +34,6 @@ alias gca='git commit -v -a'
 alias gd='git diff --color'
 alias go='git checkout'
 alias gl='git log'
-alias gv='git status | pru  --reduce '"'"'select {|s| s.match(/#\s+modified:.+/) }.map {|s| s.gsub(/#\s+modified:\s+/, "") }.first'"' | xargs vim"
 alias got='git '
 alias get='git '
 
