@@ -7,6 +7,17 @@ filetype off
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
+Bundle "tpope/vim-dispatch"
+Bundle "jerrymarino/xcodebuild.vim"
+Bundle "Valloric/YouCompleteMe"
+Bundle "AndrewRadev/splitjoin.vim"
+Bundle "sjl/gundo.vim"
+Bundle "vim-scripts/colorizer"
+Bundle "Specky"
+Bundle "aaronjensen/vim-sass-status"
+Bundle "IndexedSearch"
+Bundle "vim-scripts/SearchComplete"
+Bundle "SirVer/ultisnips"
 Bundle "kana/vim-arpeggio"
 Bundle "rgarver/Kwbd.vim"
 Bundle "Syntastic"
