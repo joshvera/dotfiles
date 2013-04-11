@@ -261,7 +261,8 @@ let g:syntastic_ruby_exec = '~/.rbenv/versions/1.9.2-p320/bin/ruby'
 nnoremap <leader>b :CtrlPBuffer<CR>
 nnoremap <leader>f :CtrlP<CR>
 
-nnoremap <leader>bd :Bclose<CR>
+nnoremap <leader>bd :Kwbd<CR>
+nmap <C-x>k :Kwbd<CR>
 
 " CtrlP local directory to nearest .git
 let g:ctrlp_working_path_mode = 2
