@@ -133,3 +133,7 @@ set nosplitbelow "Don't do it.
 
 set noswapfile
 
+set tags+=tags;$HOME 
+nnoremap <leader>. :CtrlPTag<cr>
+
+let c_no_curly_error = 1
