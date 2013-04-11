@@ -313,4 +313,7 @@ au FileType haskell nnoremap <buffer> <D-u> :HdevtoolsInfo<CR>
 " D-y to clear Haskell info
 au FileType haskell nnoremap <buffer> <silent> <D-y> :HdevtoolsClear<CR>
 
-nmap <C-x>k :Kwbd<CR>
+au BufWritePost *.c,*.cpp,*.m,*.h silent! !ctags -R &
+
+imap <C-k> <esc>ld$a
+imap <C-y> <esc>m'p''a
