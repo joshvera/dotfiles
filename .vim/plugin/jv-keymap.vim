@@ -145,9 +145,6 @@ nnoremap <leader>W :%s/\s\+$//<CR>:let @/=''<CR>
 
 noremap <leader>a :Ack<Space>
 
-" Semicolon takes us to Ex mode
-map ; :
-
 noremap <leader>p "0p
 noremap <leader>P "0P
 
