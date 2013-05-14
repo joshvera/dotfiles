@@ -7,8 +7,9 @@ filetype off
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
+Bundle "airblade/vim-gitgutter"
+Bundle "markschabacker/cocoa.vim"
 Bundle "tpope/vim-dispatch"
-Bundle "jerrymarino/xcodebuild.vim"
 Bundle "Valloric/YouCompleteMe"
 Bundle "AndrewRadev/splitjoin.vim"
 Bundle "sjl/gundo.vim"
@@ -32,7 +33,6 @@ Bundle "ack.vim"
 Bundle "altercation/vim-colors-solarized"
 Bundle "austintaylor/vim-indentobject"
 Bundle "b4winckler/vim-objc"
-Bundle "bufkill.vim"
 Bundle "delimitMate.vim"
 Bundle "gmarick/vundle"
 Bundle "kana/vim-textobj-user"
