@@ -1,26 +1,7 @@
 # Path to oh-my-zsh configuration
 export ZSH=$HOME/.oh-my-zsh
 
-# Example aliases
-alias zshconfig="vim ~/.zshrc"
-alias ohmyzsh="vim ~/.oh-my-zsh"
-
-# # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# # Example format: plugins=(rails git textmate ruby lighthouse)
-if [ -n "$INSIDE_EMACS" ]; then
-    chpwd() { print -P "\033AnSiTc %d" }
-    print -P "\033AnSiTu %n"
-    print -P "\033AnSiTc %d"
-    export ZSH_THEME="lambda"
-    plugins=(git)
-else
-    export ZSH_THEME="fwalch"
-    plugins=(vi-mode git brew coffee github pip)
-fi
-
-source $ZSH/oh-my-zsh.sh
-
+#
 # Flags for package installations
 export CFLAGS="-Os"
 export CXXFLAGS="$CFLAGS"
@@ -34,9 +15,17 @@ source ~/.secrets
 
 export PATH=~/.cabal/bin:$PATH
 
-# Configuration
-source ~/dotfiles/zsh/aliases
-source ~/dotfiles/zsh/zsh_aliases
+# Plugins
+if [ -n "$INSIDE_EMACS" ]; then
+    chpwd() { print -P "\033AnSiTc %d" }
+    print -P "\033AnSiTu %n"
+    print -P "\033AnSiTc %d"
+    export ZSH_THEME="lambda"
+    plugins=(git)
+else
+    export ZSH_THEME="fwalch"
+    plugins=(vi-mode brew coffee pip tmux git github)
+fi
 
 # Vim
 export VIM_APP_DIR=/Applications
@@ -76,11 +65,6 @@ __git_files () {
 # Always pushd when changing directory
 setopt auto_pushd
 
-# Fuzzy matching of completions for when you mistype them:
-zstyle ':completion:*' completer _complete _match _approximate
-zstyle ':completion:*:match:*' original only
-zstyle ':completion:*:approximate:*' max-errors 1 numeric
-
 # emacs vim bindings
 bindkey -M viins '' forward-char
 bindkey -M viins '' backward-char
@@ -91,5 +75,16 @@ bindkey -M viins '^k' delete-line
 # jj to escape
 bindkey -M viins 'jj' vi-cmd-mode
 
+# Oh my zsh
+source $ZSH/oh-my-zsh.sh
+
 # GitHub
 source /opt/boxen/env.sh
+
+# Aliases
+source ~/dotfiles/zsh/aliases
+source ~/dotfiles/zsh/zsh_aliases
+alias emacs='open -a /Applications/Emacs.app $1'
+# Config editing aliases
+alias zshconfig="vim ~/.zshrc"
+alias ohmyzsh="vim ~/.oh-my-zsh"
