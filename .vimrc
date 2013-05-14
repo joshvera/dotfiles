@@ -3,7 +3,6 @@
 " This loads all the plugins into ~/.vim/bundle
 source ~/.vim/bundles.vim
 
-
 " Set spacing and ruby complete
 autocmd FileType ruby,eruby,yaml set tw=80 ai sw=2 sts=2 et
 if has("autocmd")
@@ -84,6 +83,7 @@ set wildignore+=*.gem
 set wildignore+=log/**
 set wildignore+=tmp/**
 set wildignore+=*.png,*.jpg,*.gif
+set wildignorecase
 
 " ================ Scrolling ========================
 
@@ -103,6 +103,7 @@ set nojoinspaces
 
 " ================ Searching ========================
 set ignorecase " Ignore case when searching
+set smartcase
 set gdefault " search/replace "globally" (on a line) by default
 
 "Editor Layout
@@ -137,3 +138,17 @@ set tags+=tags;$HOME
 nnoremap <leader>. :CtrlPTag<cr>
 
 let c_no_curly_error = 1
+
+let g:ocTagFile="~/github/talks-ios/ocTags"
+let g:callTagFile="~/github/talks-ios/callTags"
+
+" Clear gray SignColumn highlight set by csapprox
+colorscheme solarized
+
+cnoremap help vert help
+
+let g:Powerline_theme = 'solarized256'
+
+let g:syntastic_objc_checkers=['ycm']
+let g:ycm_confirm_extra_conf = 0
+nnoremap <F5> :YcmForceCompileAndDiagnostics<CR>

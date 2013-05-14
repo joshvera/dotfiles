@@ -319,3 +319,5 @@ au BufWritePost *.c,*.cpp,*.m,*.h silent! !ctags -R &
 
 imap <C-k> <esc>ld$a
 imap <C-y> <esc>m'p''a
+
+nmap ,go :Gread<CR>

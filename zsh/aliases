@@ -37,6 +37,8 @@ alias gl='git log'
 alias got='git '
 alias get='git '
 
+alias gitignore='mvim /opt/boxen/config/git/gitignore'
+
 # Ruby
 alias sporkify='bundle exec spork cucumber & bundle exec spork'
 
@@ -46,5 +48,3 @@ alias vim="\mvim -v"
 for method in GET HEAD POST PUT DELETE TRACE OPTIONS; do
     alias "$method"="lwp-request -m '$method'"
 done
-
-alias mvim='open -a MacVim'
