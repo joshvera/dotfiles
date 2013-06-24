@@ -86,3 +86,9 @@ alias emacs='open -a /Applications/Emacs.app $1'
 # Config editing aliases
 alias zshconfig="vim ~/.zshrc"
 alias ohmyzsh="vim ~/.oh-my-zsh"
+alias talks-ios="cd ~/github/talks-ios"
+
+# Vim
+export VIM_APP_DIR=/Applications
+export EDITOR="mvim"
+export VISUAL='mvim -f'
