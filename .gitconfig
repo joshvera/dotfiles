@@ -12,6 +12,7 @@
     fsyncobjectfiles = true
     preloadindex = true
     whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
+    pager = less -x4
 [alias]
     sup = submodule update --init --recursive
     annihilate = reset --hard origin/master
@@ -34,7 +35,7 @@
     rba = rebase --abort
     rbc = rebase --continue
 [color]
-	ui = auto
+    ui = auto
     whitespace = trailing-space,space-before-tab
 [diff]
     renames = copies
@@ -63,4 +64,4 @@
 [credential]
     helper = /opt/boxen/bin/boxen-git-credential
 [github]
-	user = joshvera
+    user = joshvera
