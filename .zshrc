@@ -51,6 +51,7 @@ bindkey -M viins '' backward-char
 bindkey -M viins '^A' beginning-of-line
 bindkey -M viins '^e' end-of-line
 bindkey -M viins '^k' delete-line
+bindkey -M viins '^r' history-incremental-search-backward
 
 # jj to escape
 bindkey -M viins 'jj' vi-cmd-mode
