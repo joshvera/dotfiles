@@ -139,9 +139,6 @@ nnoremap <leader>. :CtrlPTag<cr>
 
 let c_no_curly_error = 1
 
-let g:ocTagFile="~/github/talks-ios/ocTags"
-let g:callTagFile="~/github/talks-ios/callTags"
-
 " Clear gray SignColumn highlight set by csapprox
 colorscheme solarized
 
