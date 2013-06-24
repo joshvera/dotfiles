@@ -146,6 +146,9 @@ cnoremap help vert help
 
 let g:Powerline_theme = 'solarized256'
 
+let g:clang_use_library = 1
+let g:clang_library_path = '/opt/boxen/homebrew/lib'
+
 let g:syntastic_objc_checkers=['ycm']
 let g:ycm_confirm_extra_conf = 0
 nnoremap <F5> :YcmForceCompileAndDiagnostics<CR>
