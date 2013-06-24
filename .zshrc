@@ -15,26 +15,6 @@ source ~/.secrets
 
 export PATH=~/.cabal/bin:$PATH
 
-# Plugins
-if [ -n "$INSIDE_EMACS" ]; then
-    chpwd() { print -P "\033AnSiTc %d" }
-    print -P "\033AnSiTu %n"
-    print -P "\033AnSiTc %d"
-    export ZSH_THEME="lambda"
-    plugins=(git)
-else
-    export ZSH_THEME="fwalch"
-    plugins=(vi-mode brew coffee pip tmux git github)
-fi
-
-# Vim
-export VIM_APP_DIR=/Applications
-export EDITOR="mvim"
-export VISUAL='mvim -f'
-
-# Autotest
-AUTOFEATURE='true'
-
 # JVM
 export JAVA_OPTS=-Xmx768m
 
@@ -75,8 +55,25 @@ bindkey -M viins '^k' delete-line
 # jj to escape
 bindkey -M viins 'jj' vi-cmd-mode
 
+# Oh my zsh theme
+if [ -n "$INSIDE_EMACS" ]; then
+    chpwd() { print -P "\033AnSiTc %d" }
+    print -P "\033AnSiTu %n"
+    print -P "\033AnSiTc %d"
+    export ZSH_THEME="lambda"
+else
+    export ZSH_THEME="fwalch"
+fi
+
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
+
+# Oh my zsh plugins
+if [ -n "$INSIDE_EMACS" ]; then
+    plugins=(git)
+else
+    plugins=(vi-mode brew coffee pip tmux git github)
+fi
 
 # GitHub
 source /opt/boxen/env.sh
