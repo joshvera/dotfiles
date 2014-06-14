@@ -7,7 +7,7 @@
 [core]
     autocrlf = input
     quotepath = false
-    editor = "mvim -v"
+    editor = vim
     excludesfile = /opt/boxen/config/git/gitignore
     fsyncobjectfiles = true
     preloadindex = true
@@ -36,10 +36,9 @@
     rbc = rebase --continue
 [color]
     ui = auto
-    whitespace = trailing-space,space-before-tab
+    whitespace = trailing-space,space-before-tab,strip
 [diff]
     renames = copies
-    mnemonicprefix = true
 [status]
     submodulesummary = true
 [branch]
@@ -47,7 +46,7 @@
 [branch "master"]
     rebase = true
 [push]
-    default = upstream
+	default = simple
 [merge]
     stat = true
     ff = false
@@ -65,3 +64,8 @@
     helper = /opt/boxen/bin/boxen-git-credential
 [github]
     user = joshvera
+[filter "media"]
+    clean = git-media-clean %f
+    smudge = git-media-smudge %f
+[universe]
+
