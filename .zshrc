@@ -33,9 +33,7 @@ export TERM=xterm-256color
 export SHELL=/usr/local/bin/zsh
 
 # Alias git to hub
-function git() {
-  hub "$@"
-}
+eval "$(hub alias -s)"
 
 # Speed up git completion
 __git_files () {
