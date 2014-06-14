@@ -1,6 +1,5 @@
 [hub]
     protocol = https
-    helper = /opt/boxen/bin/boxen-git-credential
 [user]
     name = Josh Vera
     email = vera@github.com
