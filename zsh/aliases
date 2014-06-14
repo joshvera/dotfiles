@@ -12,8 +12,8 @@ alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
 alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
 
 # Show/hide hidden files in Finder
-alias show="defaults write com.apple.Finder AppleShowAllFiles -bool true && killall Finder"
-alias hide="defaults write com.apple.Finder AppleShowAllFiles -bool false && killall Finder"
+alias showFiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
+alias hideFiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
 
 # Emacs
 alias e='emacsclient'
@@ -37,7 +37,7 @@ alias gl='git log'
 alias got='git '
 alias get='git '
 
-alias gitignore='mvim /opt/boxen/config/git/gitignore'
+alias gitignore='mvim ~/.gitignore'
 
 # Ruby
 alias sporkify='bundle exec spork cucumber & bundle exec spork'
