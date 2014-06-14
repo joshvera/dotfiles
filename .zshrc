@@ -30,7 +30,7 @@ export NODE_PATH=/usr/local/lib/node_modules
 export TERM=xterm-256color
 
 # Shell
-export SHELL=/opt/boxen/homebrew/bin/zsh
+export SHELL=/usr/local/bin/zsh
 
 # Alias git to hub
 function git() {
@@ -81,5 +81,3 @@ export PKG_CONFIG_PATH=/opt/boxen/homebrew/opt/libffi/lib/pkgconfig
 
 export CFLAGS="-I$HOMEBREW_ROOT/include"
 export LDFLAGS="-L$HOMEBREW_ROOT/lib"
-
-source /opt/boxen/env.sh
