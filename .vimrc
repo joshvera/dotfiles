@@ -1,5 +1,4 @@
-let g:ruby_path = system('echo $HOME/.rbenv/shims')
-
+set rtp+=~/.vim/bundle/Vundle.vim
 " =============== Vundle Initialization ===============
 " Turn on syntax highlighting
 syntax on
@@ -12,7 +11,7 @@ source ~/.vim/bundles.vim
 
 " Set spacing and ruby complete
 if has("autocmd")
-    autocmd FileType ruby set omnifunc=rubycomplete#Complete
+    autocmd FileType ruby set omnifunc=rubycomplete#C¯omplete
     autocmd FileType ruby let g:rubycomplete_buffer_loading=1
     autocmd FileType ruby let g:rubycomplete_classes_in_global=1
 
