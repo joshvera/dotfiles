@@ -5,7 +5,7 @@
     autocrlf = input
     quotepath = false
     editor = vim
-    excludesfile = /opt/boxen/config/git/gitignore
+    excludesfile = ~/.gitignore
     fsyncobjectfiles = true
     preloadindex = true
     whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
@@ -57,8 +57,6 @@
     statusHints = false
 [mergetool "fugitive"]
     cmd = mvim -f -c \"Gdiff\" \"$MERGED\"
-[credential]
-    helper = /opt/boxen/bin/boxen-git-credential
 [github]
     user = joshvera
 [filter "media"]

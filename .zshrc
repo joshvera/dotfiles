@@ -77,7 +77,7 @@ export VISUAL='mvim -f'
 export HOMEBREW_CC=clang
 
 # Add libffi to pkg-config-path
-export PKG_CONFIG_PATH=/opt/boxen/homebrew/opt/libffi/lib/pkgconfig
+export PKG_CONFIG_PATH="$HOMEBREW_ROOT/opt/libffi/lib/pkgconfig"
 
 export CFLAGS="-I$HOMEBREW_ROOT/include"
 export LDFLAGS="-L$HOMEBREW_ROOT/lib"
