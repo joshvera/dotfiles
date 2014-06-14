@@ -64,3 +64,5 @@
     smudge = git-media-smudge %f
 [universe]
 
+[credential]
+	helper = osxkeychain
