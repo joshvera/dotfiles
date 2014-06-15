@@ -60,9 +60,13 @@
 [github]
     user = joshvera
 [filter "media"]
-    clean = git-media-clean %f
-    smudge = git-media-smudge %f
+	clean = git-media-clean %f
+	smudge = git-media-smudge %f
 [universe]
 
 [credential]
-	helper = osxkeychain
+    helper = osxkeychain
+    protocol = https
+[hub]
+    helper = osxkeychain
+    protocol = https
