@@ -59,12 +59,9 @@ bindkey -M viins '^s' history-incremental-search-forward
 # jj to escape
 bindkey -M viins 'jj' vi-cmd-mode
 
-export PATH=~/.cabal/bin:$PATH
-
 # Aliases
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
-alias emacs='open -a /Applications/Emacs.app $1'
 # Config editing aliases
 alias zshconfig="vim ~/.zshrc"
 alias ohmyzsh="vim ~/.oh-my-zsh"
@@ -77,9 +74,10 @@ export VISUAL='mvim -f'
 export HOMEBREW_CC=clang
 
 # Add libffi to pkg-config-path
-export PKG_CONFIG_PATH=/opt/boxen/homebrew/opt/libffi/lib/pkgconfig
 
 export CFLAGS="-I$HOMEBREW_ROOT/include"
 export LDFLAGS="-L$HOMEBREW_ROOT/lib"
 
 source /opt/boxen/env.sh
+
+export PATH=~/.cabal/bin:/opt/boxen/homebrew/bin:$PATH
