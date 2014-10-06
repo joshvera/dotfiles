@@ -29,3 +29,4 @@ ehthumbs.db
 compile_commands.json
 xcodebuild.log
 tags
+.go-version
