@@ -2,7 +2,7 @@
     protocol = https
     helper = /opt/boxen/bin/boxen-git-credential
 [user]
-    name = Josh Vera
+    name = joshvera
     email = vera@github.com
 [core]
     autocrlf = input
