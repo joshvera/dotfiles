@@ -8,7 +8,7 @@
     autocrlf = input
     quotepath = false
     editor = vim
-    excludesfile = /opt/boxen/config/git/gitignore
+    excludesfile = ~/.gitignore
     fsyncobjectfiles = true
     preloadindex = true
     whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
