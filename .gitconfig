@@ -61,13 +61,9 @@
     statusHints = false
 [mergetool "fugitive"]
     cmd = mvim -f -c \"Gdiff\" \"$MERGED\"
-[credential]
-    helper = /opt/boxen/bin/boxen-git-credential
 [github]
     user = joshvera
-[filter "media"]
+[filter "lfs"]
+	clean = git lfs clean %f
+	smudge = git lfs smudge %f
 	required = true
-	clean = git media clean %f
-	smudge = git media smudge %f
-[universe]
-
