@@ -31,3 +31,6 @@ compile_commands.json
 xcodebuild.log
 tags
 .go-version
+.ruby-version
+.flowconfig
+xcshareddata
