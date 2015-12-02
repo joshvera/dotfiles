@@ -1,9 +1,10 @@
 [hub]
     protocol = https
-    helper = /opt/boxen/bin/boxen-git-credential
 [user]
     name = joshvera
     email = vera@github.com
+[credential]
+    helper = osxkeychain
 [core]
     autocrlf = input
     quotepath = false
