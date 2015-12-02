@@ -30,12 +30,9 @@ export NODE_PATH=/usr/local/lib/node_modules
 export TERM=xterm-256color
 
 # Shell
-export SHELL=/opt/boxen/homebrew/bin/zsh
+export SHELL=/usr/local/bin/zsh
 
 # Alias git to hub
-function git() {
-  hub "$@"
-}
 
 # Speed up git completion
 __git_files () {
