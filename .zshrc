@@ -20,18 +20,6 @@ plugins+=(github)
 # so secret
 source ~/.secrets
 
-# JVM
-export JAVA_OPTS=-Xmx768m
-
-# Node
-export NODE_PATH=/usr/local/lib/node_modules
-
-# Term
-export TERM=xterm-256color
-
-# Shell
-export SHELL=/usr/local/bin/zsh
-
 # Alias git to hub
 
 # Speed up git completion
@@ -60,21 +48,9 @@ bindkey -M viins 'jj' vi-cmd-mode
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
 # Config editing aliases
-alias zshconfig="vim ~/.zshrc"
-alias ohmyzsh="vim ~/.oh-my-zsh"
 
 # Vim
-export VIM_APP_DIR=/Applications
-export EDITOR="mvim"
-export VISUAL='mvim -f'
-
-export HOMEBREW_CC=clang
 
 # Add libffi to pkg-config-path
 
-export CFLAGS="-I$HOMEBREW_ROOT/include"
-export LDFLAGS="-L$HOMEBREW_ROOT/lib"
-
-source /opt/boxen/env.sh
-
-export PATH=~/.cabal/bin:/opt/boxen/homebrew/bin:$PATH
+export PATH=~/.local/bin:$PATH

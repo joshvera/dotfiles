@@ -47,3 +47,6 @@ for method in GET HEAD POST PUT DELETE TRACE OPTIONS; do
 done
 
 alias emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
+alias zshconfig="e ~/.zshrc"
+alias ohmyzsh="e ~/.oh-my-zsh"
+
