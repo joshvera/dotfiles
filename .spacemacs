@@ -23,6 +23,7 @@ values."
      emoji
      osx
      emacs-lisp
+     theming
      (c-c++ :variables
             c-c++-enable-clang-support t
             c-basic-offset 2
