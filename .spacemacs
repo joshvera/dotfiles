@@ -220,7 +220,7 @@ user code."
 
                                  (powerline-active1 :foreground "#657b83" :background "#002b36")
                                  (powerline-active2 :foreground "#657b83" :background "#073642")
-                                 (powerline-inactive1 :foreground "586e75" :background "#073642")
+                                 (powerline-inactive1 :foreground "#586e75" :background "#073642")
                                  (powerline-inactive2 :foreground "#586e75" :background "#002b36"))))
   )
 
