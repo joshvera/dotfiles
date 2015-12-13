@@ -241,9 +241,6 @@ layers configuration. You are free to put any user code."
             (lambda ()
               (setq term-buffer-maximum-size 10000)))
 
-  ;; Start in evilified
-  (require 'evil-magit)
-
   ;; Add interactive-haskell-mode to haskell-mode
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
 
