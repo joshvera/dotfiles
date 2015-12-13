@@ -34,3 +34,6 @@ tags
 .ruby-version
 .flowconfig
 xcshareddata
+.atom/packages
+.atom/compile-cache
+.atom/storage
