@@ -265,6 +265,13 @@ layers configuration. You are free to put any user code."
   ;; TODO figure out why projectile-find-other-file doesn't work with
   ;; some C projects
   (define-key evil-normal-state-map (kbd "C-6") 'ff-find-other-file)
+
+  ;; Ruby bindings
+  (evil-define-key 'normal ruby-mode-map
+    "}" 'ruby-end-of-block
+    "{" 'ruby-beginning-of-block)
+  (evil-define-key 'insert ruby-mode-map
+    (kbd "RET") 'ruby-reindent-then-newline-and-indent)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
