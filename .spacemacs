@@ -229,14 +229,24 @@ user code."
   "Configuration function for user code.
  This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
-  (global-company-mode)
+
+  ;; Enable company everywhere
+  ;; (global-company-mode)
+
+  ;; Disable powerline separators
   (setq powerline-default-separator nil)
   (setq multi-term-program "/usr/local/bin/zsh")
+
+  ;; Increase term buffer size
   (add-hook 'term-mode-hook
             (lambda ()
               (setq term-buffer-maximum-size 10000)))
-  (setq evil-magit-state 'motion)
+
+  ;; Start in evilified
+  (setq evil-magit-state 'evilified)
   (require 'evil-magit)
+
+  ;; Add interactive-haskell-mode to haskell-mode
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
 
   ;; Set evil keybindings once evil is defined
