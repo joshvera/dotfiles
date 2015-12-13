@@ -255,6 +255,7 @@ layers configuration. You are free to put any user code."
   (define-key evil-motion-state-map (kbd "<up>") 'evil-window-up)
   (define-key evil-motion-state-map (kbd "<right>") 'evil-window-right)
 
+  (define-key evil-motion-state-map (kbd "C-y") nil)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
