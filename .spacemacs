@@ -240,7 +240,6 @@ layers configuration. You are free to put any user code."
               (setq term-buffer-maximum-size 10000)))
 
   ;; Start in evilified
-  (setq evil-magit-state 'evilified)
   (require 'evil-magit)
 
   ;; Add interactive-haskell-mode to haskell-mode
