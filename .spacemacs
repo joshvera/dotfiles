@@ -273,6 +273,7 @@ layers configuration. You are free to put any user code."
  '(custom-safe-themes
    (quote
     ("4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+ '(vc-follow-symlinks t)
  '(safe-local-variable-values
    (quote
     ((whitespace-style face lines indentation:space)
