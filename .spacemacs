@@ -250,17 +250,11 @@ layers configuration. You are free to put any user code."
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
 
   ;; Set evil keybindings once evil is defined
-  (eval-after-load "evil"
-    '(progn
-       (define-key evil-motion-state-map (kbd "<left>") 'evil-window-left)
-       (define-key evil-motion-state-map (kbd "<down>") 'evil-window-down)
-       (define-key evil-motion-state-map (kbd "<up>") 'evil-window-up)
-       (define-key evil-motion-state-map (kbd "<right>") 'evil-window-right)
+  (define-key evil-motion-state-map (kbd "<left>") 'evil-window-left)
+  (define-key evil-motion-state-map (kbd "<down>") 'evil-window-down)
+  (define-key evil-motion-state-map (kbd "<up>") 'evil-window-up)
+  (define-key evil-motion-state-map (kbd "<right>") 'evil-window-right)
 
-       (define-key evil-normal-state-map (kbd "<left>") 'evil-window-left)
-       (define-key evil-normal-state-map (kbd "<down>") 'evil-window-down)
-       (define-key evil-normal-state-map (kbd "<up>") 'evil-window-up)
-       (define-key evil-normal-state-map (kbd "<right>") 'evil-window-right)))
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
