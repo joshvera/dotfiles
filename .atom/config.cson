@@ -1,0 +1,89 @@
+"*":
+  "exception-reporting":
+    userId: "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
+  welcome:
+    showOnStartup: false
+  metrics:
+    userId: "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
+  core:
+    themes: [
+      "nucleus-dark-ui"
+      "solarized-dark-syntax"
+    ]
+    disabledPackages: [
+      "nuclide-arcanist"
+      "nuclide-code-format"
+      "hyperclick"
+      "nuclide-diagnostics-store"
+      "nuclide-diagnostics-ui"
+      "nuclide-diff-view"
+      "nuclide-file-tree"
+      "nuclide-file-watcher"
+      "nuclide-hack"
+      "nuclide-hg-repository"
+      "nuclide-installer"
+      "nuclide-language-hack"
+      "nuclide-ocaml"
+      "nuclide-quick-open"
+      "nuclide-remote-projects"
+      "jshint"
+      "linter-csslint"
+    ]
+  editor:
+    fontFamily: "Inconsolata"
+    fontSize: 19
+    invisibles: {}
+    scrollPastEnd: true
+    softWrap: true
+    tabType: "hard"
+  "vim-surround": {}
+  linter:
+    showErrorPanel: false
+  "file-watcher":
+    promptWhenFileHasChangedOnDisk: false
+  nuclide:
+    remoteProjectsConfig: []
+  "nuclide-flow": {}
+  "git-plus":
+    amountOfCommitsToShow: 50
+  "vim-mode": {}
+  "autocomplete-plus": {}
+  jshint:
+    supportLintingJsx: true
+  "env-from-shell": {}
+  "coffee-compile": {}
+  "linter-eslint":
+    useGlobalEslint: true
+    disableWhenNoEslintrcFileInPath: true
+  "ide-haskell": {}
+  "haskell-ghc-mod":
+    additionalPathDirectories: [
+      "/Users/vera/.local/bin"
+    ]
+".ruby.source":
+  editor:
+    tabType: "soft"
+    tabLength: 2
+".js.source":
+  editor:
+    tabLength: 4
+".coffee.source":
+  editor:
+    tabType: "soft"
+    tabLength: 2
+".haskell.source":
+  editor:
+    tabType: "soft"
+    tabLength: 2
+".source.yaml":
+  editor:
+    tabType: "soft"
+    tabLength: 2
+".purescript.source":
+  editor:
+    tabType: "soft"
+    tabLength: 2
+".puppet.source":
+  editor:
+    tabType: "soft"
+    tabLength: 2

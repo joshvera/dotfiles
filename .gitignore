@@ -37,3 +37,4 @@ xcshareddata
 .atom/packages
 .atom/compile-cache
 .atom/storage
+.atom/.apm
