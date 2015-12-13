@@ -1,0 +1,18 @@
+{
+  "line_endings": {
+    "value" : "unix",
+    "level" : "error"
+  },
+  "max_line_length": {
+    "value": "warn"
+  },
+  "no_unnecessary_fat_arrows": {
+    "level": "ignore"
+  },
+  "missing_fat_arrows": {
+    "level": "ignore"
+  },
+  "no_trailing_whitespace": {
+    "level": "ignore"
+  }
+}
