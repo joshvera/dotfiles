@@ -257,6 +257,9 @@ layers configuration. You are free to put any user code."
 
   (define-key evil-motion-state-map (kbd "C-y") nil)
   (define-key evil-motion-state-map (kbd "C-e") 'end-of-line)
+  ;; Add file and project keybindings
+  (define-key evil-normal-state-map (kbd "S-s-f") 'spacemacs/helm-project-do-ag)
+  (define-key evil-normal-state-map (kbd "s-f") 'helm-swoop)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
