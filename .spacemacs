@@ -217,6 +217,7 @@ user code."
   (setq multi-term-program "/usr/local/bin/zsh")
 
   (setq theming-modifications `((sanityinc-solarized-dark
+
                                  (powerline-active1 :foreground "#657b83" :background "#002b36")
                                  (powerline-active2 :foreground "#657b83" :background "#073642")
                                  (powerline-inactive1 :foreground "586e75" :background "#073642")
@@ -269,6 +270,9 @@ layers configuration. You are free to put any user code."
     "{" 'ruby-beginning-of-block)
   (evil-define-key 'insert ruby-mode-map
     (kbd "RET") 'ruby-reindent-then-newline-and-indent)
+
+  ;; So COMMIT_EDITMSG starts in hybrid-mode
+  (evil-set-initial-state 'text-mode 'hybrid)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
