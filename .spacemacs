@@ -45,9 +45,9 @@ values."
      github
      version-control
      markdown
+     (ranger :variables ranger-cleanup-on-disable t)
      (auto-completion :variables
-                      auto-completion-return-key-behavior 'complete
-                      auto-completion-tab-key-behavior 'cycle
+                      auto-completion-tab-key-behavior 'complete
                       auto-completion-complete-with-key-sequence nil
                       auto-completion-private-snippets-directory nil)
      ;; org
