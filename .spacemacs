@@ -260,6 +260,11 @@ layers configuration. You are free to put any user code."
   ;; Add file and project keybindings
   (define-key evil-normal-state-map (kbd "S-s-f") 'spacemacs/helm-project-do-ag)
   (define-key evil-normal-state-map (kbd "s-f") 'helm-swoop)
+
+  ;; Switch between header/implementation
+  ;; TODO figure out why projectile-find-other-file doesn't work with
+  ;; some C projects
+  (define-key evil-normal-state-map (kbd "C-6") 'ff-find-other-file)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
