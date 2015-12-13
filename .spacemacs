@@ -28,7 +28,6 @@ values."
             c-c++-enable-clang-support t
             c-basic-offset 2
             evil-shift-width 2)
-     ;; git
      (haskell :variables
               haskell-enable-ghc-mod-support t
               haskell-process-type 'stack-ghci
@@ -41,7 +40,7 @@ values."
      html
      purescript
      ruby-on-rails
-     git
+     (git :variables git-magit-status-fullscreen t)
      github
      version-control
      markdown
