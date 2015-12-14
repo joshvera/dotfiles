@@ -20,6 +20,7 @@ values."
    '(
      better-defaults
      dash
+     deft
      emoji
      osx
      emacs-lisp
@@ -270,6 +271,9 @@ layers configuration. You are free to put any user code."
 
   ;; So COMMIT_EDITMSG starts in hybrid-mode
   (evil-set-initial-state 'text-mode 'hybrid)
+  (evil-set-initial-state 'Custom-mode 'evilified)
+
+  (setq deft-directory "~/Notes")
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
