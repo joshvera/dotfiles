@@ -36,6 +36,7 @@ values."
               haskell-process-auto-import-loaded-modules t
               haskell-process-log t)
      ruby
+     ruby-on-rails
      javascript
      idris
      html
@@ -288,7 +289,7 @@ layers configuration. You are free to put any user code."
  '(custom-safe-themes
    (quote
     ("4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" "bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
- '(vc-follow-symlinks t)
+ '(paradox-github-token t)
  '(safe-local-variable-values
    (quote
     ((whitespace-style face lines indentation:space)
@@ -308,4 +309,16 @@ layers configuration. You are free to put any user code."
              "utils")
             :append)
            (require
-            (quote swift-project-settings)))))))
+            (quote swift-project-settings))))))
+ '(vc-follow-symlinks t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
+ '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil))))
+ '(powerline-active1 ((t (:foreground "#657b83" :background "#002b36"))))
+ '(powerline-active2 ((t (:foreground "#657b83" :background "#073642"))))
+ '(powerline-inactive1 ((t (:foreground "#586e75" :background "#073642"))))
+ '(powerline-inactive2 ((t (:foreground "#586e75" :background "#002b36")))))
