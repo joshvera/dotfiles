@@ -218,8 +218,6 @@ values."
   "Initialization function for user code.
 It is called immediately after `dotspacemacs/init'.  You are free to put any
 user code."
-  (setq multi-term-program "/usr/local/bin/zsh")
-
   (setq theming-modifications `((sanityinc-solarized-dark
 
                                  (powerline-active1 :foreground "#657b83" :background "#002b36")
@@ -235,6 +233,10 @@ layers configuration. You are free to put any user code."
 
   ;; Enable company everywhere
   ;; (global-company-mode)
+
+  (add-to-list 'exec-path "~/.local/bin/")
+  (setq multi-term-program "/usr/local/bin/zsh")
+  (setq evil-emacs-state-cursor '("purple" (bar . 2)))
 
   ;; Disable powerline separators
   (setq powerline-default-separator nil)
