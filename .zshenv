@@ -33,6 +33,5 @@ export EDITOR="e -nw"
 export VISUAL='e -f'
 
 export HOMEBREW_CC=clang
-export CFLAGS="-I$HOMEBREW_ROOT/include"
-export LDFLAGS="-L$HOMEBREW_ROOT/lib"
-
+# export CFLAGS="-I$HOMEBREW_ROOT/include"
+# export LDFLAGS="-L$HOMEBREW_ROOT/lib"
