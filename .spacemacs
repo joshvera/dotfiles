@@ -337,6 +337,10 @@ layers configuration. You are free to put any user code."
             :append)
            (require
             (quote swift-project-settings))))))
+ '(show-smartparens-global-mode nil)
+ '(sp-highlight-pair-overlay nil)
+ '(sp-highlight-wrap-overlay nil)
+ '(sp-highlight-wrap-tag-overlay nil)
  '(vc-follow-symlinks t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
