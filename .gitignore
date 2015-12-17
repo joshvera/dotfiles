@@ -38,3 +38,4 @@ xcshareddata
 .atom/compile-cache
 .atom/storage
 .atom/.apm
+.atom/blob-store
