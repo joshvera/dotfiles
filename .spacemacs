@@ -230,17 +230,35 @@ user code."
   "Configuration function for user code.
  This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
+  (defvar vera-evil-cursors '(("normal" "#d33682" box)
+                              ("insert" "#2aa198" (bar . 2))
+                              ("emacs" "#268bd2" box)
+                              ("hybrid" "#268bd2" (bar . 2))
+                              ("replace" "#cb4b16" (hbar . 2))
+                              ("evilified" "#b58900" box)
+                              ("visual" "#eee8d5" (hbar . 2))
+                              ("motion" "#e279ac" box)
+                              ("lisp" "#6c71c4" box)
+                              ("iedit" "#dc322f" box)
+                              ("iedit-insert" "#dc322f" (bar . 2)))
+    "Colors assigned to evil states with cursor definitions.")
+
+  (loop for (state color cursor) in vera-evil-cursors
+        do
+        (let ((face (intern (format "spacemacs-%s-face" state)))
+              (evil-cursor (intern (format "evil-%s-state-cursor" state))))
+
+          (set-face-attribute face nil :background color)
+          (set evil-cursor (list color cursor))))
 
   ;; Enable company everywhere
   ;; (global-company-mode)
 
   (add-to-list 'exec-path "~/.local/bin/")
   (setq multi-term-program "/usr/local/bin/zsh")
-  (setq evil-emacs-state-cursor '("purple" (bar . 2)))
 
   ;; Disable powerline separators
   (setq powerline-default-separator nil)
-  (setq multi-term-program "/usr/local/bin/zsh")
 
   ;; Increase term buffer size
   (add-hook 'term-mode-hook
