@@ -53,9 +53,9 @@ values."
                       auto-completion-private-snippets-directory nil)
      org
      syntax-checking
-     ;; (shell :variables
-     ;;        shell-default-height 30
-     ;;        shell-default-position 'bottom)
+     (shell :variables
+            shell-default-height 30
+            shell-default-position 'bottom)
      ;; spell-checking
      )
    ;; List of additional packages that will be installed without being
