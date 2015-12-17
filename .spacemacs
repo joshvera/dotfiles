@@ -298,6 +298,7 @@ layers configuration. You are free to put any user code."
   (evil-set-initial-state 'Custom-mode 'evilified)
 
   (setq deft-directory "~/Notes")
+  (spacemacs/set-leader-keys "aN" 'deft-new-file)
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
