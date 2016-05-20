@@ -1,26 +1,5 @@
-# Path to oh-my-zsh configuration
-export ZSH=$HOME/.oh-my-zsh
-
-# Oh my zsh theme
-if [ -n "$INSIDE_EMACS" ]; then
-    chpwd() { print -P "\033AnSiTc %d" }
-    print -P "\033AnSiTu %n"
-    print -P "\033AnSiTc %d"
-    export ZSH_THEME="lambda"
-else
-    export ZSH_THEME="fwalch"
-    plugins=(vi-mode brew coffee pip git)
-fi
-
-# Oh my zsh
-source $ZSH/oh-my-zsh.sh
-
-plugins+=(github)
-
 # so secret
 source ~/.secrets
-
-# Alias git to hub
 
 # Speed up git completion
 __git_files () {
@@ -30,14 +9,14 @@ __git_files () {
 # Always pushd when changing directory
 setopt auto_pushd
 
-# emacs vim bindings
+# Emacs bindings in vim insert mode
 bindkey -M viins '' forward-char
 bindkey -M viins '' backward-char
 bindkey -M viins '^A' beginning-of-line
 bindkey -M viins '^e' end-of-line
 bindkey -M viins '^k' delete-line
-bindkey -M viins '^r' history-incremental-search-backward
-# Give me my bash style incremental search
+
+# Bash style incremental search in vim insert mode
 bindkey -M viins '^r' history-incremental-search-backward
 bindkey -M viins '^s' history-incremental-search-forward
 
@@ -47,10 +26,19 @@ bindkey -M viins 'jj' vi-cmd-mode
 # Aliases
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
-# Config editing aliases
 
-# Vim
+# PATH
+export PATH=~/.local/bin:$PATH:/usr/local/opt/go/libexec/bin
 
-# Add libffi to pkg-config-path
+# Enable rbenv
+eval "$(rbenv init -)"
 
-export PATH=~/.local/bin:$PATH
+# Enable gpg-agent daemon
+if test -f $HOME/.gpg-agent-info && kill -0 `cut -d: -f 2 $HOME/.gpg-agent-info` 2>/dev/null; then
+    GPG_AGENT_INFO=`cat $HOME/.gpg-agent-info | cut -c 16-`
+else
+    # No, gpg-agent not available; start gpg-agent
+    eval `gpg-agent --daemon --no-grab --write-env-file $HOME/.gpg-agent-info`
+fi
+export GPG_TTY=`tty`
+export GPG_AGENT_INFO
