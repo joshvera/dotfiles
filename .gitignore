@@ -39,3 +39,4 @@ xcshareddata
 .atom/storage
 .atom/.apm
 .atom/blob-store
+.stack-work/
