@@ -265,9 +265,6 @@ layers configuration. You are free to put any user code."
             (lambda ()
               (setq term-buffer-maximum-size 10000)))
 
-  ;; Add interactive-haskell-mode to haskell-mode
-  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
-
   ;; Set evil keybindings once evil is defined
   (define-key evil-motion-state-map (kbd "<left>") 'evil-window-left)
   (define-key evil-motion-state-map (kbd "<down>") 'evil-window-down)
