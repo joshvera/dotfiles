@@ -31,9 +31,9 @@ values."
             evil-shift-width 2)
      (haskell :variables
               haskell-enable-ghc-mod-support t
-              haskell-process-type 'stack-ghci
-              haskell-process-suggest-remove-import-lines t
-              haskell-process-auto-import-loaded-modules t
+              haskell-process-type 'ghci
+              haskell-process-path-ghci "stack"
+              haskell-process-args-ghci '("ghci" "--with-ghc" "ghci-ng" "--no-load")
               haskell-process-log t)
      ruby
      ruby-on-rails
