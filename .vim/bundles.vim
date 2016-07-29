@@ -7,6 +7,7 @@ filetype off
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
+Bundle "morhetz/gruvbox"
 Bundle "airblade/vim-gitgutter"
 Bundle "markschabacker/cocoa.vim"
 Bundle "tpope/vim-dispatch"
