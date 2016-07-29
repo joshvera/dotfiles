@@ -31,7 +31,6 @@ values."
             c-basic-offset 2
             evil-shift-width 2)
      (haskell :variables
-              haskell-enable-ghc-mod-support t
               haskell-process-type 'ghci
               haskell-process-path-ghci "stack"
               haskell-process-args-ghci '("ghci" "--with-ghc" "ghci-ng" "--no-load")
