@@ -1,15 +1,7 @@
 "*":
-  "exception-reporting":
-    userId: "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
-  welcome:
-    showOnStartup: false
-  metrics:
-    userId: "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
+  "autocomplete-plus": {}
+  "coffee-compile": {}
   core:
-    themes: [
-      "nucleus-dark-ui"
-      "solarized-dark-syntax"
-    ]
     disabledPackages: [
       "nuclide-arcanist"
       "nuclide-code-format"
@@ -28,6 +20,34 @@
       "nuclide-remote-projects"
       "jshint"
       "linter-csslint"
+      "build-stack"
+      "build"
+      "omnisharp-atom"
+      "json-schema"
+      "nuclide-find-references"
+      "nuclide-type-hint"
+      "nuclide-flow"
+      "Zen"
+      "advanced-new-file"
+      "atom-yeoman"
+      "coffee-compile"
+      "busy"
+      "git-plus"
+      "git-time-machine"
+      "language-csharp"
+      "language-elm"
+      "language-fsharp"
+      "language-idris"
+      "language-powershell"
+      "language-swift"
+      "linter-coffeelint"
+      "linter-eslint"
+      "merge-conflicts"
+      "script"
+    ]
+    themes: [
+      "one-light-ui"
+      "atom-material-syntax-light"
     ]
   editor:
     fontFamily: "Inconsolata"
@@ -36,54 +56,77 @@
     scrollPastEnd: true
     softWrap: true
     tabType: "hard"
-  "vim-surround": {}
-  linter:
-    showErrorPanel: false
+  "env-from-shell": {}
+  "exception-reporting":
+    userId: "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
   "file-watcher":
     promptWhenFileHasChangedOnDisk: false
-  nuclide:
-    remoteProjectsConfig: []
-  "nuclide-flow": {}
   "git-plus":
     amountOfCommitsToShow: 50
-  "vim-mode": {}
-  "autocomplete-plus": {}
-  jshint:
-    supportLintingJsx: true
-  "env-from-shell": {}
-  "coffee-compile": {}
-  "linter-eslint":
-    useGlobalEslint: true
-    disableWhenNoEslintrcFileInPath: true
-  "ide-haskell": {}
   "haskell-ghc-mod":
     additionalPathDirectories: [
       "/Users/vera/.local/bin"
+      "/usr/local/bin"
     ]
-".ruby.source":
+    enableGhcModi: false
+    lowMemorySystem: true
+  "ide-haskell":
+    cabalPath: "/Users/vera/.local/bin/cabal"
+    onCursorMove: "Show Tooltip"
+    stylishHaskellPath: "/Users/vera/.local/bin/stylish-haskell"
+  "ide-haskell-cabal":
+    cabal:
+      activeGhcVersion: "7.10"
+      ghc702: {}
+  "ide-haskell-hasktags":
+    hasktagsPath: "/Users/vera/.local/bin/hasktags"
+  "ide-haskell-repl":
+    commandPath: "stack"
+  jshint:
+    supportLintingJsx: true
+  linter:
+    showErrorPanel: false
+  "linter-eslint":
+    disableWhenNoEslintrcFileInPath: true
+    useGlobalEslint: true
+  metrics:
+    userId: "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
+  nuclide:
+    remoteProjectsConfig: []
+  "nuclide-flow": {}
+  nvatom:
+    directory: "/Users/vera/Notes"
+  "unity-ui": {}
+  "vim-mode": {}
+  "vim-surround": {}
+  welcome:
+    showOnStartup: false
+  whitespace:
+    ensureSingleTrailingNewline: false
+".coffee.source":
   editor:
-    tabType: "soft"
     tabLength: 2
+    tabType: "soft"
+".haskell.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
 ".js.source":
   editor:
     tabLength: 4
-".coffee.source":
-  editor:
-    tabType: "soft"
-    tabLength: 2
-".haskell.source":
-  editor:
-    tabType: "soft"
-    tabLength: 2
-".source.yaml":
-  editor:
-    tabType: "soft"
-    tabLength: 2
-".purescript.source":
-  editor:
-    tabType: "soft"
-    tabLength: 2
 ".puppet.source":
   editor:
-    tabType: "soft"
     tabLength: 2
+    tabType: "soft"
+".purescript.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".ruby.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".source.yaml":
+  editor:
+    tabLength: 2
+    tabType: "soft"
