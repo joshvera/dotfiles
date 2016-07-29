@@ -62,7 +62,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages then consider to create a layer, you can also put the
    ;; configuration in `dotspacemacs/config'.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(intero)
    ;; A list of packages and/or extensions that will not be install and loaded.
    dotspacemacs-excluded-packages '(
                                     ;; Disable evil search persistent highlight
@@ -253,6 +253,7 @@ layers configuration. You are free to put any user code."
 
   ;; Enable company everywhere
   ;; (global-company-mode)
+  (add-hook 'haskell-mode-hook 'intero-mode)
 
   (add-to-list 'exec-path "~/.local/bin/")
   (setq multi-term-program "/usr/local/bin/zsh")
