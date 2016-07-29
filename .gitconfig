@@ -29,6 +29,7 @@
 	id = !echo `git log -n 1 --pretty=%H` | pbcopy
 	staged = diff --cached
 	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	ll = log -p --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
 	patches = log -p --reverse
 	sup = submodule update --init --recursive
 	wtf = blame
