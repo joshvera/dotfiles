@@ -19,6 +19,7 @@ values."
    dotspacemacs-configuration-layers
    '(
      better-defaults
+     erc
      dash
      deft
      emoji
