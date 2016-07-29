@@ -20,7 +20,7 @@
 # * https://atom.io/docs/latest/customizing-atom#customizing-key-bindings
 # * https://atom.io/docs/latest/advanced/keymaps
 
-'.atom-workspace':
+'.platform-darwin .atom-workspace':
   'ctrl-o': 'switch-header-source:switch'
 
 'atom-text-editor.vim-mode:not(.insert-mode)':
