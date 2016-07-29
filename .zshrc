@@ -42,3 +42,5 @@ else
 fi
 export GPG_TTY=`tty`
 export GPG_AGENT_INFO
+
+eval `opam config env`
