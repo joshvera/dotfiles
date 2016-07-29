@@ -155,7 +155,11 @@ set autochdir
 
 let c_no_curly_error = 1
 
-colorscheme solarized
+if has('gui_running')
+    colorscheme solarized
+else
+    colorscheme Gruvbox
+endif
 
 cnoremap help vert help
 
