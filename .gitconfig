@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = vim
+	editor = atom
 	excludesfile = ~/.gitignore
 	fsyncobjectfiles = true
 	preloadindex = true
