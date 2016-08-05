@@ -110,6 +110,10 @@
     showOnStartup: false
   whitespace:
     ensureSingleTrailingNewline: false
+".cabal.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
 ".coffee.source":
   editor:
     tabLength: 2
