@@ -51,6 +51,7 @@
       "ide-haskell-hasktags"
       "ide-haskell-repl"
       "vim-mode"
+      "vim-surround"
     ]
     themes: [
       "one-light-ui"
