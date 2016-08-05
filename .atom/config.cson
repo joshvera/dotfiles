@@ -44,6 +44,13 @@
       "linter-eslint"
       "merge-conflicts"
       "script"
+      "autocomplete-haskell"
+      "haskell-ghc-mod"
+      "ide-haskell"
+      "ide-haskell-cabal"
+      "ide-haskell-hasktags"
+      "ide-haskell-repl"
+      "vim-mode"
     ]
     themes: [
       "one-light-ui"
