@@ -32,6 +32,8 @@
   'down': 'window:focus-pane-down'
   'ctrl-shift-f': 'project-find:show'
 
+  ', t': 'haskell-ghc-mod:show-type'
+
   'cmd-right': 'pane:split-right'
   'cmd-down': 'pane:split-down'
   'cmd-up': 'pane:split-up'
