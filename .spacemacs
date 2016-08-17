@@ -31,9 +31,8 @@ values."
             c-basic-offset 2
             evil-shift-width 2)
      (haskell :variables
+              haskell-completion-backend 'intero
               haskell-process-type 'ghci
-              haskell-process-path-ghci "stack"
-              haskell-process-args-ghci '("ghci" "--with-ghc" "ghci-ng" "--no-load")
               haskell-process-log t)
      ruby
      ruby-on-rails
@@ -62,7 +61,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages then consider to create a layer, you can also put the
    ;; configuration in `dotspacemacs/config'.
-   dotspacemacs-additional-packages '(intero)
+   dotspacemacs-additional-packages '()
    ;; A list of packages and/or extensions that will not be install and loaded.
    dotspacemacs-excluded-packages '(
                                     ;; Disable evil search persistent highlight
