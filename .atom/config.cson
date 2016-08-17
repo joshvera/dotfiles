@@ -125,6 +125,10 @@
 ".js.source":
   editor:
     tabLength: 4
+".json.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
 ".puppet.source":
   editor:
     tabLength: 2
