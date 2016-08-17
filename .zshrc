@@ -27,11 +27,12 @@ bindkey -M viins 'jj' vi-cmd-mode
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
 
-# PATH
-export PATH=~/.local/bin:$PATH:/usr/local/opt/go/libexec/bin
 
 # Enable rbenv
 eval "$(rbenv init -)"
+
+# PATH
+export PATH=~/.local/bin:~/github/github/bin:$PATH:/usr/local/opt/go/libexec/bin
 
 # Enable gpg-agent daemon
 if test -f $HOME/.gpg-agent-info && kill -0 `cut -d: -f 2 $HOME/.gpg-agent-info` 2>/dev/null; then
