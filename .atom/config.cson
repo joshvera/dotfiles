@@ -124,7 +124,8 @@
     tabType: "soft"
 ".js.source":
   editor:
-    tabLength: 4
+    tabLength: 2
+    tabType: "soft"
 ".json.source":
   editor:
     tabLength: 2
