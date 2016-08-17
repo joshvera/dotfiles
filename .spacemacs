@@ -242,6 +242,8 @@ layers configuration. You are free to put any user code."
                               ("iedit-insert" "#dc322f" (bar . 2)))
     "Colors assigned to evil states with cursor definitions.")
 
+  (add-to-list 'exec-path "~/.local/bin/")
+
   (loop for (state color cursor) in vera-evil-cursors
         do
         (let ((face (intern (format "spacemacs-%s-face" state)))
@@ -252,7 +254,6 @@ layers configuration. You are free to put any user code."
 
   ;; Enable company everywhere
   ;; (global-company-mode)
-  (add-hook 'haskell-mode-hook 'intero-mode)
 
   (add-to-list 'exec-path "~/.local/bin/")
   (setq multi-term-program "/usr/local/bin/zsh")
