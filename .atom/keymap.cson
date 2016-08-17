@@ -40,6 +40,44 @@
   'cmd-left': 'pane:split-left'
   ', e': 'linter:toggle'
 
+  # open-on-github
+  'space g o': 'open-on-github:file'
+  'space g b': 'open-on-github:blame'
+  'space g h': 'open-on-github:history'
+  'space g i': 'open-on-github:issues'
+  'space g c': 'open-on-github:copy-url'
+  'space g r': 'open-on-github:branch-compare'
+  'space g g': 'open-on-github:repository'
+
+  # github-diff
+  'space g n': 'git-diff:move-to-next-diff'
+  'space g p': 'git-diff:move-to-previous-diff'
+  'space g d': 'git-diff:toggle-diff-list'
+
+  # surround: ys
+  's': 'vim-mode-plus:surround-smart-word'
+  'd s': 'vim-mode-plus:delete-surround-any-pair'
+  'c s': 'vim-mode-plus:change-surround-any-pair'
+  'y s': 'vim-mode-plus:surround'
+  'y s w': 'vim-mode-plus:surround-word'
+  'y s m': 'vim-mode-plus:map-surround'
+
+  'ctrl-w': 'editor:delete-to-beginning-of-word'
+
+'atom-text-editor.vim-mode-plus.insert-mode':
+  'ctrl-s': 'vim-mode-plus:surround-smart-word'
+
+'atom-text-editor.vim-mode-plus.visual-mode':
+  's': 'vim-mode-plus:surround'
+
+'atom-text-editor.vim-mode-plus-search':
+  'cmd-enter': 'vim-mode-plus-user:project-find-from-search'
+
+'atom-text-editor.vim-mode-plus:not(.insert-mode)':
+  'w': 'vim-mode-plus:move-to-next-smart-word'
+  'b': 'vim-mode-plus:move-to-previous-smart-word'
+  'e': 'vim-mode-plus:move-to-end-of-smart-word'
+
 'body atom-text-editor.autocomplete-active':
   'ctrl-p': 'autocomplete-plus:move-up'
   'ctrl-n': 'autocomplete-plus:move-down'
