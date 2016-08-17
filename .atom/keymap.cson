@@ -23,7 +23,7 @@
 '.platform-darwin .atom-workspace':
   'ctrl-o': 'switch-header-source:switch'
 
-'atom-text-editor.vim-mode:not(.insert-mode)':
+'atom-text-editor.vim-mode-plus.normal-mode':
   'ctrl-w k': 'pane:close'
   ':': 'command-palette:toggle'
   'left': 'window:focus-pane-on-left'
