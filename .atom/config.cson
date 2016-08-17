@@ -92,8 +92,7 @@
     commandPath: "stack"
   jshint:
     supportLintingJsx: true
-  linter:
-    showErrorPanel: false
+  linter: {}
   "linter-eslint":
     disableWhenNoEslintrcFileInPath: true
     useGlobalEslint: true
