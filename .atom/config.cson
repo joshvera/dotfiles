@@ -71,8 +71,13 @@
       "/Users/vera/.local/bin"
       "/usr/local/bin"
     ]
-    enableGhcModi: false
-    lowMemorySystem: true
+    initTimeout: 5
+    interactiveActionTimeout: 60
+    interactiveInactivityTimeout: 1
+    onChangeCheck: true
+    onMouseHoverShow: "Type, fallback to Info"
+    showTypeOnSelection: true
+    useLinter: true
   "ide-haskell":
     cabalPath: "/Users/vera/.local/bin/cabal"
     onCursorMove: "Show Tooltip"
