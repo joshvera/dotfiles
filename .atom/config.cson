@@ -138,7 +138,7 @@
     tabType: "soft"
 ".json.source":
   editor:
-    tabLength: 2
+    tabLength: 4
     tabType: "soft"
 ".puppet.source":
   editor:
