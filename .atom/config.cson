@@ -77,8 +77,8 @@
     initTimeout: 5
     interactiveActionTimeout: 60
     interactiveInactivityTimeout: 1
-    onChangeCheck: true
-    onMouseHoverShow: "Type, fallback to Info"
+    onMouseHoverShow: "typeInfo"
+    onSelectionShow: "infoType"
     showTypeOnSelection: true
     useLinter: true
   "ide-haskell":
@@ -95,7 +95,8 @@
     commandPath: "stack"
   jshint:
     supportLintingJsx: true
-  linter: {}
+  linter:
+    errorPanelHeight: 127
   "linter-eslint":
     disableWhenNoEslintrcFileInPath: true
     useGlobalEslint: true
