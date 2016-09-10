@@ -41,7 +41,10 @@ else
     # No, gpg-agent not available; start gpg-agent
     eval `gpg-agent --daemon --no-grab --write-env-file $HOME/.gpg-agent-info`
 fi
+
+# Set gpg-agent info
 export GPG_TTY=`tty`
 export GPG_AGENT_INFO
 
+# setup opam env
 eval `opam config env`
