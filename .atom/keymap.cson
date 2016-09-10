@@ -30,7 +30,6 @@
   'right': 'window:focus-pane-on-right'
   'up': 'window:focus-pane-up'
   'down': 'window:focus-pane-down'
-  'ctrl-shift-f': 'project-find:show'
 
   ', t': 'haskell-ghc-mod:show-type'
   ', i': 'haskell-ghc-mod:show-info'
