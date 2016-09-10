@@ -57,8 +57,9 @@
     ]
   editor:
     fontFamily: "Inconsolata"
-    fontSize: 18
+    fontSize: 19
     invisibles: {}
+    preferredLineLength: 120
     scrollPastEnd: true
     softWrap: true
     tabType: "hard"
