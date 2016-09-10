@@ -124,6 +124,10 @@
   editor:
     tabLength: 2
     tabType: "soft"
+".erb.html.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
 ".haskell.source":
   editor:
     tabLength: 2
