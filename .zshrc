@@ -27,8 +27,7 @@ bindkey -M viins 'jj' vi-cmd-mode
 source ~/dotfiles/zsh/aliases
 source ~/dotfiles/zsh/zsh_aliases
 
-
-# Enable rbenv
+# Enable rbenv before path!
 eval "$(rbenv init -)"
 
 # PATH
