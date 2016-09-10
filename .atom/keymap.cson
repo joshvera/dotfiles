@@ -38,11 +38,23 @@
   ', o': 'haskell-ghc-mod:insert-type'
   ', s': 'haskell-ghc-mod:sig-fill'
 
+  # Haskell Cabal
+  ', p': 'ide-haskell-cabal:set-build-target'
+
+  # Linter
+  ', e': 'linter:next-error'
+  ', w': 'linter:previous-error'
+
+  # Pane Splitting
   'cmd-right': 'pane:split-right'
   'cmd-down': 'pane:split-down'
   'cmd-up': 'pane:split-up'
   'cmd-left': 'pane:split-left'
-  ', e': 'linter:toggle'
+
+  # nvatom
+  'cmd-l': 'nvatom:toggle'
+  ', n': 'nvatom:toggle'
+  ', l': 'linter:toggle'
 
   # open-on-github
   'space g o': 'open-on-github:file'
