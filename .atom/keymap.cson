@@ -39,6 +39,7 @@
   ', s': 'haskell-ghc-mod:sig-fill'
 
   # Haskell Cabal
+  ', r': 'ide-haskell-cabal:build'
   ', p': 'ide-haskell-cabal:set-build-target'
 
   # Linter
