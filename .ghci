@@ -1,2 +1,4 @@
 :set prompt "\ESC[34mλ> \ESC[m"
-:def hoogle \str -> return $ ":! hoogle --count=15 \"" ++ str ++ "\""
+
+:def hoogle \str -> pure $ ":! hoogle --count=15 \"" ++ str ++ "\""
+:set -XDataKinds
