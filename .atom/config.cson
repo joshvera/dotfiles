@@ -112,6 +112,11 @@
     directory: "/Users/vera/Notes"
   "unity-ui": {}
   "vim-mode": {}
+  "vim-mode-plus":
+    clearHighlightSearchOnResetNormalMode: true
+    highlightSearch: true
+    ignoreCaseForSearch: true
+    incrementalSearch: true
   "vim-surround": {}
   welcome:
     showOnStartup: false
