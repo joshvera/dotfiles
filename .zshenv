@@ -9,7 +9,7 @@ if [ -n "$INSIDE_EMACS" ]; then
     export ZSH_THEME="lambda"
 else
     export ZSH_THEME="fwalch"
-    plugins=(vi-mode brew coffee pip git)
+    plugins=(vi-mode brew coffee pip git stack)
 fi
 
 # Oh my zsh
