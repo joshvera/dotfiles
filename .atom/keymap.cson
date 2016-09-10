@@ -41,6 +41,9 @@
   ', r': 'ide-haskell-cabal:build'
   ', p': 'ide-haskell-cabal:set-build-target'
 
+  'ctrl-c ctrl-f': 'advanced-open-file:toggle'
+  'ctrl-cmd-r': 'window:reload'
+
   # Linter
   ', e': 'linter:next-error'
   ', w': 'linter:previous-error'
