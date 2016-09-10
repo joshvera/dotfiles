@@ -96,7 +96,7 @@
   jshint:
     supportLintingJsx: true
   linter:
-    errorPanelHeight: 127
+    errorPanelHeight: 128
   "linter-eslint":
     disableWhenNoEslintrcFileInPath: true
     useGlobalEslint: true
