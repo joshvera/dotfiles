@@ -1,4 +1,9 @@
 "*":
+  "advanced-open-file":
+    createDirectories: true
+    fuzzyMatch: true
+  "atom-typescript":
+    typescriptServices: "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
   "autocomplete-plus": {}
   "coffee-compile": {}
   core:
