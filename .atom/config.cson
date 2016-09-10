@@ -100,6 +100,8 @@
   "linter-eslint":
     disableWhenNoEslintrcFileInPath: true
     useGlobalEslint: true
+  "merge-conflicts":
+    gitPath: "/usr/local/bin/git"
   metrics:
     userId: "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
   nuclide:
