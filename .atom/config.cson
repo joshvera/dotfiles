@@ -122,6 +122,12 @@
   "nuclide-flow": {}
   nvatom:
     directory: "/Users/vera/Notes"
+  "tool-bar":
+    position: "Left"
+  "tree-view":
+    hideVcsIgnoredFiles: true
+  "uber-juno":
+    disable: true
   "unity-ui": {}
   "vim-mode": {}
   "vim-mode-plus":
