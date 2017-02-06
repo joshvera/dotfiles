@@ -67,6 +67,7 @@
   'cmd-down': 'pane:split-down'
   'cmd-up': 'pane:split-up'
   'cmd-left': 'pane:split-left'
+  'cmd-shift-z': 'pane:reopen-closed-item'
 
   # nvatom
   'cmd-l': 'nvatom:toggle'
