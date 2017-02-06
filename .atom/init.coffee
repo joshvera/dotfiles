@@ -12,3 +12,4 @@
 #   editor = editorView.getEditor()
 #   if path.extname(editor.getPath()) is '.md'
 #     editor.setSoftWrapped(true)
+delete process.env.GHC_PACKAGE_PATH
