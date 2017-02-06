@@ -41,14 +41,17 @@
   'up': 'window:focus-pane-up'
   'down': 'window:focus-pane-down'
 
+  # Whitespace mode
   'ctrl-cmd-i': 'window:toggle-invisibles'
+
+  # Haskell mode
   ', t': 'haskell-ghc-mod:show-type'
   ', i': 'haskell-ghc-mod:show-info'
   ', g': 'haskell-ghc-mod:go-to-declaration'
   ', o': 'haskell-ghc-mod:insert-type'
   ', s': 'haskell-ghc-mod:sig-fill'
 
-  # Haskell Cabal
+  # Haskell Stack
   ', r': 'ide-haskell-cabal:build'
   ', p': 'ide-haskell-cabal:set-build-target'
 
