@@ -75,7 +75,8 @@
   "file-watcher":
     promptWhenFileHasChangedOnDisk: false
   "git-plus":
-    amountOfCommitsToShow: 50
+    general:
+      _analyticsUserId: "d1a18298-791d-4903-8367-b4cfd7676c46"
   "haskell-ghc-mod":
     additionalPathDirectories: [
       "/Users/vera/.local/bin"
@@ -85,6 +86,7 @@
     interactiveActionTimeout: 60
     interactiveInactivityTimeout: 1
     onMouseHoverShow: "typeInfo"
+    onSaveLint: false
     onSelectionShow: "infoType"
     showTypeOnSelection: true
     useLinter: true
