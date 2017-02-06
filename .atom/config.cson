@@ -104,6 +104,10 @@
     commandPath: "stack"
   jshint:
     supportLintingJsx: true
+  "julia-client":
+    enableMenu: true
+    enableToolBar: true
+    launchOnStartup: true
   linter:
     errorPanelHeight: 128
   "linter-eslint":
