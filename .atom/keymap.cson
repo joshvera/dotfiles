@@ -23,9 +23,19 @@
 '.platform-darwin .atom-workspace':
   'ctrl-o': 'switch-header-source:switch'
 
+'.platform-darwin .vim-mode-plus.normal-mode':
+  'ctrl-c ctrl-f': 'advanced-open-file:toggle'
+  ', d': 'merge-conflicts:detect'
+
+'.platform-darwin .vim-mode-plus.insert-mode':
+  'ctrl-w': 'editor:delete-to-beginning-of-word'
+  # Open file
 'atom-text-editor.vim-mode-plus.normal-mode':
-  'ctrl-w k': 'pane:close'
+  # Command mode
   ':': 'command-palette:toggle'
+
+  # Pane mode
+  'ctrl-w k': 'pane:close'
   'left': 'window:focus-pane-on-left'
   'right': 'window:focus-pane-on-right'
   'up': 'window:focus-pane-up'
