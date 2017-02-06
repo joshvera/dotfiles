@@ -140,15 +140,15 @@
     showOnStartup: false
   whitespace:
     ensureSingleTrailingNewline: false
+".cabal.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
 ".coffee.source":
   editor:
     tabLength: 2
     tabType: "soft"
 ".erb.html.source":
-  editor:
-    tabLength: 2
-    tabType: "soft"
-".cabal.source":
   editor:
     tabLength: 2
     tabType: "soft"
