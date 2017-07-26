@@ -52,7 +52,6 @@
       "vim-mode"
       "vim-surround"
       "ide-haskell-hasktags"
-      "atom-typescript"
       "uber-juno"
       "julia-client"
       "git-plus"
