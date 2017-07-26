@@ -13,7 +13,6 @@
     disabledPackages: [
       "nuclide-arcanist"
       "nuclide-code-format"
-      "hyperclick"
       "nuclide-diagnostics-store"
       "nuclide-diagnostics-ui"
       "nuclide-diff-view"
