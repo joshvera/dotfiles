@@ -54,7 +54,8 @@
       "ide-haskell-hasktags"
       "uber-juno"
       "julia-client"
-      "git-plus"
+      "tree-sitter-syntax"
+      "kite"
     ]
     telemetryConsent: "limited"
     themes: [
