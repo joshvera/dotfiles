@@ -81,14 +81,13 @@
       _analyticsUserId: "d1a18298-791d-4903-8367-b4cfd7676c46"
   "haskell-ghc-mod":
     additionalPathDirectories: [
-      "/Users/vera/.local/bin"
+      "~/.local/bin"
       "/usr/local/bin"
     ]
-    initTimeout: 5
     interactiveActionTimeout: 60
     interactiveInactivityTimeout: 1
+    maxBrowseProcesses: 4
     onMouseHoverShow: "typeInfo"
-    onSaveLint: false
     onSelectionShow: "infoType"
     showTypeOnSelection: true
     useLinter: true
@@ -98,7 +97,7 @@
     stylishHaskellPath: "/Users/vera/.local/bin/stylish-haskell"
   "ide-haskell-cabal":
     cabal:
-      activeGhcVersion: "7.10"
+      activeGhcVersion: "8.0"
       ghc702: {}
   "ide-haskell-hasktags":
     hasktagsPath: "/Users/vera/.local/bin/hasktags"
@@ -110,11 +109,15 @@
     enableMenu: true
     enableToolBar: true
     launchOnStartup: true
-  linter:
-    errorPanelHeight: 128
+  kite:
+    showKiteTourOnStatup: false
+  linter: {}
   "linter-eslint":
     disableWhenNoEslintrcFileInPath: true
     useGlobalEslint: true
+  "linter-ui-default":
+    panelHeight: 179
+    showPanel: true
   "merge-conflicts":
     gitPath: "/usr/local/bin/git"
   metrics:
