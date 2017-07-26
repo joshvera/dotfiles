@@ -5,6 +5,9 @@
   "atom-typescript":
     typescriptServices: "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
   "autocomplete-plus": {}
+  "autocomplete-python":
+    pythonPaths: "/Users/vera/miniconda3/envs/pytorch/bin/python"
+    useKite: false
   "coffee-compile": {}
   core:
     disabledPackages: [
