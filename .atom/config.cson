@@ -57,6 +57,7 @@
       "one-light-ui"
       "atom-material-syntax-light"
     ]
+    useTreeSitterParsers: true
   editor:
     fontFamily: "Inconsolata"
     fontSize: 20
