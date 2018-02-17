@@ -79,6 +79,7 @@
       "~/.local/bin"
       "/usr/local/bin"
     ]
+    debug: true
     interactiveActionTimeout: 60
     interactiveInactivityTimeout: 1
     maxBrowseProcesses: 4
