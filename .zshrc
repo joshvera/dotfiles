@@ -31,7 +31,8 @@ source ~/dotfiles/zsh/zsh_aliases
 eval "$(rbenv init -)"
 
 # PATH
-export PATH=~/.local/bin:~/github/github/bin:$PATH:/usr/local/opt/go/libexec/bin
+export PATH=/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
+export GOPATH=/Users/vera/go
 
 # Enable gpg-agent daemon
 if test -f $HOME/.gpg-agent-info && kill -0 `cut -d: -f 2 $HOME/.gpg-agent-info` 2>/dev/null; then
@@ -47,3 +48,8 @@ export GPG_AGENT_INFO
 
 # setup opam env
 eval `opam config env`
+
+fpath=(/usr/local/share/zsh-completions $fpath)
+
+# Get rid of fzf?
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
