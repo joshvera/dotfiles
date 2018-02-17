@@ -12,6 +12,8 @@
   "autocomplete-python":
     pythonPaths: "/Users/vera/miniconda3/envs/pytorch/bin/python"
     useKite: false
+  autosave:
+    enabled: true
   "coffee-compile": {}
   core:
     disabledPackages: [
