@@ -112,13 +112,6 @@
     launchOnStartup: true
   kite:
     showKiteTourOnStatup: false
-  linter: {}
-  "linter-eslint":
-    disableWhenNoEslintrcFileInPath: true
-    useGlobalEslint: true
-  "linter-ui-default":
-    panelHeight: 179
-    showPanel: true
   "merge-conflicts":
     gitPath: "/usr/local/bin/git"
   metrics:
@@ -128,14 +121,9 @@
   "nuclide-flow": {}
   nvatom:
     directory: "/Users/vera/Notes"
-  "tool-bar":
-    position: "Left"
   "tree-view":
     hideVcsIgnoredFiles: true
-  "uber-juno":
-    disable: true
   "unity-ui": {}
-  "vim-mode": {}
   "vim-mode-plus":
     clearHighlightSearchOnResetNormalMode: true
     groupChangesWhenLeavingInsertMode: false
