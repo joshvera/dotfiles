@@ -2,6 +2,10 @@
   "advanced-open-file":
     createDirectories: true
     fuzzyMatch: true
+  "atom-ide-ui":
+    "atom-ide-diagnostics-ui":
+      autoVisibility: true
+    use: {}
   "atom-typescript":
     typescriptServices: "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
   "autocomplete-plus": {}
