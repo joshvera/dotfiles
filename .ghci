@@ -1,4 +1,19 @@
 :set prompt "\ESC[34mλ> \ESC[m"
 
-:def hoogle \str -> pure $ ":! hoogle --count=15 \"" ++ str ++ "\""
 :set -XDataKinds
+
+:{
+assignmentExample lang = case lang of
+  "Python" -> mk "py" "python" lang
+  "Go" -> mk "go" "go" lang
+  "Ruby" -> mk "rb" "ruby" lang
+  "JavaScript" -> mk "js" "typescript" lang
+  "TypeScript" -> mk "ts" "typescript" lang
+  "Haskell" -> mk "hs" "haskell" lang
+  "Markdown" -> mk "md" "markdown" lang
+  "JSON" -> mk "json" "json" lang
+  _ -> mk "" "" lang
+  where mk fileExtension parser lang' = putStrLn ("example: fmap (() <$) . runTask . parse " ++ parser ++ "Parser =<< flip Files.readFile (Just Language." ++ lang' ++ ") \"example." ++ fileExtension ++ "\"") >> return ("import Parser\nimport Semantic.Task")
+:}
+
+:def assignment assignmentExample
