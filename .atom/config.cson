@@ -60,13 +60,12 @@
     useTreeSitterParsers: true
   editor:
     fontFamily: "Inconsolata"
-    fontSize: 20
+    fontSize: 17
     invisibles: {}
     preferredLineLength: 120
     scrollPastEnd: true
     showInvisibles: true
     softWrap: true
-    tabType: "hard"
   "env-from-shell": {}
   "exception-reporting":
     userId: "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
