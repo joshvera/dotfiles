@@ -97,8 +97,13 @@
       ghc702: {}
   "ide-haskell-hasktags":
     hasktagsPath: "/Users/vera/.local/bin/hasktags"
+  "ide-haskell-hie": {}
   "ide-haskell-repl":
     commandPath: "stack"
+  "ide-purescript":
+    addNpmPath: true
+  "ide-rust":
+    rlsToolchain: "beta"
   jshint:
     supportLintingJsx: true
   "julia-client":
