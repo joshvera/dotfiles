@@ -8,15 +8,16 @@ alias localip="ipconfig getifaddr en1"
 alias whois="whois -h whois-servers.net"
 
 # View HTTP traffic
-alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
+alias sniff="sudo ngrep -d 'en0' -t '^(GET|POST) ' 'tcp and port 80'"
 alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
 
 # Show/hide hidden files in Finder
 alias show="defaults write com.apple.Finder AppleShowAllFiles -bool true && killall Finder"
 alias hide="defaults write com.apple.Finder AppleShowAllFiles -bool false && killall Finder"
 
-# Emacs
-alias e='emacsclient'
+# Atom
+alias e='atom-beta'
+alias atom='atom-beta'
 
 # Git aliases
 alias gsb="git submodule "
@@ -34,20 +35,13 @@ alias gcM='git commit -v -m'
 alias gmc='git commit -v -m'
 alias gca='git commit -v -a'
 alias gd='git diff --color'
-alias go='git checkout'
+alias gc='git checkout'
 alias gl='git log --stat'
 alias gll='git ll'
 alias got='git '
 alias get='git '
 
-alias gitignore='mvim /opt/boxen/config/git/gitignore'
-
-# Ruby
-alias sporkify='bundle exec spork cucumber & bundle exec spork'
-
-for method in GET HEAD POST PUT DELETE TRACE OPTIONS; do
-    alias "$method"="lwp-request -m '$method'"
-done
+alias gitignore='atom-beta ~/.gitignore'
 
 alias emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
 alias zshconfig="e ~/.zshrc"
