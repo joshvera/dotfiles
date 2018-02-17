@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = atom
+	editor = atom-beta
 	excludesfile = ~/.gitignore
 	fsyncobjectfiles = true
 	preloadindex = true
@@ -64,8 +64,9 @@
 [github]
 	user = joshvera
 [filter "lfs"]
-	clean = git lfs clean %f
-	smudge = git lfs smudge %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
 	required = true
 [commit]
-	gpgsign = true
+	gpgsign = false
