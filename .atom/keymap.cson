@@ -38,8 +38,8 @@
   'ctrl-w k': 'pane:close'
   'left': 'window:focus-pane-on-left'
   'right': 'window:focus-pane-on-right'
-  'up': 'window:focus-pane-up'
-  'down': 'window:focus-pane-down'
+  'up': 'window:focus-pane-above'
+  'down': 'window:focus-pane-below'
 
   # Whitespace mode
   'ctrl-cmd-i': 'window:toggle-invisibles'
@@ -107,7 +107,10 @@
 'atom-text-editor.vim-mode-plus-search':
   'cmd-enter': 'vim-mode-plus-user:project-find-from-search'
 
-# 'atom-text-editor.vim-mode-plus:not(.insert-mode)':
+'atom-text-editor.vim-mode-plus':
+  'ctrl-x 3': 'pane:split-right-and-copy-active-item'
+  'ctrl-x 2': 'pane:split-down-and-copy-active-item'
+  'ctrl-x 0': 'pane:close'
   # 'w': 'vim-mode-plus:move-to-next-smart-word'
   # 'b': 'vim-mode-plus:move-to-previous-smart-word'
   # 'e': 'vim-mode-plus:move-to-end-of-smart-word'
