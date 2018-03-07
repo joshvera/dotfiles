@@ -115,6 +115,8 @@
     launchOnStartup: true
   kite:
     showKiteTourOnStatup: false
+  "linter-ui-default":
+    panelHeight: 210
   "merge-conflicts":
     gitPath: "/usr/local/bin/git"
   metrics:
