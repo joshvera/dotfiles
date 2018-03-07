@@ -50,7 +50,6 @@
       "ide-haskell-hie"
       "regex-railroad-diagram"
       "tool-bar"
-      "linter"
     ]
     packagesWithKeymapsDisabled: [
       "regex-railroad-diagram"
