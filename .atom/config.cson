@@ -36,7 +36,6 @@
       "uber-juno"
       "julia-client"
       "tree-sitter-syntax"
-      "kite"
       "haskell-debug"
       "ide-haskell-hasktags"
       "ide-haskell-profiteurjs"
@@ -51,6 +50,7 @@
       "ide-haskell-hie"
       "regex-railroad-diagram"
       "tool-bar"
+      "linter"
     ]
     packagesWithKeymapsDisabled: [
       "regex-railroad-diagram"
