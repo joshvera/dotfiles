@@ -2,6 +2,9 @@
   "advanced-open-file":
     createDirectories: true
     fuzzyMatch: true
+  "atom-beautify":
+    general:
+      _analyticsUserId: "ad88f54b-c37a-4687-b1d6-0b80457e0bc7"
   "atom-ide-ui":
     "atom-ide-diagnostics-ui":
       autoVisibility: true
