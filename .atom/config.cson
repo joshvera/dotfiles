@@ -67,7 +67,6 @@
     invisibles: {}
     preferredLineLength: 120
     scrollPastEnd: true
-    showInvisibles: true
     softWrap: true
   "env-from-shell": {}
   "exception-reporting":
