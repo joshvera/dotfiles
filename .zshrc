@@ -31,7 +31,7 @@ source ~/dotfiles/zsh/zsh_aliases
 eval "$(rbenv init -)"
 
 # PATH
-export PATH=/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
+export PATH=~/.cabal/bin:~/.cargo/bin:/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
 export GOPATH=/Users/vera/go
 
 # Enable gpg-agent daemon
