@@ -81,7 +81,7 @@
   'space g i': 'open-on-github:issues'
   'space g c': 'open-on-github:copy-url'
   'space g r': 'open-on-github:branch-compare'
-  'space g g': 'open-on-github:repository'
+  'space g g': 'github:toggle-git-tab'
 
   # github-diff
   'space g n': 'git-diff:move-to-next-diff'
@@ -98,23 +98,25 @@
 
   'ctrl-w': 'editor:delete-to-beginning-of-word'
 
+# Insert mode
 'atom-text-editor.vim-mode-plus.insert-mode':
   'ctrl-s': 'vim-mode-plus:surround-smart-word'
 
+# Visual mode
 'atom-text-editor.vim-mode-plus.visual-mode':
   's': 'vim-mode-plus:surround'
 
+# Vim Search Mode
 'atom-text-editor.vim-mode-plus-search':
   'cmd-enter': 'vim-mode-plus-user:project-find-from-search'
 
+# Global editor bindings
 'atom-text-editor.vim-mode-plus':
   'ctrl-x 3': 'pane:split-right-and-copy-active-item'
   'ctrl-x 2': 'pane:split-down-and-copy-active-item'
   'ctrl-x 0': 'pane:close'
-  # 'w': 'vim-mode-plus:move-to-next-smart-word'
-  # 'b': 'vim-mode-plus:move-to-previous-smart-word'
-  # 'e': 'vim-mode-plus:move-to-end-of-smart-word'
 
+# Does this work?
 'body atom-text-editor.autocomplete-active':
   'ctrl-p': 'autocomplete-plus:move-up'
   'ctrl-n': 'autocomplete-plus:move-down'
