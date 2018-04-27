@@ -63,10 +63,10 @@
       "atom-typescript"
       "haskell-ide"
       "ide-typescript"
-      "symbols-view"
-      "ide-haskell-hie"
       "regex-railroad-diagram"
       "tool-bar"
+      "indent-detective"
+      "language-julia"
     ]
     packagesWithKeymapsDisabled: [
       "regex-railroad-diagram"
