@@ -115,6 +115,7 @@
   'ctrl-x 3': 'pane:split-right-and-copy-active-item'
   'ctrl-x 2': 'pane:split-down-and-copy-active-item'
   'ctrl-x 0': 'pane:close'
+  'cmd-i': 'tree-view:reveal-active-file'
 
 # Does this work?
 'body atom-text-editor.autocomplete-active':
