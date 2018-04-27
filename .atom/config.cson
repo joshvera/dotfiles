@@ -35,6 +35,7 @@
     enabled: true
   "coffee-compile": {}
   core:
+    debugLSP: false
     disabledPackages: [
       "advanced-new-file"
       "atom-yeoman"
