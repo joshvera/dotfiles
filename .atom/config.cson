@@ -15,6 +15,7 @@
       "atom-ide-code-highlight": "default"
       "atom-ide-console": "default"
       "atom-ide-datatip": "default"
+      "atom-ide-debugger": "default"
       "atom-ide-definitions": "default"
       "atom-ide-diagnostics": "default"
       "atom-ide-diagnostics-ui": "default"
@@ -22,6 +23,7 @@
       "atom-ide-global": "default"
       "atom-ide-outline-view": "default"
       "atom-ide-signature-help": "default"
+      "atom-ide-terminal": "default"
       hyperclick: "default"
   "atom-typescript":
     typescriptServices: "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
