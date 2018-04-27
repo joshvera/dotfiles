@@ -56,3 +56,6 @@ fpath=(/usr/local/share/zsh-completions $fpath)
 
 # Get rid of fzf?
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Try autojump
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
