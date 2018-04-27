@@ -1,5 +1,6 @@
 # so secret
-source ~/.secrets
+source ~/.secrets/.secrets
+ export KUBECONFIG=~/.secrets/assets/auth/kubeconfig
 
 # Speed up git completion
 __git_files () {
