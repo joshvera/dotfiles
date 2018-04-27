@@ -120,6 +120,18 @@
     commandPath: "stack"
   "ide-purescript":
     addNpmPath: true
+    addPscPackageSources: true
+    autocomplete:
+      preferredModules: [
+        "Prologue"
+        "Prelude"
+      ]
+    editorMode: true
+    pscSourceGlob: [
+      "src/**/*.purs"
+      "bower_components/**/*.purs"
+      "app/src/**/*.purs"
+    ]
   "ide-rust":
     rlsToolchain: "beta"
   jshint:
