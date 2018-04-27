@@ -33,6 +33,8 @@ eval "$(rbenv init -)"
 
 # PATH
 export PATH=~/.cabal/bin:~/.cargo/bin:/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
+export PATH=~/.npm/bin:$PATH
+export PATH=./node_modules/.bin:$PATH
 export GOPATH=/Users/vera/go
 
 # Enable gpg-agent daemon
