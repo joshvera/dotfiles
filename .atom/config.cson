@@ -51,6 +51,7 @@
       "tool-bar"
       "indent-detective"
       "language-julia"
+      "symbols-view"
     ]
     packagesWithKeymapsDisabled: [
       "regex-railroad-diagram"
