@@ -59,3 +59,7 @@ fpath=(/usr/local/share/zsh-completions $fpath)
 
 # Try autojump
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+
+# Stack autocompletion
+autoload -U +X bashcompinit && bashcompinit
+eval "$(stack --bash-completion-script stack)"
