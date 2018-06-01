@@ -64,7 +64,7 @@
     useTreeSitterParsers: true
   editor:
     fontFamily: "Inconsolata"
-    fontSize: 17
+    fontSize: 18
     invisibles: {}
     preferredLineLength: 120
     scrollPastEnd: true
