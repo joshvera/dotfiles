@@ -16,7 +16,6 @@ alias show="defaults write com.apple.Finder AppleShowAllFiles -bool true && kill
 alias hide="defaults write com.apple.Finder AppleShowAllFiles -bool false && killall Finder"
 
 # Atom
-alias e='atom-beta'
 alias atom='atom-beta'
 
 # Git aliases
@@ -41,9 +40,8 @@ alias gll='git ll'
 alias got='git '
 alias get='git '
 
-alias gitignore='atom-beta ~/.gitignore'
+alias gitignore='emacs ~/.gitignore'
 
-alias emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
-alias zshconfig="e ~/.zshrc"
-alias ohmyzsh="e ~/.oh-my-zsh"
+alias zshconfig="emacs ~/.zshrc"
+alias ohmyzsh="emacs ~/.oh-my-zsh"
 
