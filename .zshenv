@@ -33,3 +33,52 @@ export EDITOR="atom"
 export VISUAL='emacsclient -f'
 
 export HOMEBREW_CC=clang
+# so secret
+source ~/.secrets/.secrets
+export KUBECONFIG=~/.secrets/assets/auth/kubeconfig
+
+# Speed up git completion
+__git_files () {
+  _wanted files expl 'local files' _files
+}
+
+# Always pushd when changing directory
+setopt auto_pushd
+
+# Emacs bindings in vim insert mode
+bindkey -M viins '' forward-char
+bindkey -M viins '' backward-char
+bindkey -M viins '^A' beginning-of-line
+bindkey -M viins '^e' end-of-line
+bindkey -M viins '^k' delete-line
+
+# Bash style incremental search in vim insert mode
+bindkey -M viins '^r' history-incremental-search-backward
+bindkey -M viins '^s' history-incremental-search-forward
+
+# jj to escape
+bindkey -M viins 'jj' vi-cmd-mode
+
+# Aliases
+source ~/github/dotfiles/zsh/aliases
+source ~/github/dotfiles/zsh/zsh_aliases
+
+
+# PATH
+export PATH=~/.cabal/bin:~/.cargo/bin:/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
+export PATH=~/.npm/bin:$PATH
+export PATH=./node_modules/.bin:$PATH
+export GOPATH=/Users/vera/go
+
+# Set gpg-agent info
+export GPG_TTY=`tty`
+export GPG_AGENT_INFO
+
+fpath=(/usr/local/share/zsh-completions $fpath)
+
+
+# Get rid of fzf?
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Try autojump
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
