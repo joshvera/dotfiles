@@ -3,13 +3,20 @@ export ZSH=$HOME/.oh-my-zsh
 
 # Oh my zsh theme
 if [ -n "$INSIDE_EMACS" ]; then
-    chpwd() { print -P "\033AnSiTc %d" }
-    print -P "\033AnSiTu %n"
-    print -P "\033AnSiTc %d"
-    export ZSH_THEME="lambda"
+    # chpwd() { print -P "\033AnSiTc %d" }
+    # print -P "\033AnSiTu %n"
+    # print -P "\033AnSiTc %d"
+    # export ZSH_THEME="lambda"
+    export ZSH_THEME="fwalch"
+
+    export TERM=xterm-256color
+    # export TERM=xterm-24bit
 else
     export ZSH_THEME="fwalch"
     plugins=(vi-mode brew coffee pip git stack)
+
+    # Term
+    export TERM=xterm-256color
 fi
 
 # Oh my zsh
@@ -22,9 +29,6 @@ export JAVA_OPTS=-Xmx768m
 
 # Node
 export NODE_PATH=/usr/local/lib/node_modules
-
-# Term
-export TERM=xterm-256color
 
 # Shell
 export SHELL=/usr/local/bin/zsh
