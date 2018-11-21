@@ -27,9 +27,6 @@ plugins+=(github)
 # JVM
 export JAVA_OPTS=-Xmx768m
 
-# Node
-export NODE_PATH=/usr/local/lib/node_modules
-
 # Shell
 export SHELL=/usr/local/bin/zsh
 export VIM_APP_DIR=/Applications
@@ -68,12 +65,6 @@ source ~/github/dotfiles/zsh/aliases
 source ~/github/dotfiles/zsh/zsh_aliases
 
 
-# PATH
-export PATH=~/.cabal/bin:~/.cargo/bin:/usr/local/texlive/2017/bin/x86_64-darwin:/Users/vera/miniconda3/bin:~/.local/bin:$PATH:/Users/vera/go/bin
-export PATH=~/.npm/bin:$PATH
-export PATH=./node_modules/.bin:$PATH
-export GOPATH=/Users/vera/go
-
 # Set gpg-agent info
 export GPG_TTY=`tty`
 export GPG_AGENT_INFO
@@ -86,3 +77,11 @@ fpath=(/usr/local/share/zsh-completions $fpath)
 
 # Try autojump
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+
+
+# Go
+export GOPATH=/Users/vera/go
+
+
+# Node
+export NODE_PATH=/usr/local/lib/node_modules
