@@ -33,3 +33,5 @@ export EDITOR="atom"
 export VISUAL='emacsclient -f'
 
 export HOMEBREW_CC=clang
+
+export EMACS=/usr/local/opt/emacs-plus/bin/emacs
