@@ -25,8 +25,8 @@ bindkey -M viins '^s' history-incremental-search-forward
 bindkey -M viins 'jj' vi-cmd-mode
 
 # Aliases
-source ~/dotfiles/zsh/aliases
-source ~/dotfiles/zsh/zsh_aliases
+source ~/github/dotfiles/zsh/aliases
+source ~/github/dotfiles/zsh/zsh_aliases
 
 # Enable rbenv before path!
 eval "$(rbenv init -)"
