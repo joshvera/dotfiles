@@ -5,7 +5,7 @@ if [ "$?" -eq "1" ]; then
   emacsclient -a '' -nqc "$@" &> /dev/null
 else
   if [ "$#" -eq "0" ]; then
-      emacsclient --eval '(progn (select-frame-set-input-focus (selected-frame)))'
+      emacsclient --eval '(progn (select-frame-set-input-focus (selected-frame)))' &> /dev/null
   else
       emacsclient -nq "$@" &> /dev/null
   fi
