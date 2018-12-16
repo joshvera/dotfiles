@@ -34,9 +34,9 @@ export EDITOR="atom"
 export VISUAL='emacsclient -f'
 
 export HOMEBREW_CC=clang
+
 # so secret
 source ~/.secrets/.secrets
-export KUBECONFIG=~/.secrets/assets/auth/kubeconfig
 
 # Speed up git completion
 __git_files () {
@@ -79,9 +79,19 @@ fpath=(/usr/local/share/zsh-completions $fpath)
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
 
 
+# Enable rbenv before path!
+eval "$(rbenv init -)"
+
 # Go
 export GOPATH=/Users/vera/go
+export PROJECTS=~/github
 
 
 # Node
 export NODE_PATH=/usr/local/lib/node_modules
+
+export EMACS=/usr/local/opt/emacs-plus/bin/emacs
+
+# Stack autocompletion
+autoload -U +X bashcompinit && bashcompinit
+eval "$(stack --bash-completion-script stack)"

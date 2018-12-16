@@ -37,6 +37,7 @@
 	fg = checkout
 	rba = rebase --abort
 	rbc = rebase --continue
+	last = log -1 HEAD
 [color]
 	ui = auto
 	whitespace = trailing-space,space-before-tab,strip
@@ -53,7 +54,6 @@
 [merge]
 	stat = true
 	ff = false
-	tool = fugitive
 [rebase]
 	stat = true
 [pack]
