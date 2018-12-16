@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = atom-beta
+	editor = emacs
 	excludesfile = ~/.gitignore
 	fsyncobjectfiles = true
 	preloadindex = true
