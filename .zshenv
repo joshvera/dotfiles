@@ -19,6 +19,7 @@ else
     export TERM=xterm-256color
 fi
 
+
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
 
@@ -79,9 +80,6 @@ fpath=(/usr/local/share/zsh-completions $fpath)
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
 
 
-# Enable rbenv before path!
-eval "$(rbenv init -)"
-
 # Go
 export GOPATH=/Users/vera/go
 export PROJECTS=~/github
@@ -92,6 +90,3 @@ export NODE_PATH=/usr/local/lib/node_modules
 
 export EMACS=/usr/local/opt/emacs-plus/bin/emacs
 
-# Stack autocompletion
-autoload -U +X bashcompinit && bashcompinit
-eval "$(stack --bash-completion-script stack)"
