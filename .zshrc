@@ -10,5 +10,10 @@
 #     eval `gpg-agent --daemon --no-grab`
 # fi
 
-# # setup opam env
-# eval `opam config env`
+## Enable rbenv before path!
+eval "$(rbenv init -)"
+
+
+# Stack autocompletion
+autoload -U +X bashcompinit && bashcompinit
+eval "$(stack --bash-completion-script stack)"
