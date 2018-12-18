@@ -29,7 +29,7 @@ export TERM=xterm-256color
 # Shell
 export SHELL=/usr/local/bin/zsh
 export VIM_APP_DIR=/Applications
-export EDITOR="atom"
+export EDITOR="emacs"
 export VISUAL='emacsclient -f'
 
 export HOMEBREW_CC=clang
