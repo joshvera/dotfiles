@@ -72,3 +72,5 @@
 	required = true
 [commit]
 	gpgsign = false
+[init]
+	templatedir = ~/github/dotfiles/git_template
