@@ -17,3 +17,5 @@ eval "$(rbenv init -)"
 # Stack autocompletion
 autoload -U +X bashcompinit && bashcompinit
 eval "$(stack --bash-completion-script stack)"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
