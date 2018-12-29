@@ -70,6 +70,7 @@ source ~/github/dotfiles/zsh/zsh_aliases
 export GPG_TTY=`tty`
 export GPG_AGENT_INFO
 
+# zsh completions?
 fpath=(/usr/local/share/zsh-completions $fpath)
 
 
@@ -88,5 +89,7 @@ export PROJECTS=~/github
 # Node
 export NODE_PATH=/usr/local/lib/node_modules
 
+
+# For make in ~/.doom.d
 export EMACS=/usr/local/opt/emacs-plus/bin/emacs
 
