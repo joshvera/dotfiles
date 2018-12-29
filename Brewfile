@@ -30,3 +30,6 @@ cask 'firefox'
 cask 'flux'
 cask 'github'
 cask 'vmware-fusion'
+
+brew 'rg'
+brew 'fzf'
