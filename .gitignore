@@ -29,7 +29,7 @@ ehthumbs.db
 .xctool-args
 compile_commands.json
 xcodebuild.log
-tags
+/tags
 .go-version
 .ruby-version
 .flowconfig
