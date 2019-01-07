@@ -1,252 +1,195 @@
-{
-  "*": {
-    "advanced-open-file": {
-      "createDirectories": true,
-      "fuzzyMatch": true
-    },
-    "atom-beautify": {
-      "general": {
-        "_analyticsUserId": "ad88f54b-c37a-4687-b1d6-0b80457e0bc7"
-      }
-    },
-    "atom-ide-ui": {
-      "atom-ide-diagnostics-ui": {
-        "autoVisibility": true
-      },
-      "use": {}
-    },
-    "atom-typescript": {
-      "typescriptServices": "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
-    },
-    "autocomplete-plus": {},
-    "autocomplete-python": {
-      "pythonPaths": "/Users/vera/miniconda3/envs/pytorch/bin/python",
-      "useKite": false
-    },
-    "autosave": {
-      "enabled": true
-    },
-    "coffee-compile": {},
-    "core": {
-      "debugLSP": false,
-      "disabledPackages": [
-        "advanced-new-file",
-        "atom-yeoman",
-        "coffee-compile",
-        "busy",
-        "git-time-machine",
-        "language-csharp",
-        "language-elm",
-        "language-fsharp",
-        "language-idris",
-        "language-powershell",
-        "language-swift",
-        "script",
-        "vim-surround",
-        "uber-juno",
-        "julia-client",
-        "tree-sitter-syntax",
-        "haskell-debug",
-        "ide-haskell-hasktags",
-        "ide-haskell-profiteurjs",
-        "go-plus",
-        "ide-haskell",
-        "ide-haskell-cabal",
-        "autocomplete-haskell",
-        "atom-typescript",
-        "haskell-ide",
-        "ide-typescript",
-        "regex-railroad-diagram",
-        "tool-bar",
-        "indent-detective",
-        "language-julia",
-        "symbols-view",
-        "ide-haskell-hie",
-        "atom-keyboard-macros-vim"
-      ],
-      "packagesWithKeymapsDisabled": [
-        "regex-railroad-diagram"
-      ],
-      "telemetryConsent": "limited",
-      "themes": [
-        "one-light-ui",
-        "atom-material-syntax-light"
-      ],
-      "useTreeSitterParsers": true
-    },
-    "editor": {
-      "fontFamily": "Inconsolata",
-      "fontSize": 17,
-      "invisibles": {},
-      "preferredLineLength": 120,
-      "scrollPastEnd": true,
-      "showInvisibles": true,
-      "softWrap": true
-    },
-    "env-from-shell": {},
-    "exception-reporting": {
-      "userId": "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
-    },
-    "file-watcher": {
-      "promptWhenFileHasChangedOnDisk": false
-    },
-    "git-plus": {
-      "general": {
-        "_analyticsUserId": "d1a18298-791d-4903-8367-b4cfd7676c46"
-      }
-    },
-    "haskell-ghc-mod": {
-      "additionalPathDirectories": [
-        "~/.local/bin",
-        "/usr/local/bin"
-      ],
-      "debug": true,
-      "interactiveActionTimeout": 60,
-      "interactiveInactivityTimeout": 1,
-      "maxBrowseProcesses": 4,
-      "onMouseHoverShow": "typeInfo",
-      "onSelectionShow": "infoType",
-      "showTypeOnSelection": true,
-      "useLinter": true
-    },
-    "ide-haskell": {
-      "cabalPath": "/Users/vera/.local/bin/cabal",
-      "onCursorMove": "Show Tooltip",
-      "stylishHaskellPath": "/Users/vera/.local/bin/stylish-haskell"
-    },
-    "ide-haskell-cabal": {
-      "cabal": {
-        "activeGhcVersion": "8.0",
-        "ghc702": {}
-      }
-    },
-    "ide-haskell-hasktags": {
-      "hasktagsPath": "/Users/vera/.local/bin/hasktags"
-    },
-    "ide-haskell-hie": {},
-    "ide-haskell-repl": {
-      "commandPath": "stack"
-    },
-    "ide-purescript": {
-      "addNpmPath": true,
-      "addPscPackageSources": true,
-      "autocomplete": {
-        "preferredModules": [
-          "Prologue",
-          "Prelude"
-        ]
-      },
-      "editorMode": true,
-      "pscSourceGlob": [
-        "src/**/*.purs",
-        "bower_components/**/*.purs",
-        "app/src/**/*.purs"
+"*":
+  "advanced-open-file":
+    createDirectories: true
+    fuzzyMatch: true
+  "atom-beautify":
+    general:
+      _analyticsUserId: "ad88f54b-c37a-4687-b1d6-0b80457e0bc7"
+  "atom-ide-ui":
+    "atom-ide-diagnostics-ui":
+      autoVisibility: true
+    use: {}
+  "atom-typescript":
+    typescriptServices: "/usr/local/lib/node_modules/typescript/lib/typescriptServices.js"
+  "autocomplete-plus": {}
+  "autocomplete-python":
+    pythonPaths: "/Users/vera/miniconda3/envs/pytorch/bin/python"
+    useKite: false
+  autosave:
+    enabled: true
+  "coffee-compile": {}
+  core:
+    debugLSP: false
+    disabledPackages: [
+      "advanced-new-file"
+      "atom-yeoman"
+      "coffee-compile"
+      "busy"
+      "git-time-machine"
+      "language-csharp"
+      "language-elm"
+      "language-fsharp"
+      "language-idris"
+      "language-powershell"
+      "language-swift"
+      "script"
+      "vim-surround"
+      "uber-juno"
+      "julia-client"
+      "tree-sitter-syntax"
+      "haskell-debug"
+      "ide-haskell-hasktags"
+      "ide-haskell-profiteurjs"
+      "go-plus"
+      "ide-haskell"
+      "ide-haskell-cabal"
+      "autocomplete-haskell"
+      "atom-typescript"
+      "haskell-ide"
+      "ide-typescript"
+      "regex-railroad-diagram"
+      "tool-bar"
+      "indent-detective"
+      "language-julia"
+      "symbols-view"
+      "ide-haskell-hie"
+      "atom-keyboard-macros-vim"
+    ]
+    packagesWithKeymapsDisabled: [
+      "regex-railroad-diagram"
+    ]
+    telemetryConsent: "limited"
+    themes: [
+      "one-light-ui"
+      "atom-material-syntax-light"
+    ]
+    useTreeSitterParsers: true
+  editor:
+    fontFamily: "Inconsolata"
+    fontSize: 17
+    invisibles: {}
+    preferredLineLength: 120
+    scrollPastEnd: true
+    showInvisibles: true
+    softWrap: true
+  "env-from-shell": {}
+  "exception-reporting":
+    userId: "656f5b87-3b6f-6794-5ba6-e0c775f49c20"
+  "file-watcher":
+    promptWhenFileHasChangedOnDisk: false
+  "git-plus":
+    general:
+      _analyticsUserId: "d1a18298-791d-4903-8367-b4cfd7676c46"
+  "haskell-ghc-mod":
+    additionalPathDirectories: [
+      "~/.local/bin"
+      "/usr/local/bin"
+    ]
+    debug: true
+    interactiveActionTimeout: 60
+    interactiveInactivityTimeout: 1
+    maxBrowseProcesses: 4
+    onMouseHoverShow: "typeInfo"
+    onSelectionShow: "infoType"
+    showTypeOnSelection: true
+    useLinter: true
+  "ide-haskell":
+    cabalPath: "/Users/vera/.local/bin/cabal"
+    onCursorMove: "Show Tooltip"
+    stylishHaskellPath: "/Users/vera/.local/bin/stylish-haskell"
+  "ide-haskell-cabal":
+    cabal:
+      activeGhcVersion: "8.0"
+      ghc702: {}
+  "ide-haskell-hasktags":
+    hasktagsPath: "/Users/vera/.local/bin/hasktags"
+  "ide-haskell-hie": {}
+  "ide-haskell-repl":
+    commandPath: "stack"
+  "ide-purescript":
+    addNpmPath: true
+    addPscPackageSources: true
+    autocomplete:
+      preferredModules: [
+        "Prologue"
+        "Prelude"
       ]
-    },
-    "ide-rust": {
-      "rlsToolchain": "beta"
-    },
-    "jshint": {
-      "supportLintingJsx": true
-    },
-    "julia-client": {
-      "enableMenu": true,
-      "enableToolBar": true,
-      "launchOnStartup": true
-    },
-    "kite": {
-      "showKiteTourOnStatup": false
-    },
-    "linter-ui-default": {
-      "panelHeight": 210
-    },
-    "merge-conflicts": {
-      "gitPath": "/usr/local/bin/git"
-    },
-    "metrics": {
-      "userId": "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
-    },
-    "nuclide": {
-      "remoteProjectsConfig": []
-    },
-    "nuclide-flow": {},
-    "nvatom": {
-      "directory": "/Users/vera/Notes"
-    },
-    "tree-view": {},
-    "unity-ui": {},
-    "vim-mode-plus": {
-      "clearHighlightSearchOnResetNormalMode": true,
-      "groupChangesWhenLeavingInsertMode": false,
-      "highlightSearch": true,
-      "incrementalSearch": true
-    },
-    "vim-surround": {},
-    "welcome": {
-      "showOnStartup": false
-    },
-    "whitespace": {
-      "ensureSingleTrailingNewline": false
-    }
-  },
-  ".cabal.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".coffee.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".erb.html.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".haskell.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".js.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".json.source": {
-    "editor": {
-      "tabLength": 4,
-      "tabType": "soft"
-    }
-  },
-  ".puppet.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".purescript.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".ruby.source": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  },
-  ".source.yaml": {
-    "editor": {
-      "tabLength": 2,
-      "tabType": "soft"
-    }
-  }
-}
+    editorMode: true
+    pscSourceGlob: [
+      "src/**/*.purs"
+      "bower_components/**/*.purs"
+      "app/src/**/*.purs"
+    ]
+  "ide-rust":
+    rlsToolchain: "beta"
+  jshint:
+    supportLintingJsx: true
+  "julia-client":
+    enableMenu: true
+    enableToolBar: true
+    launchOnStartup: true
+  kite:
+    showKiteTourOnStatup: false
+  "linter-ui-default":
+    panelHeight: 210
+  "merge-conflicts":
+    gitPath: "/usr/local/bin/git"
+  metrics:
+    userId: "3f905de79bfb2cb3ee92f7ea7580a08a3b709cc4"
+  nuclide:
+    remoteProjectsConfig: []
+  "nuclide-flow": {}
+  nvatom:
+    directory: "/Users/vera/Notes"
+  "tree-view": {}
+  "unity-ui": {}
+  "vim-mode-plus":
+    clearHighlightSearchOnResetNormalMode: true
+    groupChangesWhenLeavingInsertMode: false
+    highlightSearch: true
+    incrementalSearch: true
+  "vim-surround": {}
+  welcome:
+    showOnStartup: false
+  whitespace:
+    ensureSingleTrailingNewline: false
+".cabal.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".coffee.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".erb.html.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".haskell.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".js.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".json.source":
+  editor:
+    tabLength: 4
+    tabType: "soft"
+".puppet.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".purescript.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".ruby.source":
+  editor:
+    tabLength: 2
+    tabType: "soft"
+".source.yaml":
+  editor:
+    tabLength: 2
+    tabType: "soft"
