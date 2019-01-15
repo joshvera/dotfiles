@@ -4,3 +4,6 @@ export PATH=~/.npm/bin:$PATH
 export PATH=./node_modules/.bin:$PATH
 export PATH=/usr/local/opt/mysql@5.7/bin:$PATH
 export PATH=~/github/github/bin:$PATH
+
+
+export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
