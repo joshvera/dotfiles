@@ -45,3 +45,4 @@ xcshareddata
 .psc-ide-port
 *.tags
 codex.tags
+.dir-locals.el
