@@ -29,7 +29,7 @@ ehthumbs.db
 .xctool-args
 compile_commands.json
 xcodebuild.log
-tags
+/tags
 .go-version
 .ruby-version
 .flowconfig
@@ -45,3 +45,4 @@ xcshareddata
 .psc-ide-port
 *.tags
 codex.tags
+.dir-locals.el
