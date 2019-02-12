@@ -13,6 +13,8 @@
 ## Enable rbenv before path!
 eval "$(rbenv init -)"
 
+# setup opam env
+eval `opam config env`
 
 # Stack autocompletion
 autoload -U +X bashcompinit && bashcompinit
