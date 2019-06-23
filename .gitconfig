@@ -74,3 +74,7 @@
 	gpgsign = false
 [init]
 	templatedir = ~/github/dotfiles/git_template
+[rerere]
+	enabled = 1
+[gc]
+	auto = 0
