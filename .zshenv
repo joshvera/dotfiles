@@ -92,3 +92,5 @@ export NODE_PATH=/usr/local/lib/node_modules
 
 # For make in ~/.doom.d
 export EMACS=/usr/local/opt/emacs-plus/bin/emacs
+
+. "$HOME/.ghcup/env"
