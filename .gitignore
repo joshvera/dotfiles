@@ -46,3 +46,4 @@ xcshareddata
 *.tags
 codex.tags
 .dir-locals.el
+.ghc.environment.*
