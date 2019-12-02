@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = emacs
+	editor = code --wait
 	excludesfile = ~/.gitignore
 	fsyncobjectfiles = true
 	preloadindex = true
@@ -45,6 +45,9 @@
 	whitespace = trailing-space,space-before-tab,strip
 [diff]
 	renames = copies
+    tool = default-difftool
+[difftool "default-difftool"]
+    cmd = code --wait --diff $LOCAL $REMOTE
 [status]
 	submodulesummary = true
 [branch]
