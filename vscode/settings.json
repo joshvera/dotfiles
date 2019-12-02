@@ -1,0 +1,115 @@
+{
+    "editor.fontFamily": "Inconsolata, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 18,
+    "editor.minimap.enabled": false,
+    "workbench.colorTheme": "GitHub Plus",
+    "workbench.colorCustomizations": {
+        "editorCursor.foreground": "#009688",
+        "syntax.type": "#d73a49",
+        "syntax.scope": "#24292eff",
+        "syntax.function": "#6182B8",
+        "syntax.variable": "#607D8B",
+        "syntax.number": "#005cc5",
+        "syntax.string": "#032f62",
+        "syntax.comment": "#6a737d",
+        "syntax.constant": "#FF5370",
+        "syntax.directive": "#24292eff",
+        "syntax.control": "#7986CB",
+        "syntax.operator": "#39ADB5",
+        "syntax.modifier": "#d73a49",
+        "syntax.punctuation": "#d73a49",
+    },
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "keyword.other",
+                "settings": {
+                    "foreground": "#7C4DFF"
+                }
+            },
+            {
+                "scope": "storage.type",
+                "settings": {
+                    "foreground": "#607D8B",
+                }
+            },
+            {
+                "scope": "constant.other",
+                "settings": {
+                    "foreground": "#FF5370",
+                }
+            },
+            {
+                "scope": "keyword.operator",
+                "settings": {
+                    "foreground": "#39ADB5",
+                }
+            },
+            {
+                "scope": "source",
+                "settings": {
+                    "foreground": "#607D8B",
+                }
+            },
+            {
+                "scope": "meta.type-declaration",
+                "settings": {
+                    "foreground": "#39ADB5"
+                }
+            },
+            {
+                "scope": "variable.other.generic-type",
+                "settings": {
+                    "foreground": "#80CBC4"
+                }
+            },
+            {
+                "scope": "entity.name.function",
+                "settings": {
+                    "foreground": "#6182B8"
+                }
+            }
+        ]
+    },
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "files.autoSave": "onFocusChange",
+    "editor.wordWrapColumn": 120,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "files.useExperimentalFileWatcher": true,
+    "breadcrumbs.enabled": true,
+    "search.smartCase": true,
+    "search.quickOpen.includeSymbols": true,
+    "brittany.enable": false,
+    "languageServerHaskell.enableHIE": false,
+    "gitlens.advanced.messages": {
+        "suppressShowKeyBindingsNotice": true
+    },
+    "materialTheme.fixIconsRunning": false,
+    "workbench.iconTheme": "eq-material-theme-icons-light",
+    "vs-kubernetes": {
+        "vs-kubernetes.kubectl-path": "/Users/vera/.vs-kubernetes/tools/kubectl/kubectl",
+        "vs-kubernetes.helm-path": "/Users/vera/.vs-kubernetes/tools/helm/darwin-amd64/helm",
+        "vs-kubernetes.draft-path": "/Users/vera/.vs-kubernetes/tools/draft/darwin-amd64/draft",
+        "vs-kubernetes.minikube-path": "/Users/vera/.vs-kubernetes/tools/minikube/darwin-amd64/minikube"
+    },
+    "[haskell]": {
+        "editor.defaultFormatter": "vigoo.stylish-haskell"
+    },
+    "arduino.additionalUrls": "https://raw.githubusercontent.com/keyboardio/boardsmanager/master/package_keyboardio_index.json",
+    "go.formatTool": "goimports",
+    "[go]": {
+        "editor.snippetSuggestions": "none",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "gopls": {
+        "usePlaceholders": true, // add parameter placeholders when completing a function
+        "wantCompletionDocumentation": true // for documentation in completion items
+    },
+    "files.eol": "\n", // formatting only supports LF line endings
+}
