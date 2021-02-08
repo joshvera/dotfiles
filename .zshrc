@@ -13,11 +13,5 @@
 ## Enable rbenv before path!
 eval "$(rbenv init -)"
 
-# setup opam env
-eval `opam config env`
-
-# Stack autocompletion
-autoload -U +X bashcompinit && bashcompinit
-eval "$(stack --bash-completion-script stack)"
-
+# FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

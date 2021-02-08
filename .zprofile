@@ -10,4 +10,4 @@ export PATH="${GHCUP_INSTALL_BASE_PREFIX:=$HOME}/.ghcup/bin:$HOME/.cabal/bin:$PA
 
 export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 
-export PATH="$HOME/.cargo/bin:$PATH"
+export PATH=/opt/homebrew/bin:$PATH
