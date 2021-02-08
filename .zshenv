@@ -2,23 +2,14 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # Oh my zsh theme
-if [ -n "$INSIDE_EMACS" ]; then
-    # chpwd() { print -P "\033AnSiTc %d" }
-    # print -P "\033AnSiTu %n"
-    # print -P "\033AnSiTc %d"
-    # export ZSH_THEME="lambda"
-    export ZSH_THEME="fwalch"
 
-    export TERM=xterm-256color
-    # export TERM=xterm-24bit
-else
-    export ZSH_THEME="fwalch"
-    plugins=(vi-mode brew coffee pip git stack)
+export ZSH_THEME="fwalch"
+plugins=(vi-mode brew coffee pip git)
 
-    # Term
-    export TERM=xterm-256color
-fi
+# Term
+export TERM=xterm-256color
 
+export ZSH_DISABLE_COMPFIX=true
 
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
@@ -92,3 +83,4 @@ export NODE_PATH=/usr/local/lib/node_modules
 
 # For make in ~/.doom.d
 export EMACS=/usr/local/opt/emacs-plus/bin/emacs
+source "$HOME/.cargo/env"
