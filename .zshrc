@@ -15,3 +15,25 @@ eval "$(rbenv init -)"
 
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+# Path to oh-my-zsh configuration
+export ZSH=$HOME/.oh-my-zsh
+
+# Oh my zsh theme
+
+export ZSH_THEME="fwalch"
+plugins=(vi-mode brew coffee pip)
+
+# Term
+export TERM=xterm-256color
+
+export ZSH_DISABLE_COMPFIX=true
+
+# Oh my zsh
+source $ZSH/oh-my-zsh.sh
+
+plugins+=(github)
+eval "$(pyenv init -)"
+
+export PATH="$HOME/.poetry/bin:$PATH"

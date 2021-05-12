@@ -1,21 +1,3 @@
-# Path to oh-my-zsh configuration
-export ZSH=$HOME/.oh-my-zsh
-
-# Oh my zsh theme
-
-export ZSH_THEME="fwalch"
-plugins=(vi-mode brew coffee pip git)
-
-# Term
-export TERM=xterm-256color
-
-export ZSH_DISABLE_COMPFIX=true
-
-# Oh my zsh
-source $ZSH/oh-my-zsh.sh
-
-plugins+=(github)
-
 # JVM
 export JAVA_OPTS=-Xmx768m
 
