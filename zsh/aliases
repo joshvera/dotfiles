@@ -18,30 +18,10 @@ alias hide="defaults write com.apple.Finder AppleShowAllFiles -bool false && kil
 # Atom
 alias atom='atom-beta'
 
-# Git aliases
-alias gsb="git submodule "
-alias g="git "
-alias grc='git rebase --continue'
-alias gra='git rebase --abort'
-alias gs='git status '
-alias gst='git status '
-alias ga='git add'
-alias gb='git branch'
-alias gba='git branch -a'
-alias gc='git commit -v'
-alias gcm='git commit -v -m'
-alias gcM='git commit -v -m'
-alias gmc='git commit -v -m'
-alias gca='git commit -v -a'
-alias gd='git diff --color'
-alias gc='git checkout'
-alias gl='git log --stat'
-alias gll='git ll'
-alias got='git '
-alias get='git '
 
-alias gitignore='emacs ~/.gitignore'
+alias gitignore='code ~/.gitignore'
 
-alias zshconfig="emacs ~/.zshrc"
-alias ohmyzsh="emacs ~/.oh-my-zsh"
+alias zshconfig="code ~/.zshrc"
+alias ohmyzsh="code ~/.oh-my-zsh"
 
+alias k='kubectl'
