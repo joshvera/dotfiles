@@ -11,7 +11,7 @@
 	quotepath = false
 	editor = code --wait
 	excludesfile = ~/.gitignore
-	fsyncobjectfiles = true
+	fsync = committed
 	preloadindex = true
 	whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 	pager = less -x4
