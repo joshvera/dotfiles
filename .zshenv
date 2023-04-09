@@ -68,3 +68,10 @@ export HDF5_DIR=/opt/homebrew/
 # For make in ~/.doom.d
 export EMACS=/usr/local/opt/emacs-plus/bin/emacs
 source "$HOME/.cargo/env"
+
+export XDG_CONFIG_HOME=~/.config
+
+export PATH="/opt/homebrew/anaconda3/bin:$PATH"
+export PATH="/Users/vera/.local/bin:$PATH"
+
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
