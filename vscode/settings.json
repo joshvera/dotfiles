@@ -2,7 +2,10 @@
     "editor.fontFamily": "Inconsolata, Menlo, Monaco, 'Courier New', monospace",
     "editor.fontSize": 18,
     "editor.minimap.enabled": false,
-    "workbench.colorTheme": "GitHub Plus",
+    "editor.rulers": [
+        120
+    ],
+    "workbench.colorTheme": "GitHub Light",
     "workbench.colorCustomizations": {
         "editorCursor.foreground": "#009688",
         "syntax.type": "#d73a49",
@@ -78,28 +81,22 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    "files.useExperimentalFileWatcher": true,
     "breadcrumbs.enabled": true,
     "search.smartCase": true,
     "search.quickOpen.includeSymbols": true,
-    "brittany.enable": false,
-    "languageServerHaskell.enableHIE": false,
-    "gitlens.advanced.messages": {
-        "suppressShowKeyBindingsNotice": true
-    },
-    "materialTheme.fixIconsRunning": false,
-    "workbench.iconTheme": "eq-material-theme-icons-light",
     "vs-kubernetes": {
         "vs-kubernetes.kubectl-path": "/Users/vera/.vs-kubernetes/tools/kubectl/kubectl",
         "vs-kubernetes.helm-path": "/Users/vera/.vs-kubernetes/tools/helm/darwin-amd64/helm",
         "vs-kubernetes.draft-path": "/Users/vera/.vs-kubernetes/tools/draft/darwin-amd64/draft",
-        "vs-kubernetes.minikube-path": "/Users/vera/.vs-kubernetes/tools/minikube/darwin-amd64/minikube"
+        "vs-kubernetes.minikube-path": "/Users/vera/.vs-kubernetes/tools/minikube/darwin-amd64/minikube",
+        "vs-kubernetes.minikube-path.mac": "/Users/vera/.vs-kubernetes/tools/minikube/darwin-amd64/minikube",
+        "vscode-kubernetes.kubectl-path.mac": "/Users/vera/.vs-kubernetes/tools/kubectl/kubectl",
+        "vscode-kubernetes.helm-path.mac": "/Users/vera/.vs-kubernetes/tools/helm/darwin-arm64/helm",
+        "vscode-kubernetes.minikube-path.mac": "/Users/vera/.vs-kubernetes/tools/minikube/darwin-arm64/minikube"
     },
     "[haskell]": {
-        "editor.defaultFormatter": "vigoo.stylish-haskell"
+        "editor.defaultFormatter": "sjurmillidahl.ormolu-vscode"
     },
-    "arduino.additionalUrls": "https://raw.githubusercontent.com/keyboardio/boardsmanager/master/package_keyboardio_index.json",
-    "go.formatTool": "goimports",
     "[go]": {
         "editor.snippetSuggestions": "none",
         "editor.formatOnSave": true,
@@ -107,9 +104,63 @@
             "source.organizeImports": true
         }
     },
-    "gopls": {
-        "usePlaceholders": true, // add parameter placeholders when completing a function
-        "wantCompletionDocumentation": true // for documentation in completion items
+    "files.eol": "\n",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
     },
-    "files.eol": "\n", // formatting only supports LF line endings
+    "yaml.format.enable": false,
+    "C_Cpp.updateChannel": "Insiders",
+    "atomKeymap.promptV3Features": true,
+    "editor.multiCursorModifier": "ctrlCmd",
+    "editor.formatOnPaste": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust"
+    },
+    "terraform.languageServer": {
+        "external": true,
+        "args": [
+            "serve"
+        ]
+    },
+    "ghcSimple.replCommand": "cabal new-repl semantic",
+    "ghcSimple.inlineRepl.loadType": "object-code",
+    "go.formatTool": "goimports",
+    "go.useLanguageServer": true,
+    "python.languageServer": "Pylance",
+    "[python]": {
+        "editor.defaultFormatter": "mikoz.black-py",
+        "editor.formatOnType": true
+    },
+    "workbench.settings.openDefaultKeybindings": true,
+    "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter.notebook.ipynb"
+    },
+    "workbench.editor.untitled.hint": "hidden",
+    "codeQL.telemetry.enableTelemetry": false,
+    "ghcSimple.trustedReplCommandConfigs": {
+        "/Users/vera/github/dotfiles": "cabal new-repl semantic"
+    },
+    "idris.executablePath": "idris2",
+    "redhat.telemetry.enabled": false,
+    "[css]": {
+        "editor.suggest.insertMode": "replace",
+        "gitlens.codeLens.scopes": [
+            "document"
+        ]
+    },
+    "css.format.enable": false,
+    "python.venvFolders": [
+        "/Users/vera/.cache/pypoetry/virtualenvs/",
+        "/Users/vera/Library/Caches/pypoetry/virtualenvs/app-wS8lqT4F-py3.10"
+    ],
+    "emmet.showExpandedAbbreviation": "never",
+    "emmet.preferences": {},
 }
