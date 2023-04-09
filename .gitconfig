@@ -1,7 +1,7 @@
 [hub]
 	protocol = https
 [user]
-	name = joshvera
+	name = Josh Vera
 	email = josh@joshvera.com
 	signingkey = 5328DCC9
 [credential]
