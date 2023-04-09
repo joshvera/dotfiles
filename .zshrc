@@ -37,3 +37,12 @@ plugins+=(github)
 eval "$(pyenv init -)"
 
 export PATH="$HOME/.poetry/bin:$PATH"
+[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+autoload -U +X compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
+eval "$(idris2 --bash-completion-script idris2)"
+
+export PATH="$HOME/.pack/bin:$PATH"
