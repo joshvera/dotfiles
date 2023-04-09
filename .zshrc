@@ -23,7 +23,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Oh my zsh theme
 
 export ZSH_THEME="fwalch"
-plugins=(vi-mode brew coffee pip)
+plugins=(vi-mode brew coffee pip git)
 
 # Term
 export TERM=xterm-256color
