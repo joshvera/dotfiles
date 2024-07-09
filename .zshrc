@@ -45,3 +45,12 @@ eval "$(/Users/vera/.local/bin/mise activate zsh)"
 
 source ~/github/dotfiles/zsh/aliases
 source ~/github/dotfiles/zsh/zsh_aliases
+
+bindkey '^F' forward-char
+bindkey '^B' backward-char
+bindkey 'ƒ' forward-word    # Alt+Right
+bindkey '∫' backward-word   # Alt+Left
+bindkey '^A' beginning-of-line
+bindkey '^E' end-of-line
+bindkey '^K' kill-line
+bindkey '^Y' yank
