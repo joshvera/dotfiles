@@ -1,48 +1,44 @@
-# # Enable rbenv before path!
-# eval "$(rbenv init -)"
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-
-# # Enable gpg-agent daemon
-# if test -f $HOME/.gpg-agent-info && kill -0 `cut -d: -f 2 $HOME/.gpg-agent-info` 2>/dev/null; then
-#     GPG_AGENT_INFO=`cat $HOME/.gpg-agent-info | cut -c 16-`
-# else
-#     # No, gpg-agent not available; start gpg-agent
-#     eval `gpg-agent --daemon --no-grab`
-# fi
-
-## Enable rbenv before path!
-eval "$(rbenv init -)"
-
-# FZF
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Path to oh-my-zsh configuration
 export ZSH=$HOME/.oh-my-zsh
 
 # Oh my zsh theme
+export ZSH_THEME="powerlevel10k/powerlevel10k"
 
-export ZSH_THEME="fwalch"
-plugins=(vi-mode brew coffee pip git fzf)
+# Plugins
+plugins=(vi-mode brew coffee pip git fzf github)
 
 # Term
 export TERM=xterm-256color
-
 export ZSH_DISABLE_COMPFIX=true
 
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
 
-plugins+=(github)
-eval "$(pyenv init -)"
+# FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-export PATH="$HOME/.poetry/bin:$PATH"
+# Kubectl completion
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-
+# Autoload
 autoload -U +X compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
+
+# Idris2 completion
 eval "$(idris2 --bash-completion-script idris2)"
 
-export PATH="$HOME/.pack/bin:$PATH"
+# Source secrets
+source ~/.secrets/.secrets
+
+# Mise activation
+eval "$(/Users/vera/.local/bin/mise activate zsh)"
