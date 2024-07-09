@@ -42,3 +42,6 @@ source ~/.secrets/.secrets
 
 # Mise activation
 eval "$(/Users/vera/.local/bin/mise activate zsh)"
+
+source ~/github/dotfiles/zsh/aliases
+source ~/github/dotfiles/zsh/zsh_aliases
