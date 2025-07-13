@@ -40,9 +40,6 @@ eval "$(idris2 --bash-completion-script idris2)"
 # Source secrets
 source ~/.secrets/.secrets
 
-# Mise activation
-eval "$(/Users/vera/.local/bin/mise activate zsh)"
-
 source ~/github/dotfiles/zsh/aliases
 source ~/github/dotfiles/zsh/zsh_aliases
 
@@ -54,3 +51,7 @@ bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
 bindkey '^K' kill-line
 bindkey '^Y' yank
+
+eval "$(mise activate zsh)"
+alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+

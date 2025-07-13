@@ -2,7 +2,7 @@
 export JAVA_OPTS=-Xmx768m
 
 # Shell
-export SHELL=/usr/local/bin/zsh
+export SHELL=/opt/homebrew/bin/zsh
 export VIM_APP_DIR=/Applications
 export EDITOR="emacs"
 export VISUAL='emacsclient -f'
@@ -75,3 +75,4 @@ export PATH="/opt/homebrew/anaconda3/bin:$PATH"
 export PATH="/Users/vera/.local/bin:$PATH"
 
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+. "$HOME/.cargo/env"
