@@ -1,0 +1,6 @@
+// A minimalist layout that starts with a single, maximized pane.
+// Ideal for small screens or a simple, focused workspace.
+
+layout {
+    pane
+}
