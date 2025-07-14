@@ -8,8 +8,20 @@ alias localip="ipconfig getifaddr en1"
 alias whois="whois -h whois-servers.net"
 
 # View HTTP traffic
-alias sniff="sudo ngrep -d 'en0' -t '^(GET|POST) ' 'tcp and port 80'"
-alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
+# Usage: sniff [interface]
+sniff() {
+    local interface="${1:-en0}"
+    echo "Sniffing HTTP traffic on interface: $interface"
+    sudo ngrep -d "$interface" -t '^(GET|POST) ' 'tcp and port 80'
+}
+
+# Dump HTTP headers
+# Usage: httpdump [interface]
+httpdump() {
+    local interface="${1:-en1}"
+    echo "Dumping HTTP headers on interface: $interface"
+    sudo tcpdump -i "$interface" -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"
+}
 
 # Show/hide hidden files in Finder
 alias show="defaults write com.apple.Finder AppleShowAllFiles -bool true && killall Finder"
@@ -28,3 +40,5 @@ alias k='kubectl'
 
 alias gcm='git commit -m'
 alias gs='git status'
+
+alias z='zellij'

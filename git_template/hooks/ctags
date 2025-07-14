@@ -3,6 +3,6 @@ set -e
 PATH="/usr/local/bin:$PATH"
 dir="`git rev-parse --git-dir`"
 trap 'rm -f "$dir/$$.tags"' EXIT
-git ls-files | \
-  ctags -e --tag-relative -L - -f"$dir/$$.tags" --languages=-javascript,sql
+git ls-files -z | \
+  xargs -0 ctags -e --tag-relative -f"$dir/$$.tags" --languages=-javascript,sql
 mv "$dir/$$.tags" "$dir/tags"

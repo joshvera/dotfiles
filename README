@@ -1,1 +1,53 @@
-more dots.
+# Dotfiles
+
+Personal configuration files for macOS development environment.
+
+## Contents
+
+- **Brewfile** - Homebrew package management
+- **zsh/** - Shell configuration and aliases
+- **git_template/** - Git hooks and configuration
+- **vscode/** - Visual Studio Code settings and keybindings
+- **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
+- **emacs** - Emacs configuration
+- **DefaultKeyBinding.dict** - macOS key bindings
+
+## Quick Setup
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/dotfiles.git ~/github/dotfiles
+   ```
+
+2. Install Homebrew packages:
+   ```bash
+   brew bundle
+   ```
+
+3. Create symlinks manually (installation script coming soon):
+   ```bash
+   # ZSH aliases
+   ln -s ~/github/dotfiles/zsh/aliases ~/.aliases
+   
+   # Zellij config
+   mkdir -p ~/.config/zellij
+   ln -s ~/github/dotfiles/zellij/config.kdl ~/.config/zellij/config.kdl
+   
+   # VS Code (macOS)
+   ln -s ~/github/dotfiles/vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
+   ln -s ~/github/dotfiles/vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
+   ```
+
+## Key Features
+
+- Minimal, keyboard-driven Zellij configuration with vim-style navigation
+- Network utilities (sniff, httpdump) with interface selection
+- Git aliases and automatic ctags generation
+- VS Code with GitHub Light theme and extensive customizations
+- Organized package management via Brewfile
+
+## Usage Notes
+
+- Network sniffing functions (`sniff`, `httpdump`) now accept interface names as arguments
+- Zellij is aliased to `z` for quick access
+- The repository includes a comprehensive `.gitignore` for security

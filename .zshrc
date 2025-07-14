@@ -41,7 +41,6 @@ eval "$(idris2 --bash-completion-script idris2)"
 source ~/.secrets/.secrets
 
 source ~/github/dotfiles/zsh/aliases
-source ~/github/dotfiles/zsh/zsh_aliases
 
 bindkey '^F' forward-char
 bindkey '^B' backward-char

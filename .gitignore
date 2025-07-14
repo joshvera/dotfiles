@@ -1,49 +1,72 @@
-.vim/.tmp
-.DS_Store
-.vim/.netrwhist
-xcuserdata
-.netrwhist
-.vim/bundle
-.vim/backups
-.vim/undodir
-.rbenv-version
-.build
-Carthage.build
-.ycm_extra_conf.py*
-Pods
-
+# macOS
 .DS_Store
 .DS_Store?
+.AppleDouble
+.LSOverride
 .Spotlight-V100
 .Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 ._*
 Icon?
 Thumbs.db
 ehthumbs.db
+
+# Vim
+.vim/.tmp
+.vim/.netrwhist
+.vim/bundle
+.vim/backups
+.vim/undodir
 *.swp
 *.swo
 *.orig
 *~
 \#*\#
 
-.xctool-args
-compile_commands.json
-xcodebuild.log
-/tags
-.go-version
-.ruby-version
-.flowconfig
-xcshareddata
+# Editor directories
+.vscode/
+.idea/
 .atom/packages
 .atom/compile-cache
 .atom/storage
 .atom/.apm
 .atom/blob-store
 .atom/recovery
+
+# Development
+.build
 .stack-work/
-.vscode/
+Carthage.build
+Pods
+xcuserdata
+xcshareddata
+.ycm_extra_conf.py*
+.xctool-args
+compile_commands.json
+xcodebuild.log
 .psc-ide-port
-*.tags
-codex.tags
 .dir-locals.el
 .ghc.environment.*
+
+# Version files
+.rbenv-version
+.go-version
+.ruby-version
+.flowconfig
+
+# Tags
+/tags
+*.tags
+codex.tags
+
+# Local overrides
+*.local
+local_config
+.env
+
+# Secrets
+secrets.sh
+.secrets
+*.pem
+*.key

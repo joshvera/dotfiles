@@ -36,7 +36,6 @@ bindkey -M viins 'jj' vi-cmd-mode
 
 # Aliases
 source ~/github/dotfiles/zsh/aliases
-source ~/github/dotfiles/zsh/zsh_aliases
 
 
 # Set gpg-agent info

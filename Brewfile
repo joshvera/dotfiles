@@ -1,4 +1,3 @@
-tap 'caskroom/cask'
 tap 'homebrew/services'
 brew 'cmake'
 brew 'coreutils'
