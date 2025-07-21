@@ -12,9 +12,14 @@ keybinds clear-defaults=true {
     // NORMAL MODE - Safe bindings only
     shared_except "locked" {
         // Row 2 - Primary Actions (Always Visible) 
-        bind "F5" { NewPane "Right"; }         // New pane (vertical)
-        bind "F6" { NewPane; }                 // New pane (horizontal)
-        bind "F7" { NewTab; }                  // New tab
+        bind "F5" { NewPane "Down"; }          // New pane (horizontal split)
+        bind "F6" { NewPane "Right"; }         // New pane (vertical split)
+        bind "F7" {                            // Branch selector
+            Run "bash" "-c" "~/github/dotfiles/bin/zt" {
+                direction "Down";
+                close_on_exit true;
+            };
+        }
         bind "F8" { CloseFocus; }              // Close pane/tab
         
         // Row 3 - Navigation (Termius-compatible)
