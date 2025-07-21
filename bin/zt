@@ -1,0 +1,50 @@
+#!/bin/bash
+# zt - Zellij Tree: Create or switch to git worktree tabs
+# Usage: zt <branch-name>
+
+set -e
+
+BRANCH_NAME=$1
+if [ -z "$BRANCH_NAME" ]; then
+  echo "Usage: zt <branch-name>"
+  echo "Creates or switches to a worktree tab for the given branch"
+  exit 1
+fi
+
+# Determine project root and name
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "Error: Not in a git repository"
+  exit 1
+}
+PROJECT_NAME=$(basename "$PROJECT_ROOT")
+TAB_NAME="wt-${BRANCH_NAME}"
+
+# Handle main/master branch vs feature branches
+if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "master" ]]; then
+  TARGET_DIR=$PROJECT_ROOT
+  echo "Switching to main branch at $TARGET_DIR"
+else
+  # Construct worktree path based on convention: /path/to/project-branch
+  WORKTREE_PATH="$PROJECT_ROOT/../${PROJECT_NAME}-${BRANCH_NAME}"
+  
+  # Create worktree if it doesn't exist
+  if [ ! -d "$WORKTREE_PATH" ]; then
+    echo "Worktree not found. Creating at ${WORKTREE_PATH}..."
+    # Try to create worktree with existing branch first
+    if ! (cd "$PROJECT_ROOT" && git worktree add "../$(basename "$WORKTREE_PATH")" "$BRANCH_NAME" 2>/dev/null); then
+      echo "Branch '$BRANCH_NAME' doesn't exist. Creating new branch..."
+      # Create new branch and worktree from current branch
+      (cd "$PROJECT_ROOT" && git worktree add -b "$BRANCH_NAME" "../$(basename "$WORKTREE_PATH")") || {
+        echo "Error: Could not create worktree with new branch"
+        exit 1
+      }
+    fi
+  else
+    echo "Using existing worktree at $WORKTREE_PATH"
+  fi
+  TARGET_DIR=$WORKTREE_PATH
+fi
+
+# Create new zellij tab in the correct directory
+echo "Creating tab '$TAB_NAME' in $TARGET_DIR"
+zellij action new-tab --name "$TAB_NAME" --cwd "$TARGET_DIR" --layout mobile

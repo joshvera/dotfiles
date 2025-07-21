@@ -40,6 +40,9 @@ eval "$(idris2 --bash-completion-script idris2)"
 # Source secrets
 source ~/.secrets/.secrets
 
+# Add dotfiles bin to PATH
+export PATH="$HOME/github/dotfiles/bin:$PATH"
+
 source ~/github/dotfiles/zsh/aliases
 
 bindkey '^F' forward-char
