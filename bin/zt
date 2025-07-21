@@ -4,10 +4,24 @@
 
 set -e
 
-BRANCH_NAME=$1
+# If no branch provided, show FZF selector
+if [ -z "$1" ]; then
+  echo "Select a branch or type a new one:"
+  # Get existing branches and add option to create new
+  BRANCHES=$(git branch -a | sed 's/^..//; s/ *$//' | grep -v '^HEAD' | sort -u)
+  SELECTED=$(echo -e "$BRANCHES\n[NEW BRANCH]" | fzf --prompt="Branch: " --height=10 --no-multi)
+  
+  if [ "$SELECTED" = "[NEW BRANCH]" ]; then
+    read -p "New branch name: " BRANCH_NAME
+  else
+    BRANCH_NAME=$(echo "$SELECTED" | sed 's/origin\///')
+  fi
+else
+  BRANCH_NAME=$1
+fi
+
 if [ -z "$BRANCH_NAME" ]; then
-  echo "Usage: zt <branch-name>"
-  echo "Creates or switches to a worktree tab for the given branch"
+  echo "No branch selected"
   exit 1
 fi
 
