@@ -11,28 +11,23 @@
 keybinds clear-defaults=true {
     // NORMAL MODE - Safe bindings only
     shared_except "locked" {
-        // Row 2 - Primary Actions (Always Visible)
-        bind "F5" { NewPane; }
-        bind "F6" { CloseFocus; }
-        bind "F7" { ToggleFocusFullscreen; }
-        bind "F8" { Detach; }
+        // Row 2 - Primary Actions (Always Visible) 
+        bind "F5" { NewPane "Right"; }         // New pane (vertical)
+        bind "F6" { NewPane; }                 // New pane (horizontal)
+        bind "F7" { NewTab; }                  // New tab
+        bind "F8" { CloseFocus; }              // Close pane/tab
         
-        // Row 3 - Navigation with Alt (Always Accessible via Swipe)
-        bind "Alt left" { MoveFocusOrTab "Left"; }
-        bind "Alt down" { MoveFocus "Down"; }
-        bind "Alt up" { MoveFocus "Up"; }
-        bind "Alt right" { MoveFocusOrTab "Right"; }
+        // Row 3 - Navigation (Termius-compatible)
+        bind "Ctrl p" { GoToPreviousTab; }     // Previous tab (Ctrl+P)
+        bind "Ctrl n" { GoToNextTab; }         // Next tab (Ctrl+N)
         
-        // Double-tap for advanced actions
-        bind "F5" "F5" { NewPane "Right"; }  // Double F5 = vertical split
-        bind "Alt w" {                       // Alt+W = worktree switcher
-            Run "bash" "-c" "read -p 'Branch name: ' branch && ~/github/dotfiles/bin/zt \"$branch\"" {
+        // Branch selector
+        bind "Alt w" {                         // Alt+W = branch selector
+            Run "bash" "-c" "~/github/dotfiles/bin/zt" {
                 direction "Down";
                 close_on_exit true;
             };
         }
-        bind "F6" "F6" { CloseTab; }         // Double F6 = close tab
-        bind "F7" "F7" { ToggleFloatingPanes; } // Double F7 = float
         
         // Row 4 - Mode Switching (Special Keyboard)
         bind "F1" { SwitchToMode "pane"; }
@@ -40,25 +35,25 @@ keybinds clear-defaults=true {
         bind "F3" { SwitchToMode "resize"; }
         bind "F4" { SwitchToMode "move"; }
         
-        // Row 5 - Direct Actions
-        bind "F9" { NewTab; }
-        bind "F10" { CloseTab; }
-        bind "F11" { ToggleFloatingPanes; }
-        bind "F12" { SwitchToMode "normal"; } // Universal escape
+        // Row 5 - Secondary Actions
+        bind "F9" { ToggleFocusFullscreen; }   // Fullscreen toggle
+        bind "F10" { Detach; }                 // Detach from session
+        bind "F11" { ToggleFloatingPanes; }    // Floating panes
+        bind "F12" { SwitchToMode "normal"; }  // Universal escape
         
         // Row 6 - Special Navigation
         bind "Home" { SwitchFocus; }  // Switch to last active pane
         bind "End" { FocusNextPane; }
-        bind "Insert" { SwitchToMode "scroll"; }
+        bind "Insert" { SwitchToMode "scroll"; }  // Scroll mode
         bind "Delete" { CloseFocus; }
         
-        // Row 7 - Pane Manipulation
+        // Row 7 - Pane Manipulation  
         bind "[" { BreakPaneLeft; }
         bind "]" { BreakPaneRight; }
         bind "<" { PreviousSwapLayout; }
         bind ">" { NextSwapLayout; }
         
-        // Physical Volume Buttons - Smart Scrolling
+        // Physical Volume Buttons - Smart Scrolling (FORCE OVERRIDE)
         bind "PageUp" { 
             SwitchToMode "scroll"; 
             PageScrollUp; 
@@ -79,9 +74,7 @@ keybinds clear-defaults=true {
         }
         
         
-        // Tab key for quick tab switching
-        bind "Tab" { GoToNextTab; }
-        bind "Shift Tab" { GoToPreviousTab; }
+        // Tab key freed for shell autocomplete
     }
     
     // PANE MODE - All keys available for rebinding
@@ -257,6 +250,16 @@ keybinds clear-defaults=true {
     // LOCKED MODE
     locked {
         bind "F8" { SwitchToMode "normal"; } // F8 unlocks
+        
+        // Volume buttons ALWAYS work even in locked mode
+        bind "PageUp" { 
+            SwitchToMode "scroll"; 
+            PageScrollUp; 
+        }
+        bind "PageDown" { 
+            SwitchToMode "scroll"; 
+            PageScrollDown;
+        }
     }
     
     // RENAME MODES
