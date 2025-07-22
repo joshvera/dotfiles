@@ -60,12 +60,44 @@ fi
 # pick up the highest-priority completion as ghost text.
 # ----------------------------------------------------------------------
 
-# Git commit: prioritize common flags (-m, -a, --amend)
-zstyle ':completion:*:*:git-commit:*' tag-order 'options'
-zstyle ':completion:*:*:git-commit:*:options' group-order 'message-options amend-options add-options'
-zstyle ':completion:*:*:git-commit:*:options' order '-m --message -a --all --amend'
+# ----------------------------------------------------------------------
+# Command-Specific Completion Prioritization
+# Configure high-priority options for common commands so zsh-autosuggestions
+# shows the most useful flags as ghost text
+# ----------------------------------------------------------------------
 
-# General command prioritization: put options before files for better prediction
+# Git: prioritize common flags by subcommand
+zstyle ':completion:*:*:git-commit:*' tag-order 'options'
+zstyle ':completion:*:*:git-commit:*:options' order '-m --message -a --all --amend'
+zstyle ':completion:*:*:git-checkout:*' tag-order 'options'
+zstyle ':completion:*:*:git-checkout:*:options' order '-b --branch -t --track'
+zstyle ':completion:*:*:git-push:*' tag-order 'options'  
+zstyle ':completion:*:*:git-push:*:options' order '-u --set-upstream -f --force'
+
+# Docker: prioritize common flags
+zstyle ':completion:*:*:docker-run:*' tag-order 'options'
+zstyle ':completion:*:*:docker-run:*:options' order '-d --detach -p --publish -v --volume'
+zstyle ':completion:*:*:docker-exec:*' tag-order 'options'
+zstyle ':completion:*:*:docker-exec:*:options' order '-it -d --detach'
+
+# npm: prioritize common flags
+zstyle ':completion:*:*:npm-install:*' tag-order 'options'
+zstyle ':completion:*:*:npm-install:*:options' order '--save-dev -D --global -g'
+zstyle ':completion:*:*:npm-run:*' tag-order 'options'
+
+# kubectl: prioritize common flags  
+zstyle ':completion:*:*:kubectl-get:*' tag-order 'options'
+zstyle ':completion:*:*:kubectl-get:*:options' order '-o --output -w --watch'
+zstyle ':completion:*:*:kubectl-apply:*' tag-order 'options'
+zstyle ':completion:*:*:kubectl-apply:*:options' order '-f --filename'
+
+# ls/cat: prioritize useful flags
+zstyle ':completion:*:*:ls:*' tag-order 'options'
+zstyle ':completion:*:*:ls:*:options' order '-la -l --long -a --all'
+zstyle ':completion:*:*:cat:*' tag-order 'options'
+zstyle ':completion:*:*:cat:*:options' order '-n --number-lines -v --show-nonprinting'
+
+# General: prioritize options over files for predictable ghost text
 zstyle ':completion:*' group-order 'options arguments files'
 
 # Plugins - Critical order: fzf-tab BEFORE zsh-autosuggestions
