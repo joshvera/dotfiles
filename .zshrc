@@ -55,12 +55,47 @@ export ZSH_DISABLE_COMPFIX=true
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
 
+# ----------------------------------------------------------------------
+# Smart Tab: accept autosuggestion if ghost text is visible, otherwise
+# invoke fzf-tab (or sane fallbacks).  Designed for mobile SSH latency.
+# ----------------------------------------------------------------------
+function _smart_tab_handler {
+  # Non-interactive shells
+  [[ -o zle ]] || return
+
+  # Leave selections intact (vi-mode visual or region_highlight)
+  if [[ ${REGION_ACTIVE:-0} -ne 0 ]]; then
+    zle expand-or-complete
+    return
+  fi
+
+  # 1) Ghost text present → accept it
+  if [[ -n $POSTDISPLAY ]]; then
+    zle accept-autosuggestion 2>/dev/null || \
+      zle autosuggest-accept 2>/dev/null
+    return
+  fi
+
+  # 2) fzf-tab or stand-alone fzf completion
+  local _c
+  for _c in fzf-tab-complete fzf-completion; do
+    (( $+widgets[$_c] )) && { zle $_c; return }
+  done
+
+  # 3) Generic completion fallbacks (prefix-aware → full → word)
+  for _c in expand-or-complete-prefix expand-or-complete complete-word; do
+    zle -l | grep -qx "$_c" && { zle "$_c"; return }
+  done
+}
+
+zle -N _smart_tab_handler
+bindkey '^I' _smart_tab_handler        # emacs keymap
+bindkey -M viins '^I' _smart_tab_handler  # vi insert keymap
+
 # Conditional Ctrl+F for mobile (SSH sessions) - AFTER Oh My Zsh
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
     # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
     bindkey '^f' autosuggest-accept
-    # F7 key for mobile-friendly autosuggestion acceptance
-    bindkey '\e[18~' autosuggest-accept
 fi
 
 # FZF
