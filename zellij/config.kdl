@@ -88,8 +88,9 @@ keybinds clear-defaults=true {
         bind "Ctrl k" { MoveFocus "Up"; }
         bind "Ctrl l" { MoveFocus "Right"; }
         
-        // Tab navigation  
-        bind "Tab" { GoToNextTab; }
+        // Tab navigation - Tab key freed for shell completion!
+        // bind "Tab" { GoToNextTab; }  // REMOVED: Let Tab reach zsh for fzf-tab completion
+        bind "Ctrl t" { GoToNextTab; }      // NEW: Mobile-friendly tab switching
         bind "Alt h" { GoToPreviousTab; }
         bind "Alt l" { GoToNextTab; }
     }
