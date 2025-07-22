@@ -11,6 +11,8 @@ keybinds {
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Ctrl v" { HalfPageScrollDown; }
         bind "Alt v" { HalfPageScrollUp; }
+        bind "Ctrl d" { HalfPageScrollDown; }
+        bind "Ctrl u" { HalfPageScrollUp; }
         bind "F1" { SwitchToMode "pane"; }
         bind "F2" { SwitchToMode "tab"; }
         bind "F3" { SwitchToMode "resize"; }
