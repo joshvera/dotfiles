@@ -20,8 +20,8 @@ DISABLE_AUTO_UPDATE="true"
 DISABLE_MAGIC_FUNCTIONS="true"
 
 # Zsh autosuggestions: Mobile-optimized configuration (BEFORE Oh My Zsh)
-# Priority: filesystem & flag completion first, fall back to history
-export ZSH_AUTOSUGGEST_STRATEGY=(completion history)
+# Priority: history first (command recall), then completion (file exploration)
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # Performance optimizations for mobile SSH
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
@@ -115,13 +115,61 @@ zle -N _smart_tab_handler
 bindkey '^I' _smart_tab_handler        # emacs keymap
 bindkey -M viins '^I' _smart_tab_handler  # vi insert keymap
 
+# ----------------------------------------------------------------------
+# Smart Space: Auto-trigger fzf completion for argument context  
+# Only trigger when NO ghost text is available (preserves autosuggestions)
+# ----------------------------------------------------------------------
+function _smart_space_handler {
+  [[ -o zle ]] || return
+  
+  # Store current state before inserting space
+  local pre_space_buffer="$LBUFFER"
+  local -a pre_words
+  pre_words=("${(z)pre_space_buffer}")
+  
+  # Always insert the space first
+  zle self-insert
+  
+  # Trigger autosuggestion refresh after space insertion
+  if (( $+widgets[autosuggest-fetch] )); then
+    zle autosuggest-fetch
+  fi
+  
+  # Small delay to let autosuggestions process, then check if we should auto-complete
+  # Only trigger in mobile/SSH sessions AND only if no ghost text appeared
+  if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
+    # If we just completed the first word (command) and still no autosuggestion exists
+    if (( ${#pre_words[@]} == 1 )) && [[ -n ${pre_words[1]} ]] && [[ -z "$POSTDISPLAY" ]]; then
+      # Try to trigger fzf-tab completion
+      local _c
+      for _c in fzf-tab-complete fzf-completion; do
+        if (( $+widgets[$_c] )); then
+          zle $_c
+          return
+        fi
+      done
+      # Fallback to standard completion
+      zle expand-or-complete
+    fi
+  fi
+}
+
+zle -N _smart_space_handler
+bindkey ' ' _smart_space_handler          # emacs keymap  
+bindkey -M viins ' ' _smart_space_handler # vi insert keymap
+
 # Conditional Ctrl+F for mobile (SSH sessions) - AFTER Oh My Zsh
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
     # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
     bindkey '^f' autosuggest-accept
     
+    # Ensure autosuggestion strategy is set correctly after plugin loading
+    # Priority: history first (command recall), then completion (file exploration)
+    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+    
     # Mobile fzf-tab navigation help (Tab=accept, Shift-Tab=cycle)
     echo "📱 Mobile mode active: Tab=accept, Shift-Tab=cycle, Ctrl+j/k=nav"
+    echo "🔄 Autosuggestion strategy: ${ZSH_AUTOSUGGEST_STRATEGY[@]}"
 fi
 
 # FZF
