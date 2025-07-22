@@ -14,6 +14,10 @@ export ZSH=$HOME/.oh-my-zsh
 # Oh my zsh theme
 export ZSH_THEME="powerlevel10k/powerlevel10k"
 
+# Performance optimizations
+DISABLE_AUTO_UPDATE="true"
+DISABLE_MAGIC_FUNCTIONS="true"
+
 # Plugins
 plugins=(vi-mode brew coffee pip git fzf github)
 
@@ -27,15 +31,23 @@ source $ZSH/oh-my-zsh.sh
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Kubectl completion
-[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
-
-# Autoload
-autoload -U +X compinit && compinit
+# Optimized completion loading
+autoload -Uz compinit
+if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
+    compinit
+else
+    compinit -C
+fi
 autoload -U +X bashcompinit && bashcompinit
 
-# Idris2 completion
-eval "$(idris2 --bash-completion-script idris2)"
+# Conditional expensive completions
+if command -v kubectl >/dev/null 2>&1; then
+    source <(kubectl completion zsh)
+fi
+
+if command -v idris2 >/dev/null 2>&1; then
+    eval "$(idris2 --bash-completion-script idris2)"
+fi
 
 # Source secrets
 source ~/.secrets/.secrets
@@ -57,3 +69,16 @@ bindkey '^Y' yank
 eval "$(mise activate zsh)"
 alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 
+# Sync history to bash for Termius autocomplete
+function sync_history_to_bash() {
+    if [[ -f ~/.zsh_history ]]; then
+        sed 's/^: [0-9]*:[0-9]*;//' ~/.zsh_history > ~/.bash_history 2>/dev/null
+    fi
+}
+
+# Auto-sync after every command
+autoload -U add-zsh-hook
+add-zsh-hook precmd sync_history_to_bash
+
+# Also sync on exit
+trap sync_history_to_bash EXIT
