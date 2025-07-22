@@ -43,13 +43,13 @@ keybinds clear-defaults=true {
         // Row 5 - Secondary Actions
         bind "F9" { ToggleFocusFullscreen; }   // Fullscreen toggle
         bind "F10" { Detach; }                 // Detach from session
-        bind "F11" { ToggleFloatingPanes; }    // Floating panes
+        bind "Alt f" { ToggleFloatingPanes; }    // Floating panes
         bind "F12" { SwitchToMode "normal"; }  // Universal escape
         
         // Row 6 - Special Navigation
         bind "Home" { SwitchFocus; }  // Switch to last active pane
         bind "End" { FocusNextPane; }
-        bind "Insert" { SwitchToMode "scroll"; }  // Scroll mode
+        bind "Ctrl f" { SwitchToMode "entersearch"; }  // Search
         bind "Delete" { CloseFocus; }
         
         // Row 7 - Pane Manipulation  
@@ -284,7 +284,7 @@ keybinds clear-defaults=true {
     }
 }
 
-// UI optimizations for iOS
+// UI optimizations for iOS with custom status bar
 ui {
     pane_frames {
         rounded_corners true
@@ -293,71 +293,63 @@ ui {
 
 // Theme
 themes {
-    default {
-        fg "#D8D8D8"
-        bg "#181818"
-        black "#181818"
-        red "#AC4242"
-        green "#90A959"
-        yellow "#F4BF75"
-        blue "#6A9FB5"
-        magenta "#AA759F"
-        cyan "#75B5AA"
-        white "#D8D8D8"
-        orange "#D28445"
-    }
     mobile_styling {
-        // Tab styling
-        inactive_tab {
-            fg "#586E75"        // Solarized base01 (dimmed)
+        // Tab styling (ribbons)
+        ribbon_unselected {
+            base 88 110 117        // Solarized base01 (dimmed) #586E75
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
         }
-        active_tab {
-            fg "#FDF6E3"        // Solarized base3 (bright)
-            bg "#073642"        // Solarized base02 (dark background)
-            bold true
-        }
-        
-        // Mode indicators - Solarized accent colors
-        mode_normal {
-            fg "#002B36"        // Solarized base03 (darkest)
-            bg "#268BD2"        // Solarized blue
-            bold true
-        }
-        mode_locked {
-            fg "#002B36"
-            bg "#DC322F"        // Solarized red
-            bold true
-        }
-        mode_resize {
-            fg "#002B36"
-            bg "#CB4B16"        // Solarized orange
-            bold true
-        }
-        mode_pane {
-            fg "#002B36"
-            bg "#859900"        // Solarized green
-            bold true
-        }
-        mode_tab {
-            fg "#002B36"
-            bg "#6C71C4"        // Solarized violet
-            bold true
-        }
-        mode_scroll {
-            fg "#002B36"
-            bg "#2AA198"        // Solarized cyan
-            bold true
+        ribbon_selected {
+            base 253 246 227       // Solarized base3 (bright) #FDF6E3
+            background 7 54 66     // Solarized base02 (dark background) #073642
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
         }
         
-        // Base Solarized Dark colors
-        fg "#839496"           // Solarized base0 (primary content)
-        bg "#002B36"           // Solarized base03 (background)
+        // Status bar text
+        text_unselected {
+            base 131 148 150       // Solarized base0 (primary content) #839496
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        text_selected {
+            base 0 43 54           // Solarized base03 (darkest) #002B36
+            background 38 139 210  // Solarized blue #268BD2
+            emphasis_0 253 246 227 // Solarized base3
+            emphasis_1 253 246 227 // Solarized base3
+            emphasis_2 253 246 227 // Solarized base3
+            emphasis_3 253 246 227 // Solarized base3
+        }
+        
+        // Pane frames
+        frame_selected {
+            base 131 148 150       // Solarized base0
+            background 0 43 54     // Solarized base03
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        frame_highlight {
+            base 253 246 227       // Solarized base3
+            background 38 139 210  // Solarized blue
+            emphasis_0 253 246 227 // Solarized base3
+            emphasis_1 253 246 227 // Solarized base3
+            emphasis_2 253 246 227 // Solarized base3
+            emphasis_3 253 246 227 // Solarized base3
+        }
     }
 }
 
 // Options
-simplified_ui true
-default_layout "mobile"
+simplified_ui false
 theme "mobile_styling"
 mouse_mode false
 pane_frames false
