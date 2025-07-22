@@ -45,6 +45,15 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # Preview directory's content with exa when completing cd
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath 2>/dev/null || ls -1 $realpath'
 
+# Mobile-conditional fzf-tab navigation: Tab-to-accept for SSH sessions
+if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
+    # Mobile/SSH: Tab accepts, Shift-Tab cycles, arrows still work  
+    zstyle ':fzf-tab:*' fzf-bindings 'tab:accept,shift-tab:down,ctrl-j:down,ctrl-k:up'
+else
+    # Desktop: Keep standard Tab-cycling behavior
+    zstyle ':fzf-tab:*' fzf-bindings 'tab:down,ctrl-j:down,ctrl-k:up'
+fi
+
 # Plugins - Critical order: fzf-tab BEFORE zsh-autosuggestions
 plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
 
@@ -56,32 +65,47 @@ export ZSH_DISABLE_COMPFIX=true
 source $ZSH/oh-my-zsh.sh
 
 # ----------------------------------------------------------------------
-# Smart Tab: accept autosuggestion if ghost text is visible, otherwise
-# invoke fzf-tab (or sane fallbacks).  Designed for mobile SSH latency.
+# Context-Aware Smart Tab: Intelligent completion based on command context
+# - Command context (first word): Accept ghost text for command recall
+# - Argument context (after space): Show fzf-tab for files/options
+# Mobile SSH optimized with predictable, low-latency logic.
 # ----------------------------------------------------------------------
 function _smart_tab_handler {
-  # Non-interactive shells
   [[ -o zle ]] || return
 
-  # Leave selections intact (vi-mode visual or region_highlight)
+  # If a region is active, default to standard completion
   if [[ ${REGION_ACTIVE:-0} -ne 0 ]]; then
     zle expand-or-complete
     return
   fi
 
-  # 1) Ghost text present → accept it
+  # Split the buffer to the left of the cursor into words
+  local -a words
+  words=("${(z)LBUFFER}")
+
+  # Context detection: Are we completing arguments or the command itself?
+  # If more than one word OR first word complete + trailing space → argument context
+  if (( ${#words[@]} > 1 )) || [[ -n ${words[1]} && $LBUFFER[-1] == ' ' ]]; then
+    # ARGUMENT CONTEXT: User exploring files/options → prioritize fzf-tab
+    local _c
+    for _c in fzf-tab-complete fzf-completion; do
+      (( $+widgets[$_c] )) && { zle $_c; return }
+    done
+  fi
+
+  # COMMAND CONTEXT: Accept high-quality suggestions (command recall)
   if [[ -n $POSTDISPLAY ]]; then
     zle autosuggest-accept
     return
   fi
 
-  # 2) fzf-tab or stand-alone fzf completion
+  # Fallback to fzf-tab if no suggestion was accepted
   local _c
   for _c in fzf-tab-complete fzf-completion; do
     (( $+widgets[$_c] )) && { zle $_c; return }
   done
 
-  # 3) Generic completion fallbacks (prefix-aware → full → word)
+  # Final fallback to zsh's default completion
   for _c in expand-or-complete-prefix expand-or-complete complete-word; do
     zle -l | grep -qx "$_c" && { zle "$_c"; return }
   done
@@ -95,18 +119,21 @@ bindkey -M viins '^I' _smart_tab_handler  # vi insert keymap
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
     # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
     bindkey '^f' autosuggest-accept
+    
+    # Mobile fzf-tab navigation help (Tab=accept, Shift-Tab=cycle)
+    echo "📱 Mobile mode active: Tab=accept, Shift-Tab=cycle, Ctrl+j/k=nav"
 fi
 
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Optimized completion loading
-autoload -Uz compinit
-if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
-    compinit
-else
-    compinit -C
-fi
+# Optimized completion loading (REMOVED - Oh My Zsh already handles compinit)
+# autoload -Uz compinit
+# if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
+#     compinit
+# else
+#     compinit -C
+# fi
 autoload -U +X bashcompinit && bashcompinit
 
 # Conditional expensive completions
