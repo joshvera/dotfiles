@@ -19,7 +19,7 @@ DISABLE_AUTO_UPDATE="true"
 DISABLE_MAGIC_FUNCTIONS="true"
 
 # Plugins
-plugins=(vi-mode brew coffee pip git fzf github)
+plugins=(vi-mode brew coffee pip git fzf github zsh-autosuggestions)
 
 # Term
 export TERM=xterm-256color
@@ -27,6 +27,23 @@ export ZSH_DISABLE_COMPFIX=true
 
 # Oh my zsh
 source $ZSH/oh-my-zsh.sh
+
+# Zsh autosuggestions: Mobile-optimized configuration
+# Priority: filesystem & flag completion first, fall back to history
+export ZSH_AUTOSUGGEST_STRATEGY=(completion history)
+
+# Performance optimizations for mobile SSH
+export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+export ZSH_AUTOSUGGEST_USE_ASYNC=true
+
+# Optional: skip costly completion for heavy commands
+export ZSH_AUTOSUGGEST_COMPLETION_IGNORE='git|kubectl|npm'
+
+# Conditional Ctrl+F for mobile (SSH sessions)
+if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
+    # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
+    bindkey '^f' autosuggest-accept
+fi
 
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -57,7 +74,7 @@ export PATH="$HOME/github/dotfiles/bin:$PATH"
 
 source ~/github/dotfiles/zsh/aliases
 
-bindkey '^F' forward-char
+# bindkey '^F' forward-char  # Disabled - conflicts with zsh-autosuggestions Ctrl+F
 bindkey '^B' backward-char
 bindkey 'ƒ' forward-word    # Alt+Right
 bindkey '∫' backward-word   # Alt+Left
