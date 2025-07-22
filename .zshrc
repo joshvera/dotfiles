@@ -71,8 +71,7 @@ function _smart_tab_handler {
 
   # 1) Ghost text present → accept it
   if [[ -n $POSTDISPLAY ]]; then
-    zle accept-autosuggestion 2>/dev/null || \
-      zle autosuggest-accept 2>/dev/null
+    zle autosuggest-accept
     return
   fi
 
