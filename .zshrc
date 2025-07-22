@@ -65,9 +65,45 @@ export ZSH_DISABLE_COMPFIX=true
 source $ZSH/oh-my-zsh.sh
 
 # ----------------------------------------------------------------------
+# Predictive Completion: Smart prediction for common command patterns
+# Shows ghost text for likely next arguments before fzf-tab activation
+# ----------------------------------------------------------------------
+function _predict_completion {
+  local cmd="$1" partial_arg="$2"
+  
+  case "$cmd" in
+    "git")
+      local -a git_words
+      git_words=("${(z)LBUFFER}")
+      
+      # Handle git subcommands
+      if (( ${#git_words[@]} >= 2 )); then
+        local subcommand="${git_words[2]}"
+        case "$subcommand" in
+          "commit")
+            # git commit flag prediction: -m > -a > --amend
+            case "$partial_arg" in
+              "--a"*) echo "--amend" ;;
+              "-m"|"-"*"m"*) echo "-m" ;;
+              "-a"|"-"*"a"*) echo "-a" ;;  
+              "-"*) echo "-m" ;;  # Default to most common
+              *) ;;
+            esac
+            ;;
+          "checkout"|"switch")
+            # Could predict branch names, but keep simple for now
+            ;;
+        esac
+      fi
+      ;;
+  esac
+}
+
+# ----------------------------------------------------------------------
 # Context-Aware Smart Tab: Intelligent completion based on command context
 # - Command context (first word): Accept ghost text for command recall
 # - Argument context (after space): Show fzf-tab for files/options
+# - Predictive enhancement: Shows likely completions as ghost text first
 # Mobile SSH optimized with predictable, low-latency logic.
 # ----------------------------------------------------------------------
 function _smart_tab_handler {
@@ -86,7 +122,28 @@ function _smart_tab_handler {
   # Context detection: Are we completing arguments or the command itself?
   # If more than one word OR first word complete + trailing space → argument context
   if (( ${#words[@]} > 1 )) || [[ -n ${words[1]} && $LBUFFER[-1] == ' ' ]]; then
-    # ARGUMENT CONTEXT: User exploring files/options → prioritize fzf-tab
+    # ARGUMENT CONTEXT: Check for predictive completion first
+    local prediction=""
+    if (( ${#words[@]} >= 2 )); then
+      local cmd="${words[1]}"
+      local current_arg="${words[-1]}"
+      
+      # Try predictive completion for common patterns
+      prediction="$(_predict_completion "$cmd" "$current_arg")"
+      
+      # If we have a prediction and no existing ghost text, show it
+      if [[ -n "$prediction" && -z "$POSTDISPLAY" ]]; then
+        # Set ghost text to show the prediction
+        local remaining="${prediction#$current_arg}"
+        if [[ -n "$remaining" ]]; then
+          POSTDISPLAY="$remaining"
+          region_highlight+=("$CURSOR $(($CURSOR + ${#remaining})) fg=240")
+          return
+        fi
+      fi
+    fi
+    
+    # If prediction didn't work or user wants to explore → show fzf-tab
     local _c
     for _c in fzf-tab-complete fzf-completion; do
       (( $+widgets[$_c] )) && { zle $_c; return }
