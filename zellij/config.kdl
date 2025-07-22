@@ -320,7 +320,35 @@ scroll_buffer_size 50000
 // changing these requires a restart to take effect
 plugins {
     about location="zellij:about"
-    compact-bar location="zellij:compact-bar"
+    compact-bar location="zellij:compact-bar" {
+        format_left  "{mode} #[fg=#89B4FA,bold]{session}"
+        format_center "{tabs}"
+        format_right "#[fg=#7AA2F7]{datetime}"
+        format_space ""
+        
+        hide_session_name false
+        tabs_display_count 4
+        
+        tab_normal   "#[fg=#7C7D83] {name} "
+        tab_active   "#[fg=#F7768E,bold,bg=#414559] {name} "
+        
+        mode_normal        "#[bg=#7AA2F7,fg=#1D202F,bold] NORMAL "
+        mode_locked        "#[bg=#F7768E,fg=#1D202F,bold] LOCKED "
+        mode_resize        "#[bg=#FF9E64,fg=#1D202F,bold] RESIZE "
+        mode_pane          "#[bg=#9ECE6A,fg=#1D202F,bold] PANE "
+        mode_tab           "#[bg=#AD8EE6,fg=#1D202F,bold] TAB "
+        mode_scroll        "#[bg=#449DAB,fg=#1D202F,bold] SCROLL "
+        mode_enter_search  "#[bg=#F7768E,fg=#1D202F,bold] ENT-SEARCH "
+        mode_search        "#[bg=#F7768E,fg=#1D202F,bold] SEARCHMODE "
+        mode_rename_tab    "#[bg=#F7768E,fg=#1D202F,bold] RENAME-TAB "
+        mode_rename_pane   "#[bg=#F7768E,fg=#1D202F,bold] RENAME-PANE "
+        mode_move          "#[bg=#F7768E,fg=#1D202F,bold] MOVE "
+        mode_prompt        "#[bg=#F7768E,fg=#1D202F,bold] PROMPT "
+        mode_tmux          "#[bg=#FF9E64,fg=#1D202F,bold] TMUX "
+        
+        datetime_format "%A, %d %b %Y %H:%M"
+        datetime_timezone "America/New_York"
+    }
     configuration location="zellij:configuration"
     plugin-manager location="zellij:plugin-manager"
     session-manager location="zellij:session-manager"
