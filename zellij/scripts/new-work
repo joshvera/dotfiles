@@ -1,0 +1,39 @@
+#!/bin/bash
+# Automated worktree/tab creation script
+# Place in your PATH (e.g., ~/bin/new-work or /usr/local/bin/new-work)
+
+if [ -z "$1" ]; then
+  echo "Usage: new-work <branch-name>"
+  echo "Creates a new git worktree and corresponding Zellij tab"
+  exit 1
+fi
+
+BRANCH_NAME=$1
+# Assumes you run from main worktree - adjust path as needed
+WORKTREE_PATH="../$BRANCH_NAME"
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "Error: Not in a git repository"
+  exit 1
+fi
+
+# Check if we're in a Zellij session
+if [ -z "$ZELLIJ" ]; then
+  echo "Error: Not in a Zellij session"
+  exit 1
+fi
+
+# 1. Create the git worktree
+echo "Creating worktree '$BRANCH_NAME'..."
+if ! git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" HEAD; then
+  echo "Error: Failed to create worktree"
+  exit 1
+fi
+
+# 2. Create a new Zellij tab and cd into the worktree
+echo "Creating Zellij tab '$BRANCH_NAME'..."
+zellij action new-tab --name "$BRANCH_NAME" --cwd "$WORKTREE_PATH"
+
+echo "✓ Created worktree '$BRANCH_NAME' and corresponding tab"
+echo "Switch to the new tab to start working on your branch!"

@@ -1,0 +1,38 @@
+// Minimal zellij config to test zjstatus plugin loading
+
+// Basic keybinds - minimal set
+keybinds {
+    normal {
+        bind "Ctrl f" { SwitchToMode "entersearch"; }
+        bind "F1" { SwitchToMode "pane"; }
+    }
+    
+    pane {
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+    
+    entersearch {
+        bind "Enter" { SwitchToMode "search"; }
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+    
+    search {
+        bind "n" { Search "Down"; }
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+}
+
+// Only the zjstatus plugin
+plugins {
+    status-bar location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+        format_left "{mode} | F1:Pane C-f:Search"
+        format_center "{tabs}"
+        format_right "{datetime}"
+        format_space ""
+    }
+}
+
+// Minimal options
+simplified_ui false
+mouse_mode false
+pane_frames false

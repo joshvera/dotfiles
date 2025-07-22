@@ -1,0 +1,16 @@
+// Test built-in plugins
+
+plugins {
+    compact-bar location="zellij:compact-bar"
+}
+
+keybinds {
+    normal {
+        bind "F1" { SwitchToMode "pane"; }
+    }
+    pane {
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+}
+
+simplified_ui false

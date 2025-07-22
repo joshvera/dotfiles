@@ -1,0 +1,16 @@
+// Test local plugin loading
+
+plugins {
+    compact-bar location="file:$HOME/github/dotfiles/zellij/plugins/compact-bar.wasm"
+}
+
+keybinds {
+    normal {
+        bind "F1" { SwitchToMode "pane"; }
+    }
+    pane {
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+}
+
+simplified_ui false
