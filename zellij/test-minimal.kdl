@@ -1,0 +1,21 @@
+themes {
+    mobile_styling {
+        inactive_tab {
+            fg "#586E75"
+        }
+        active_tab {
+            fg "#FDF6E3"
+            bg "#073642"
+            bold true
+        }
+        mode_normal {
+            fg "#002B36"
+            bg "#268BD2"
+            bold true
+        }
+    }
+}
+
+theme "mobile_styling"
+simplified_ui true
+default_layout "mobile"

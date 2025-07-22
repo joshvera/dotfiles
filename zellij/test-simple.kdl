@@ -1,0 +1,20 @@
+keybinds {
+    normal {
+        bind "F5" { NewPane "Down"; }
+    }
+}
+
+themes {
+    mobile_styling {
+        inactive_tab {
+            fg "#586E75"
+        }
+        active_tab {
+            fg "#FDF6E3"
+            bg "#073642"
+            bold true
+        }
+    }
+}
+
+theme "mobile_styling"

@@ -67,17 +67,16 @@ scroll_buffer_size 50000
 // Phase 1 Modal Keybindings - iOS/Termius optimized
 keybinds clear-defaults=true {
     normal {
-        // Mode switching (F1-F4)
+        // Mode switching (F1,F3,F4 - removed F2 Tab mode)
         bind "F1" { SwitchToMode "Pane"; }
-        bind "F2" { SwitchToMode "Tab"; }
         bind "F3" { SwitchToMode "Resize"; }
         bind "F4" { SwitchToMode "Move"; }
         
-        // Primary actions (F5-F8)
-        bind "F5" { NewPane "Down"; SwitchToMode "Normal"; }
-        bind "F6" { NewPane "Right"; SwitchToMode "Normal"; }
-        bind "F7" { Run "$HOME/github/dotfiles/bin/zt" { cwd "$HOME/github"; close_on_exit true; }; SwitchToMode "Normal"; }
-        bind "F8" { CloseFocus; SwitchToMode "Normal"; }
+        // Primary actions (F5-F7, F9 - removed F8 close)
+        bind "F5" { NewPane "Down"; SwitchToMode "Normal"; }          // Split down
+        bind "F6" { NewPane "Right"; SwitchToMode "Normal"; }         // Split right  
+        bind "F7" { Run "$HOME/github/dotfiles/bin/zt" { close_on_exit true; }; SwitchToMode "Normal"; }  // FZF picker
+        bind "F9" { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }  // Toggle fullscreen
         
         // Volume button scrolling
         bind "PageUp" { ScrollUp; }
@@ -89,75 +88,49 @@ keybinds clear-defaults=true {
         bind "Ctrl k" { MoveFocus "Up"; }
         bind "Ctrl l" { MoveFocus "Right"; }
         
-        // Tab navigation
+        // Tab navigation  
+        bind "Tab" { GoToNextTab; }
         bind "Alt h" { GoToPreviousTab; }
         bind "Alt l" { GoToNextTab; }
     }
     
     pane {
-        // Mode switching
+        // Mode switching (removed F2)
         bind "F1" { SwitchToMode "Normal"; }
-        bind "F2" { SwitchToMode "Tab"; }
         bind "F3" { SwitchToMode "Resize"; }
         bind "F4" { SwitchToMode "Move"; }
         
-        // Pane actions
+        // Pane actions (removed F8)
         bind "F5" { NewPane "Down"; SwitchToMode "Normal"; }
         bind "F6" { NewPane "Right"; SwitchToMode "Normal"; }
-        bind "F8" { CloseFocus; SwitchToMode "Normal"; }
+        bind "F9" { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }
         
-        // Navigation
-        bind "h" "Left" { MoveFocus "Left"; }
-        bind "j" "Down" { MoveFocus "Down"; }
-        bind "k" "Up" { MoveFocus "Up"; }
-        bind "l" "Right" { MoveFocus "Right"; }
+        // Navigation (hjkl only - no arrows)
+        bind "h" { MoveFocus "Left"; }
+        bind "j" { MoveFocus "Down"; }
+        bind "k" { MoveFocus "Up"; }
+        bind "l" { MoveFocus "Right"; }
         
         // Actions
         bind "f" { TogglePaneFrames; SwitchToMode "Normal"; }
         bind "w" { ToggleFloatingPanes; SwitchToMode "Normal"; }
-        bind "z" { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }
-        
-        // Exit modes
-        bind "Esc" "q" { SwitchToMode "Normal"; }
-    }
-    
-    tab {
-        // Mode switching  
-        bind "F1" { SwitchToMode "Pane"; }
-        bind "F2" { SwitchToMode "Normal"; }
-        bind "F3" { SwitchToMode "Resize"; }
-        bind "F4" { SwitchToMode "Move"; }
-        
-        // Tab actions
-        bind "F7" { Run "$HOME/github/dotfiles/bin/zt" { cwd "$HOME/github"; close_on_exit true; }; SwitchToMode "Normal"; }
-        bind "F8" { CloseTab; SwitchToMode "Normal"; }
-        
-        // Navigation
-        bind "h" "Left" { GoToPreviousTab; }
-        bind "l" "Right" { GoToNextTab; }
-        bind "j" "Down" { GoToTab 1; SwitchToMode "Normal"; }
-        bind "k" "Up" { GoToTab 1; SwitchToMode "Normal"; }
-        
-        // Actions
-        bind "n" { NewTab; SwitchToMode "Normal"; }
-        bind "r" { SwitchToMode "RenameTab"; TabNameInput 0; }
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }
         
         // Exit modes
         bind "Esc" "q" { SwitchToMode "Normal"; }
     }
     
     resize {
-        // Mode switching
+        // Mode switching (removed F2)
         bind "F1" { SwitchToMode "Pane"; }
-        bind "F2" { SwitchToMode "Tab"; }
         bind "F3" { SwitchToMode "Normal"; }
         bind "F4" { SwitchToMode "Move"; }
         
-        // Resize actions
-        bind "h" "Left" { Resize "Increase Left"; }
-        bind "j" "Down" { Resize "Increase Down"; }
-        bind "k" "Up" { Resize "Increase Up"; }
-        bind "l" "Right" { Resize "Increase Right"; }
+        // Resize actions (hjkl only - no arrows)
+        bind "h" { Resize "Increase Left"; }
+        bind "j" { Resize "Increase Down"; }
+        bind "k" { Resize "Increase Up"; }
+        bind "l" { Resize "Increase Right"; }
         bind "H" { Resize "Decrease Left"; }
         bind "J" { Resize "Decrease Down"; }
         bind "K" { Resize "Decrease Up"; }
@@ -168,24 +141,23 @@ keybinds clear-defaults=true {
     }
     
     move {
-        // Mode switching
+        // Mode switching (removed F2)
         bind "F1" { SwitchToMode "Pane"; }
-        bind "F2" { SwitchToMode "Tab"; }
         bind "F3" { SwitchToMode "Resize"; }
         bind "F4" { SwitchToMode "Normal"; }
         
-        // Move actions
-        bind "h" "Left" { MovePane "Left"; }
-        bind "j" "Down" { MovePane "Down"; }
-        bind "k" "Up" { MovePane "Up"; }
-        bind "l" "Right" { MovePane "Right"; }
+        // Move actions (hjkl only - no arrows)
+        bind "h" { MovePane "Left"; }
+        bind "j" { MovePane "Down"; }
+        bind "k" { MovePane "Up"; }
+        bind "l" { MovePane "Right"; }
         
         // Exit modes
         bind "Esc" "q" { SwitchToMode "Normal"; }
     }
     
     renametab {
-        bind "Esc" { UndoRenameTab; SwitchToMode "Tab"; }
+        bind "Esc" { UndoRenameTab; SwitchToMode "Normal"; }
         bind "Enter" { SwitchToMode "Normal"; }
     }
 }
