@@ -30,6 +30,9 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=true
 # Optional: skip costly completion for heavy commands
 export ZSH_AUTOSUGGEST_COMPLETION_IGNORE='git|kubectl|npm'
 
+# Visible highlight style for ghost text (mobile-friendly)
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+
 # fzf-tab mobile optimizations (BEFORE Oh My Zsh)
 # Toggle fzf-tab for performance when needed
 zstyle ':fzf-tab:*' switch-group ',' '.'
@@ -56,6 +59,8 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
     # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
     bindkey '^f' autosuggest-accept
+    # F7 key for mobile-friendly autosuggestion acceptance
+    bindkey '\e[18~' autosuggest-accept
 fi
 
 # FZF
