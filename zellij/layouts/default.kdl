@@ -8,9 +8,9 @@ layout {
         // Bottom bar for keybindings and status
         pane size=1 borderless=true {
             plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
-                format_left "#[fg=#2b90d8,bold]{mode} #[fg=#657377]| #[fg=#d56500]F1:Pane #[fg=#819500]F3:Resize #[fg=#ac8300]F4:Move #[fg=#7d80d1]F9:Full #[fg=#f23749]C-f:Search #[fg=#259d94]A-f:Float"
+                format_left "#[fg=#98a8a8,bold]{mode} #[fg=#5b7279]| #[fg=#98a8a8]F1:Pane #[fg=#8faaab]F3:Resize #[fg=#98a8a8]F4:Move #[fg=#8faaab]F9:Full #[fg=#98a8a8]C-f:Search #[fg=#8faaab]A-f:Float"
                 format_center ""
-                format_right "#[fg=#2b90d8]{session} #[fg=#657377]{datetime}"
+                format_right "#[fg=#8faaab] #[fg=#5b7279]{datetime}"
                 format_space ""
                 
                 border_enabled "false"
@@ -18,26 +18,26 @@ layout {
                 border_format "#[fg=#5b7279]{char}"
                 border_position "top"
 
-                mode_normal "#[bg=#819500,fg=#002d38,bold] NORMAL "
+                mode_normal "#[bg=#093946,fg=#98a8a8,bold] NORMAL "
                 mode_locked "#[bg=#f23749,fg=#fbf7ef,bold] LOCKED "
-                mode_resize "#[bg=#ac8300,fg=#002d38,bold] RESIZE "
-                mode_pane "#[bg=#2b90d8,fg=#fbf7ef,bold] PANE "
-                mode_tab "#[bg=#d56500,fg=#fbf7ef,bold] TAB "
-                mode_scroll "#[bg=#7d80d1,fg=#fbf7ef,bold] SCROLL "
+                mode_resize "#[bg=#093946,fg=#ac8300,bold] RESIZE "
+                mode_pane "#[bg=#093946,fg=#2b90d8,bold] PANE "
+                mode_tab "#[bg=#093946,fg=#d56500,bold] TAB "
+                mode_scroll "#[bg=#093946,fg=#98a8a8,bold] SCROLL "
                 mode_enter_search "#[bg=#259d94,fg=#002d38,bold] ENT-SEARCH "
                 mode_search "#[bg=#259d94,fg=#002d38,bold] SEARCH "
-                mode_rename_tab "#[bg=#d56500,fg=#fbf7ef,bold] RENAME "
-                mode_rename_pane "#[bg=#2b90d8,fg=#fbf7ef,bold] RENAME-PANE "
-                mode_session "#[bg=#dd459d,fg=#fbf7ef,bold] SESSION "
-                mode_move "#[bg=#ac8300,fg=#002d38,bold] MOVE "
-                mode_prompt "#[bg=#7d80d1,fg=#fbf7ef,bold] PROMPT "
-                mode_tmux "#[bg=#d56500,fg=#fbf7ef,bold] TMUX "
+                mode_rename_tab "#[bg=#093946,fg=#d56500,bold] RENAME "
+                mode_rename_pane "#[bg=#093946,fg=#2b90d8,bold] RENAME-PANE "
+                mode_session "#[bg=#093946,fg=#dd459d,bold] SESSION "
+                mode_move "#[bg=#093946,fg=#ac8300,bold] MOVE "
+                mode_prompt "#[bg=#093946,fg=#98a8a8,bold] PROMPT "
+                mode_tmux "#[bg=#093946,fg=#d56500,bold] TMUX "
 
                 tab_normal "#[fg=#5b7279] {name} "
-                tab_active "#[fg=#2b90d8,bold] {name} "
+                tab_active "#[fg=#fbf7ef,bold] {name} "
                 
                 command_git_branch_command "git rev-parse --abbrev-ref HEAD"
-                command_git_branch_format "#[fg=#d56500] {stdout}"
+                command_git_branch_format "#[fg=#8faaab] {stdout}"
                 command_git_branch_interval "10"
                 
                 datetime "#[fg=#657377]{%H:%M}"

@@ -1,0 +1,57 @@
+layout {
+    default_tab_template {
+        // No top tab bar - save vertical space for mobile
+        children
+        // Single comprehensive status bar at bottom
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                // Mobile ultra-compact with slants
+                format_left "{mode}#[fg=#268bd2,bg=#073642]{tabs}"
+                format_center ""
+                format_right "#[fg=#073642,bg=#268bd2]{pipe_zjstatus_hints}#[fg=#268bd2,bg=#073642] {datetime}"
+                format_space ""
+                
+                border_enabled "false"
+                border_char "─"
+                border_format "#[fg=#5b7279]{char}"
+                border_position "top"
+                
+                datetime_format "%H:%M"
+
+                // Mode indicators with slanted style - dark background, bright text
+                mode_normal "#[bg=#073642,fg=#268bd2,bold] NORMAL "
+                mode_locked "#[bg=#dc322f,fg=#fdf6e3,bold] LOCKED "
+                mode_resize "#[bg=#b58900,fg=#fdf6e3,bold] RESIZE "
+                mode_pane "#[bg=#268bd2,fg=#fdf6e3,bold] PANE "
+                mode_tab "#[bg=#cb4b16,fg=#fdf6e3,bold] TAB "
+                mode_scroll "#[bg=#073642,fg=#268bd2,bold] SCROLL "
+                mode_enter_search "#[bg=#2aa198,fg=#fdf6e3,bold] ENT-SEARCH "
+                mode_search "#[bg=#2aa198,fg=#fdf6e3,bold] SEARCH "
+                mode_rename_tab "#[bg=#cb4b16,fg=#fdf6e3,bold] RENAME "
+                mode_rename_pane "#[bg=#268bd2,fg=#fdf6e3,bold] RENAME-PANE "
+                mode_session "#[bg=#d33682,fg=#fdf6e3,bold] SESSION "
+                mode_move "#[bg=#b58900,fg=#fdf6e3,bold] MOVE "
+                mode_prompt "#[bg=#073642,fg=#268bd2,bold] PROMPT "
+                mode_tmux "#[bg=#cb4b16,fg=#fdf6e3,bold] TMUX "
+
+                // Tab styling for slanted design
+                tab_normal "#[fg=#586e75] {name} "
+                tab_active "#[fg=#fdf6e3,bg=#268bd2,bold] {name} #[fg=#268bd2,bg=#073642]"
+                
+                // Git branch info (optional, can be removed to save space)
+                command_git_branch_command "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format "#[fg=#8faaab] {stdout}"
+                command_git_branch_interval "10"
+                
+                // Time display  
+                datetime "#[fg=#5b7279]{format}"
+                
+                // zjstatus-hints pipe configuration (required)
+                pipe_zjstatus_hints_format "{output}"
+            }
+        }
+    }
+    pane_template name="default" {
+        children
+    }
+}

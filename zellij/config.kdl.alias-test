@@ -1,0 +1,15 @@
+// Test plugin aliases vs no aliases
+
+// Direct plugin loading without aliases
+status-bar location="zellij:compact-bar"
+
+keybinds {
+    normal {
+        bind "F1" { SwitchToMode "pane"; }
+    }
+    pane {
+        bind "Esc" { SwitchToMode "normal"; }
+    }
+}
+
+simplified_ui false

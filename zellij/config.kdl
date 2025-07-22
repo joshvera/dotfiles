@@ -2,11 +2,20 @@
 
 keybinds {
     normal {
-        bind "Ctrl f" { SwitchToMode "entersearch"; }
+        // Explicitly unbind defaults we don't want on mobile
+        unbind "Ctrl p"
+        unbind "Ctrl t"
+        unbind "Ctrl n"
+        
+        // Mobile-optimized bindings
         bind "Alt f" { ToggleFloatingPanes; }
+        bind "Ctrl v" { HalfPageScrollDown; }
+        bind "Alt v" { HalfPageScrollUp; }
         bind "F1" { SwitchToMode "pane"; }
+        bind "F2" { SwitchToMode "tab"; }
         bind "F3" { SwitchToMode "resize"; }
         bind "F4" { SwitchToMode "move"; }
+        bind "F5" { SwitchToMode "entersearch"; }
         bind "F9" { TogglePaneFrames; }
     }
     pane {
@@ -29,12 +38,75 @@ keybinds {
 }
 
 pane_frames false
-
 simplified_ui false
+default_layout "single-bar"
+
+ui {
+    pane_frames {
+        rounded_corners false
+        hide_session_name false
+    }
+}
+
+themes {
+    oksolar_dark {
+        fg 152 168 168        // base0 #98a8a8
+        bg 0 45 56            // base03 #002d38
+        black 0 45 56         // base03 #002d38
+        red 242 55 73         // red #f23749
+        green 129 149 0       // green #819500
+        yellow 172 131 0      // yellow #ac8300
+        blue 43 144 216       // blue #2b90d8
+        magenta 221 69 157    // magenta #dd459d
+        cyan 37 157 148       // cyan #259d94
+        white 251 247 239     // base3 #fbf7ef
+        orange 213 101 0      // orange #d56500
+        ribbon_unselected {
+            base 38 139 210   // bright blue #268bd2 for visibility
+            fg 253 246 227    // bright text #fdf6e3
+            emphasis_0 220 50 47     // bright red #dc322f
+            emphasis_1 203 75 22     // orange #cb4b16
+            emphasis_2 211 54 130    // magenta #d33682
+            emphasis_3 38 139 210    // bright blue #268bd2
+        }
+        ribbon_selected {
+            base 7 54 66      // solarized base02 #073642
+            fg 133 153 0      // solarized green #859900
+            emphasis_0 220 50 47     // bright red #dc322f
+            emphasis_1 203 75 22     // orange #cb4b16
+            emphasis_2 211 54 130    // magenta #d33682
+            emphasis_3 38 139 210    // bright blue #268bd2
+        }
+        tab_bar {
+            ribbon_unselected {
+                base 7 54 66      // solarized base02 #073642
+                fg 88 110 117     // solarized base01 #586e75
+                emphasis_0 220 50 47     // bright red #dc322f
+                emphasis_1 203 75 22     // orange #cb4b16
+                emphasis_2 211 54 130    // magenta #d33682
+                emphasis_3 38 139 210    // bright blue #268bd2
+            }
+            ribbon_selected {
+                base 38 139 210   // bright blue #268bd2 - accent for visibility
+                fg 253 246 227    // solarized base3 #fdf6e3 - bright text
+                emphasis_0 220 50 47     // bright red #dc322f
+                emphasis_1 203 75 22     // orange #cb4b16
+                emphasis_2 211 54 130    // magenta #d33682
+                emphasis_3 253 246 227   // solarized base3 #fdf6e3
+            }
+        }
+    }
+}
+
+theme "oksolar_dark"
 
 load_plugins {
     https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm
     https://github.com/dj95/zjframes/releases/latest/download/zjframes.wasm
+    https://github.com/imsnif/monocle/releases/latest/download/monocle.wasm
+    https://github.com/Nacho114/zellij-sessionizer/releases/latest/download/zellij-sessionizer.wasm
+    https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm
+    zjstatus-hints
 }
 
 plugins {
@@ -56,5 +128,14 @@ plugins {
         hide_frame_for_single_pane "true"
         hide_frame_except_for_search "false"
         hide_frame_except_for_fullscreen "false"
+    }
+    zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
+        max_length 40
+        overflow_str "…"
+        pipe_name "zjstatus_hints"
+        hide_in_base_mode false
+        max_hints 2
+        hint_max_length 8
+        separator "|"
     }
 }

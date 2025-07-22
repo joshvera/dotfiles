@@ -1,0 +1,377 @@
+// Zellij Configuration: Ultimate Termius Layout - Safe & Intuitive
+//
+// This configuration is optimized for iOS/mobile usage with Termius
+// Key features:
+// - F-key based actions (F1-F12) for primary controls
+// - Safe keybindings that don't interfere with normal terminal usage
+// - Mode-based interface with multiple escape options
+// - Optimized for touch keyboard with special layouts
+// - Physical volume buttons for scrolling
+
+keybinds clear-defaults=true {
+    // NORMAL MODE - Safe bindings only
+    shared_except "locked" {
+        // Row 2 - Primary Actions (Always Visible) 
+        bind "F5" { NewPane "Down"; }          // New pane (horizontal split)
+        bind "F6" { NewPane "Right"; }         // New pane (vertical split)
+        bind "F7" {                            // Branch selector
+            Run "bash" "-c" "/Users/vera/github/dotfiles/bin/zt" {
+                direction "Down";
+                close_on_exit true;
+            };
+        }
+        bind "F8" { CloseFocus; }              // Close pane/tab
+        
+        // Row 3 - Navigation (Termius-compatible)
+        bind "Ctrl p" { GoToPreviousTab; }     // Previous tab (Ctrl+P)
+        bind "Ctrl n" { GoToNextTab; }         // Next tab (Ctrl+N)
+        
+        // Branch selector
+        bind "Alt w" {                         // Alt+W = branch selector
+            Run "bash" "-c" "/Users/vera/github/dotfiles/bin/zt" {
+                direction "Down";
+                close_on_exit true;
+            };
+        }
+        
+        // Row 4 - Mode Switching (Special Keyboard)
+        bind "F1" { SwitchToMode "pane"; }
+        bind "F2" { SwitchToMode "tab"; }
+        bind "F3" { SwitchToMode "resize"; }
+        bind "F4" { SwitchToMode "move"; }
+        
+        // Row 5 - Secondary Actions
+        bind "F9" { ToggleFocusFullscreen; }   // Fullscreen toggle
+        bind "F10" { Detach; }                 // Detach from session
+        bind "Alt f" { ToggleFloatingPanes; }    // Floating panes
+        bind "F12" { SwitchToMode "normal"; }  // Universal escape
+        
+        // Row 6 - Special Navigation
+        bind "Home" { SwitchFocus; }  // Switch to last active pane
+        bind "End" { FocusNextPane; }
+        bind "Ctrl f" { SwitchToMode "entersearch"; }  // Search
+        bind "Delete" { CloseFocus; }
+        
+        // Row 7 - Pane Manipulation  
+        bind "[" { BreakPaneLeft; }
+        bind "]" { BreakPaneRight; }
+        bind "<" { PreviousSwapLayout; }
+        bind ">" { NextSwapLayout; }
+        
+        // Physical Volume Buttons - Smart Scrolling (FORCE OVERRIDE)
+        bind "PageUp" { 
+            SwitchToMode "scroll"; 
+            PageScrollUp; 
+        }
+        bind "PageDown" { 
+            SwitchToMode "scroll"; 
+            PageScrollDown;
+        }
+        
+        // Backup scrolling keybindings (Ctrl-B/Ctrl-F like less/vim)
+        bind "Ctrl b" {
+            SwitchToMode "scroll";
+            PageScrollUp;
+        }
+        bind "Ctrl f" {
+            SwitchToMode "scroll";
+            PageScrollDown;
+        }
+        
+        
+        // Tab key freed for shell autocomplete
+    }
+    
+    // PANE MODE - All keys available for rebinding
+    pane {
+        bind "F1" { SwitchToMode "normal"; } // Toggle off
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        
+        // Navigation
+        bind "h" { MoveFocus "Left"; }
+        bind "left" { MoveFocus "Left"; }
+        bind "j" { MoveFocus "Down"; }
+        bind "down" { MoveFocus "Down"; }
+        bind "k" { MoveFocus "Up"; }
+        bind "up" { MoveFocus "Up"; }
+        bind "l" { MoveFocus "Right"; }
+        bind "right" { MoveFocus "Right"; }
+        
+        // Creation
+        bind "n" { NewPane; SwitchToMode "normal"; }
+        bind "v" { NewPane "Right"; SwitchToMode "normal"; }
+        bind "s" { NewPane "Down"; SwitchToMode "normal"; }
+        
+        // Management
+        bind "x" { CloseFocus; SwitchToMode "normal"; }
+        bind "f" { ToggleFocusFullscreen; SwitchToMode "normal"; }
+        bind "w" { ToggleFloatingPanes; SwitchToMode "normal"; }
+        bind "z" { TogglePaneFrames; SwitchToMode "normal"; }
+        bind "r" { SwitchToMode "renamepane"; PaneNameInput 0; }
+        
+        // Additional useful actions
+        bind "m" { SwitchFocus; }  // Switch between last two panes
+        bind "p" { FocusNextPane; }  // Cycle through panes
+        bind "o" { FocusPreviousPane; }  // Cycle backwards
+        bind "b" { BreakPane; SwitchToMode "normal"; }  // Break to new tab
+        bind "e" { TogglePaneEmbedOrFloating; SwitchToMode "normal"; }
+        
+        // Numbers for quick tab access
+        bind "1" { GoToTab 1; SwitchToMode "normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "normal"; }
+    }
+    
+    // TAB MODE - Numbers and symbols are safe here
+    tab {
+        bind "F2" { SwitchToMode "normal"; } // Toggle off
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        
+        // Tab navigation
+        bind "h" { GoToPreviousTab; }
+        bind "left" { GoToPreviousTab; }
+        bind "l" { GoToNextTab; }
+        bind "right" { GoToNextTab; }
+        bind "j" { GoToNextTab; }
+        bind "k" { GoToPreviousTab; }
+        
+        // Tab management
+        bind "n" { NewTab; SwitchToMode "normal"; }
+        bind "x" { CloseTab; SwitchToMode "normal"; }
+        bind "r" { SwitchToMode "renametab"; TabNameInput 0; }
+        
+        // Number keys for direct tab access
+        bind "1" { GoToTab 1; SwitchToMode "normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "normal"; }
+        
+        // More tab operations  
+        bind "t" { ToggleTab; }  // Toggle between last two tabs
+        bind "s" { ToggleActiveSyncTab; SwitchToMode "normal"; }  // Sync input
+        bind "b" { BreakPane; SwitchToMode "normal"; }  // Break pane to tab
+        bind "m" { MoveTab "Left"; }  // Move tab position left
+        bind "M" { MoveTab "Right"; }  // Move tab position right
+        bind "[" { BreakPaneLeft; SwitchToMode "normal"; }
+        bind "]" { BreakPaneRight; SwitchToMode "normal"; }
+    }
+    
+    // RESIZE MODE - Symbols work great here
+    resize {
+        bind "F3" { SwitchToMode "normal"; } // Toggle off
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        
+        // Arrow keys for resizing
+        bind "left" { Resize "Left"; }
+        bind "down" { Resize "Down"; }
+        bind "up" { Resize "Up"; }
+        bind "right" { Resize "Right"; }
+        
+        // hjkl for resizing
+        bind "h" { Resize "Left"; }
+        bind "j" { Resize "Down"; }
+        bind "k" { Resize "Up"; }
+        bind "l" { Resize "Right"; }
+        
+        // Symbols for resize amounts
+        bind "+" { Resize "Increase"; }
+        bind "-" { Resize "Decrease"; }
+        bind "=" { Resize "Increase"; }
+        bind "*" { Resize "Increase"; Resize "Increase"; }  // Double increase
+        bind "/" { Resize "Decrease"; Resize "Decrease"; }  // Double decrease
+    }
+    
+    // MOVE MODE
+    move {
+        bind "F4" { SwitchToMode "normal"; } // Toggle off
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        
+        // Movement
+        bind "h" { MovePane "Left"; }
+        bind "left" { MovePane "Left"; }
+        bind "j" { MovePane "Down"; }
+        bind "down" { MovePane "Down"; }
+        bind "k" { MovePane "Up"; }
+        bind "up" { MovePane "Up"; }
+        bind "l" { MovePane "Right"; }
+        bind "right" { MovePane "Right"; }
+        
+        // Tab movement
+        bind "p" { MovePaneBackwards; }
+        bind "n" { MovePane; }
+        bind "Tab" { MovePane; }
+    }
+    
+    // SCROLL MODE
+    scroll {
+        bind "Insert" { SwitchToMode "normal"; } // Toggle off
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        
+        // Navigation
+        bind "j" { ScrollDown; }
+        bind "down" { ScrollDown; }
+        bind "k" { ScrollUp; }
+        bind "up" { ScrollUp; }
+        bind "d" { HalfPageScrollDown; }
+        bind "u" { HalfPageScrollUp; }
+        bind "f" { PageScrollDown; }
+        bind "PageDown" { PageScrollDown; }
+        bind "b" { PageScrollUp; }
+        bind "PageUp" { PageScrollUp; }
+        bind "g" { ScrollToTop; SwitchToMode "normal"; }
+        bind "G" { ScrollToBottom; SwitchToMode "normal"; }
+        
+        // Search
+        bind "/" { SwitchToMode "entersearch"; }
+        bind "s" { SwitchToMode "entersearch"; }
+        bind "n" { Search "Down"; }
+        bind "N" { Search "Up"; }
+        
+        // Edit scrollback
+        bind "e" { EditScrollback; SwitchToMode "normal"; }
+    }
+    
+    // SEARCH MODE
+    search {
+        bind "n" { Search "Down"; }
+        bind "N" { Search "Up"; }
+        bind "c" { SearchToggleOption "CaseSensitivity"; }
+        bind "w" { SearchToggleOption "WholeWord"; }
+        bind "o" { SearchToggleOption "Wrap"; }
+        bind "Esc" { SwitchToMode "scroll"; }
+    }
+    
+    // LOCKED MODE
+    locked {
+        bind "F8" { SwitchToMode "normal"; } // F8 unlocks
+        
+        // Volume buttons ALWAYS work even in locked mode
+        bind "PageUp" { 
+            SwitchToMode "scroll"; 
+            PageScrollUp; 
+        }
+        bind "PageDown" { 
+            SwitchToMode "scroll"; 
+            PageScrollDown;
+        }
+    }
+    
+    // RENAME MODES
+    renamepane {
+        bind "Esc" { UndoRenamePane; SwitchToMode "pane"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    renametab {
+        bind "Esc" { UndoRenameTab; SwitchToMode "tab"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+    
+    entersearch {
+        bind "Enter" { SwitchToMode "search"; }
+        bind "Esc" { SwitchToMode "scroll"; }
+    }
+}
+
+// UI optimizations for iOS with custom status bar
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}
+
+// Theme
+themes {
+    mobile_styling {
+        // Tab styling (ribbons)
+        ribbon_unselected {
+            base 88 110 117        // Solarized base01 (dimmed) #586E75
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        ribbon_selected {
+            base 253 246 227       // Solarized base3 (bright) #FDF6E3
+            background 7 54 66     // Solarized base02 (dark background) #073642
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        
+        // Status bar text
+        text_unselected {
+            base 131 148 150       // Solarized base0 (primary content) #839496
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        text_selected {
+            base 0 43 54           // Solarized base03 (darkest) #002B36
+            background 38 139 210  // Solarized blue #268BD2
+            emphasis_0 253 246 227 // Solarized base3
+            emphasis_1 253 246 227 // Solarized base3
+            emphasis_2 253 246 227 // Solarized base3
+            emphasis_3 253 246 227 // Solarized base3
+        }
+        
+        // Pane frames
+        frame_selected {
+            base 131 148 150       // Solarized base0
+            background 0 43 54     // Solarized base03
+            emphasis_0 38 139 210  // Solarized blue
+            emphasis_1 42 161 152  // Solarized cyan
+            emphasis_2 133 153 0   // Solarized green
+            emphasis_3 203 75 22   // Solarized orange
+        }
+        frame_highlight {
+            base 253 246 227       // Solarized base3
+            background 38 139 210  // Solarized blue
+            emphasis_0 253 246 227 // Solarized base3
+            emphasis_1 253 246 227 // Solarized base3
+            emphasis_2 253 246 227 // Solarized base3
+            emphasis_3 253 246 227 // Solarized base3
+        }
+    }
+}
+
+// Options
+simplified_ui false
+theme "mobile_styling"
+mouse_mode false
+pane_frames false
+copy_command "pbcopy"
+scroll_buffer_size 50000
+
+// Plugin aliases - can be used to change the implementation of Zellij
+// changing these requires a restart to take effect
+plugins {
+    about location="zellij:about"
+    compact-bar location="zellij:compact-bar"
+    configuration location="zellij:configuration"
+    plugin-manager location="zellij:plugin-manager"
+    session-manager location="zellij:session-manager"
+    status-bar location="zellij:status-bar"
+    strider location="zellij:strider"
+    tab-bar location="zellij:tab-bar"
+    welcome-screen location="zellij:session-manager" {
+        welcome_screen true
+    }
+}
+
+// Plugins to load in the background when a new session starts
+load_plugins {
+}
