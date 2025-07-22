@@ -54,6 +54,20 @@ else
     zstyle ':fzf-tab:*' fzf-bindings 'tab:down,ctrl-j:down,ctrl-k:up'
 fi
 
+# ----------------------------------------------------------------------
+# Intelligent Completion Prioritization: Configure zsh completion system
+# to prioritize common options. zsh-autosuggestions will automatically 
+# pick up the highest-priority completion as ghost text.
+# ----------------------------------------------------------------------
+
+# Git commit: prioritize common flags (-m, -a, --amend)
+zstyle ':completion:*:*:git-commit:*' tag-order 'options'
+zstyle ':completion:*:*:git-commit:*:options' group-order 'message-options amend-options add-options'
+zstyle ':completion:*:*:git-commit:*:options' order '-m --message -a --all --amend'
+
+# General command prioritization: put options before files for better prediction
+zstyle ':completion:*' group-order 'options arguments files'
+
 # Plugins - Critical order: fzf-tab BEFORE zsh-autosuggestions
 plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
 
@@ -65,155 +79,33 @@ export ZSH_DISABLE_COMPFIX=true
 source $ZSH/oh-my-zsh.sh
 
 # ----------------------------------------------------------------------
-# Predictive Completion: Smart prediction for common command patterns
-# Shows ghost text for likely next arguments before fzf-tab activation
-# ----------------------------------------------------------------------
-function _predict_completion {
-  local cmd="$1" partial_arg="$2"
-  
-  case "$cmd" in
-    "git")
-      local -a git_words
-      git_words=("${(z)LBUFFER}")
-      
-      # Handle git subcommands
-      if (( ${#git_words[@]} >= 2 )); then
-        local subcommand="${git_words[2]}"
-        case "$subcommand" in
-          "commit")
-            # git commit flag prediction: -m > -a > --amend
-            case "$partial_arg" in
-              "--a"*) echo "--amend" ;;
-              "-m"|"-"*"m"*) echo "-m" ;;
-              "-a"|"-"*"a"*) echo "-a" ;;  
-              "-"*) echo "-m" ;;  # Default to most common
-              *) ;;
-            esac
-            ;;
-          "checkout"|"switch")
-            # Could predict branch names, but keep simple for now
-            ;;
-        esac
-      fi
-      ;;
-  esac
-}
-
-# ----------------------------------------------------------------------
-# Context-Aware Smart Tab: Intelligent completion based on command context
-# - Command context (first word): Accept ghost text for command recall
-# - Argument context (after space): Show fzf-tab for files/options
-# - Predictive enhancement: Shows likely completions as ghost text first
-# Mobile SSH optimized with predictable, low-latency logic.
+# Robust Smart Tab: Simplified handler that works WITH plugins, not against them
+# - If zsh-autosuggestions has ghost text: accept it
+# - Otherwise: trigger fzf-tab completion  
+# No manual POSTDISPLAY manipulation to avoid conflicts
 # ----------------------------------------------------------------------
 function _smart_tab_handler {
   [[ -o zle ]] || return
 
-  # If a region is active, default to standard completion
-  if [[ ${REGION_ACTIVE:-0} -ne 0 ]]; then
-    zle expand-or-complete
-    return
-  fi
-
-  # Split the buffer to the left of the cursor into words
-  local -a words
-  words=("${(z)LBUFFER}")
-
-  # Context detection: Are we completing arguments or the command itself?
-  # If more than one word OR first word complete + trailing space → argument context
-  if (( ${#words[@]} > 1 )) || [[ -n ${words[1]} && $LBUFFER[-1] == ' ' ]]; then
-    # ARGUMENT CONTEXT: Check for predictive completion first
-    local prediction=""
-    if (( ${#words[@]} >= 2 )); then
-      local cmd="${words[1]}"
-      local current_arg="${words[-1]}"
-      
-      # Try predictive completion for common patterns
-      prediction="$(_predict_completion "$cmd" "$current_arg")"
-      
-      # If we have a prediction and no existing ghost text, show it
-      if [[ -n "$prediction" && -z "$POSTDISPLAY" ]]; then
-        # Set ghost text to show the prediction
-        local remaining="${prediction#$current_arg}"
-        if [[ -n "$remaining" ]]; then
-          POSTDISPLAY="$remaining"
-          region_highlight+=("$CURSOR $(($CURSOR + ${#remaining})) fg=240")
-          return
-        fi
-      fi
-    fi
-    
-    # If prediction didn't work or user wants to explore → show fzf-tab
-    local _c
-    for _c in fzf-tab-complete fzf-completion; do
-      (( $+widgets[$_c] )) && { zle $_c; return }
-    done
-  fi
-
-  # COMMAND CONTEXT: Accept high-quality suggestions (command recall)
-  if [[ -n $POSTDISPLAY ]]; then
+  # If zsh-autosuggestions has a suggestion, accept it
+  if [[ -n "$POSTDISPLAY" ]]; then
     zle autosuggest-accept
     return
   fi
-
-  # Fallback to fzf-tab if no suggestion was accepted
-  local _c
-  for _c in fzf-tab-complete fzf-completion; do
-    (( $+widgets[$_c] )) && { zle $_c; return }
-  done
-
-  # Final fallback to zsh's default completion
-  for _c in expand-or-complete-prefix expand-or-complete complete-word; do
-    zle -l | grep -qx "$_c" && { zle "$_c"; return }
-  done
+  
+  # Otherwise, trigger fzf-tab completion
+  if (( $+widgets[fzf-tab-complete] )); then
+    zle fzf-tab-complete
+  else
+    # Fallback to standard completion if fzf-tab not available
+    zle expand-or-complete
+  fi
 }
 
 zle -N _smart_tab_handler
 bindkey '^I' _smart_tab_handler        # emacs keymap
 bindkey -M viins '^I' _smart_tab_handler  # vi insert keymap
 
-# ----------------------------------------------------------------------
-# Smart Space: Auto-trigger fzf completion for argument context  
-# Only trigger when NO ghost text is available (preserves autosuggestions)
-# ----------------------------------------------------------------------
-function _smart_space_handler {
-  [[ -o zle ]] || return
-  
-  # Store current state before inserting space
-  local pre_space_buffer="$LBUFFER"
-  local -a pre_words
-  pre_words=("${(z)pre_space_buffer}")
-  
-  # Always insert the space first
-  zle self-insert
-  
-  # Trigger autosuggestion refresh after space insertion
-  if (( $+widgets[autosuggest-fetch] )); then
-    zle autosuggest-fetch
-  fi
-  
-  # Small delay to let autosuggestions process, then check if we should auto-complete
-  # Only trigger in mobile/SSH sessions AND only if no ghost text appeared
-  if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
-    # If we just completed the first word (command) and still no autosuggestion exists
-    if (( ${#pre_words[@]} == 1 )) && [[ -n ${pre_words[1]} ]] && [[ -z "$POSTDISPLAY" ]]; then
-      # Try to trigger fzf-tab completion
-      local _c
-      for _c in fzf-tab-complete fzf-completion; do
-        if (( $+widgets[$_c] )); then
-          zle $_c
-          return
-        fi
-      done
-      # Fallback to standard completion
-      zle expand-or-complete
-    fi
-  fi
-}
-
-zle -N _smart_space_handler
-bindkey ' ' _smart_space_handler          # emacs keymap  
-bindkey -M viins ' ' _smart_space_handler # vi insert keymap
 
 # Conditional Ctrl+F for mobile (SSH sessions) - AFTER Oh My Zsh
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
