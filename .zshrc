@@ -19,19 +19,6 @@ export ZSH_THEME="powerlevel10k/powerlevel10k"
 DISABLE_AUTO_UPDATE="true"
 DISABLE_MAGIC_FUNCTIONS="true"
 
-# Zsh autosuggestions: Mobile-optimized configuration (BEFORE Oh My Zsh)
-# Priority: history first (command recall), then completion (file exploration)
-ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-
-# Performance optimizations for mobile SSH
-export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
-export ZSH_AUTOSUGGEST_USE_ASYNC=true
-
-# Optional: skip costly completion for heavy commands
-export ZSH_AUTOSUGGEST_COMPLETION_IGNORE='git|kubectl|npm'
-
-# Visible highlight style for ghost text (mobile-friendly)
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
 
 # fzf-tab mobile optimizations (BEFORE Oh My Zsh)
 # Toggle fzf-tab for performance when needed
@@ -100,8 +87,8 @@ zstyle ':completion:*:*:cat:*:options' order '-n --number-lines -v --show-nonpri
 # General: prioritize options over files for predictable ghost text
 zstyle ':completion:*' group-order 'options arguments files'
 
-# Plugins - Critical order: fzf-tab BEFORE zsh-autosuggestions
-plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
+# Plugins - fzf-tab for enhanced completion
+plugins=(vi-mode brew coffee pip git fzf github fzf-tab)
 
 # Term
 export TERM=xterm-256color
@@ -111,21 +98,12 @@ export ZSH_DISABLE_COMPFIX=true
 source $ZSH/oh-my-zsh.sh
 
 # ----------------------------------------------------------------------
-# Robust Smart Tab: Simplified handler that works WITH plugins, not against them
-# - If zsh-autosuggestions has ghost text: accept it
-# - Otherwise: trigger fzf-tab completion  
-# No manual POSTDISPLAY manipulation to avoid conflicts
+# Simple Tab: Use fzf-tab for enhanced completion
 # ----------------------------------------------------------------------
 function _smart_tab_handler {
   [[ -o zle ]] || return
-
-  # If zsh-autosuggestions has a suggestion, accept it
-  if [[ -n "$POSTDISPLAY" ]]; then
-    zle autosuggest-accept
-    return
-  fi
   
-  # Otherwise, trigger fzf-tab completion
+  # Trigger fzf-tab completion
   if (( $+widgets[fzf-tab-complete] )); then
     zle fzf-tab-complete
   else
@@ -139,19 +117,6 @@ bindkey '^I' _smart_tab_handler        # emacs keymap
 bindkey -M viins '^I' _smart_tab_handler  # vi insert keymap
 
 
-# Conditional Ctrl+F for mobile (SSH sessions) - AFTER Oh My Zsh
-if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
-    # Mobile/SSH session detected - enable Ctrl+F for autosuggestions
-    bindkey '^f' autosuggest-accept
-    
-    # Ensure autosuggestion strategy is set correctly after plugin loading
-    # Priority: history first (command recall), then completion (file exploration)
-    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    
-    # Mobile fzf-tab navigation help (Tab=accept, Shift-Tab=cycle)
-    echo "📱 Mobile mode active: Tab=accept, Shift-Tab=cycle, Ctrl+j/k=nav"
-    echo "🔄 Autosuggestion strategy: ${ZSH_AUTOSUGGEST_STRATEGY[@]}"
-fi
 
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -182,7 +147,7 @@ export PATH="$HOME/github/dotfiles/bin:$PATH"
 
 source ~/github/dotfiles/zsh/aliases
 
-# bindkey '^F' forward-char  # Disabled - conflicts with zsh-autosuggestions Ctrl+F
+bindkey '^F' forward-char
 bindkey '^B' backward-char
 bindkey 'ƒ' forward-word    # Alt+Right
 bindkey '∫' backward-word   # Alt+Left
