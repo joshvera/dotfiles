@@ -75,7 +75,11 @@ function fzf-branch-picker() {
     fi
   done <<< "$branches"
   
-  local selection
+  echo "DEBUG: About to run fzf with combined_list:"
+  echo -e "$combined_list" | head -5
+  echo "DEBUG: Running fzf command..."
+  
+  local selection fzf_exit_code
   selection=$(echo -e "$combined_list" | fzf \
     --prompt="Branch/Worktree: " \
     --print-query \
@@ -84,9 +88,11 @@ function fzf-branch-picker() {
     --height=15 \
     --reverse \
     --border)
+  fzf_exit_code=$?
 
-  if [ $? -ne 0 ]; then
-    echo "DEBUG: fzf cancelled or failed"
+  echo "DEBUG: fzf exit code: $fzf_exit_code"
+  if [ $fzf_exit_code -ne 0 ]; then
+    echo "DEBUG: fzf cancelled or failed with exit code $fzf_exit_code"
     return 1
   fi
   
