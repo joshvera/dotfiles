@@ -87,12 +87,15 @@ function fzf-branch-picker() {
     --header="Enter to create/switch to worktree, Esc to cancel" \
     --height=15 \
     --reverse \
-    --border)
+    --border \
+    --no-sort)
   fzf_exit_code=$?
 
   echo "DEBUG: fzf exit code: $fzf_exit_code"
-  if [ $fzf_exit_code -ne 0 ]; then
-    echo "DEBUG: fzf cancelled or failed with exit code $fzf_exit_code"
+  
+  # fzf returns 1 when no selection is made, but we might still have a query
+  if [ $fzf_exit_code -eq 130 ]; then
+    echo "DEBUG: fzf interrupted (Ctrl+C)"
     return 1
   fi
   
