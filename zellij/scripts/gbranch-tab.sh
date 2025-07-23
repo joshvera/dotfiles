@@ -117,14 +117,10 @@ function fzf-branch-picker() {
   echo "DEBUG: Checking worktree_path='$worktree_path'"
   if [ -d "$worktree_path" ]; then
     echo "Switching to existing worktree: $branch_name"
-    echo "DEBUG: Trying to switch to tab '$branch_name'"
-    # Try to switch to existing tab, or create new one
-    if ! zellij action go-to-tab-name "$branch_name" 2>/dev/null; then
-      echo "DEBUG: Tab doesn't exist, creating new tab"
-      zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout default
-    else
-      echo "DEBUG: Successfully switched to existing tab"
-    fi
+    echo "DEBUG: Creating new tab for existing worktree"
+    # Always create a new tab for existing worktrees (switching is unreliable)
+    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout default
+    echo "DEBUG: Created new tab for existing worktree"
   else
     # Create new worktree and tab
     echo "Creating worktree and tab for: $branch_name"
