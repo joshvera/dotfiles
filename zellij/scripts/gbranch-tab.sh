@@ -33,7 +33,8 @@ function new-work() {
   git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" HEAD
 
   # 2. Create a new Zellij tab, cd into the worktree, and name the tab
-  zellij action new-tab --name "$BRANCH_NAME" --cwd "$WORKTREE_PATH" --layout single-bar
+  ABSOLUTE_WORKTREE_PATH=$(realpath "$WORKTREE_PATH")
+  zellij action new-tab --name "$BRANCH_NAME" --cwd "$ABSOLUTE_WORKTREE_PATH" --layout single-bar
   
   echo "Created worktree '$BRANCH_NAME' and corresponding tab"
 }
@@ -116,7 +117,9 @@ function fzf-branch-picker() {
   if [ -d "$worktree_path" ]; then
     echo "Switching to existing worktree: $branch_name"
     # Always create a new tab for existing worktrees (switching is unreliable)
-    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
+    local absolute_worktree_path
+    absolute_worktree_path=$(realpath "$worktree_path")
+    zellij action new-tab --name "$branch_name" --cwd "$absolute_worktree_path" --layout single-bar
   else
     # Create new worktree and tab
     echo "Creating worktree and tab for: $branch_name"
@@ -133,11 +136,10 @@ function fzf-branch-picker() {
       git worktree add -b "$branch_name" "$worktree_path" HEAD
     fi
     
-    # Create new zellij tab
-    echo "DEBUG: About to create tab with cwd='$worktree_path'"
-    echo "DEBUG: Absolute path: $(realpath "$worktree_path" 2>/dev/null || echo "PATH DOES NOT EXIST")"
-    echo "DEBUG: Directory exists: $([ -d "$worktree_path" ] && echo "YES" || echo "NO")"
-    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
+    # Create new zellij tab with absolute path
+    local absolute_worktree_path
+    absolute_worktree_path=$(realpath "$worktree_path")
+    zellij action new-tab --name "$branch_name" --cwd "$absolute_worktree_path" --layout single-bar
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
