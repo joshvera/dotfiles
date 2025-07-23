@@ -44,3 +44,67 @@ function zt() {
     echo "fzf not found - install for fuzzy tab switching"
   fi
 }
+
+# Enhanced fzf branch picker - auto-creates branches if they don't exist
+function fzf-branch-picker() {
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Not in a git repository"
+    return 1
+  fi
+
+  if ! command -v fzf >/dev/null; then
+    echo "fzf not found - install for branch picking"
+    return 1
+  fi
+
+  # Get all git branches (local and remote)
+  local branches
+  branches=$(git branch -a | sed 's/^..//; s/remotes\/origin\///' | sort -u | grep -v '^HEAD')
+  
+  local selection
+  selection=$(echo "$branches" | fzf \
+    --prompt="Branch: " \
+    --print-query \
+    --expect=enter \
+    --header="Enter to checkout/create branch, Esc to cancel" \
+    --height=15 \
+    --reverse \
+    --border)
+
+  if [ $? -ne 0 ]; then
+    return 1
+  fi
+
+  local query key branch_name
+  query=$(echo "$selection" | sed -n '1p')
+  key=$(echo "$selection" | sed -n '2p')
+  branch_name=$(echo "$selection" | sed -n '3p')
+
+  # If no branch was selected but query exists, use query as new branch name
+  if [ -z "$branch_name" ] && [ -n "$query" ]; then
+    branch_name="$query"
+  elif [ -n "$branch_name" ]; then
+    # Use selected branch
+    branch_name="$branch_name"
+  else
+    return 1
+  fi
+
+  # Check if branch exists locally
+  if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    echo "Switching to existing branch: $branch_name"
+    git checkout "$branch_name"
+  else
+    # Check if it exists as a remote branch
+    if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+      echo "Creating local branch from remote: $branch_name"
+      git checkout -b "$branch_name" "origin/$branch_name"
+    else
+      echo "Creating new branch: $branch_name"
+      git checkout -b "$branch_name"
+    fi
+  fi
+
+  # Update zellij tab name to match branch
+  gbranch_tab
+}

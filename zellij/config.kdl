@@ -18,6 +18,7 @@ keybinds {
         bind "F3" { SwitchToMode "resize"; }
         bind "F4" { SwitchToMode "move"; }
         bind "F5" { SwitchToMode "entersearch"; }
+        bind "F7" { Run "bash" "-c" "source ~/github/dotfiles/zellij/scripts/gbranch-tab.sh && fzf-branch-picker" { direction "Down"; close_on_exit true; }; }
         bind "F9" { TogglePaneFrames; }
     }
     pane {
