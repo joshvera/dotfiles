@@ -18,7 +18,7 @@ keybinds {
         bind "F3" { SwitchToMode "resize"; }
         bind "F4" { SwitchToMode "move"; }
         bind "F5" { SwitchToMode "entersearch"; }
-        bind "F7" { Run "~/github/dotfiles/zellij/scripts/fzf-branch-wrapper.sh" { direction "Down"; }; }
+        bind "F7" { Run "$HOME/github/dotfiles/zellij/scripts/fzf-branch-wrapper.sh" { direction "Down"; }; }
         bind "F9" { TogglePaneFrames; }
     }
     pane {
