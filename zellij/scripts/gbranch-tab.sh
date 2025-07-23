@@ -86,8 +86,12 @@ function fzf-branch-picker() {
     --border)
 
   if [ $? -ne 0 ]; then
+    echo "DEBUG: fzf cancelled or failed"
     return 1
   fi
+  
+  echo "DEBUG: fzf selection raw output:"
+  echo "'$selection'"
 
   local query key branch_line branch_name
   query=$(echo "$selection" | sed -n '1p')
