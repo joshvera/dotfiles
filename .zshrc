@@ -12,6 +12,10 @@ fi
 export ZSH=$HOME/.oh-my-zsh
 export ZSH_CUSTOM="/Users/vera/github/dotfiles/zsh"
 
+# Add custom functions to fpath
+fpath=($ZSH_CUSTOM/functions $fpath)
+autoload -U $ZSH_CUSTOM/functions/*
+
 # Oh my zsh theme
 export ZSH_THEME="powerlevel10k/powerlevel10k"
 
