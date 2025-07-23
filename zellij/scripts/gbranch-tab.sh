@@ -95,11 +95,15 @@ function fzf-branch-picker() {
   branch_line=$(echo "$selection" | sed -n '3p')
 
   # Extract branch name from selection (remove emoji and worktree indicator)
+  echo "DEBUG: query='$query', key='$key', branch_line='$branch_line'"
   if [ -n "$branch_line" ]; then
     branch_name=$(echo "$branch_line" | sed 's/^🌳 //; s/ (worktree)$//')
+    echo "DEBUG: Using branch_line, branch_name='$branch_name'"
   elif [ -n "$query" ]; then
     branch_name="$query"
+    echo "DEBUG: Using query, branch_name='$branch_name'"
   else
+    echo "DEBUG: No valid branch name found, returning"
     return 1
   fi
 
@@ -133,7 +137,7 @@ function fzf-branch-picker() {
     fi
     
     # Create new zellij tab
-    zellij action new-tab --name "$branch_name" --cwd "$worktree_path"
+    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout default
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
