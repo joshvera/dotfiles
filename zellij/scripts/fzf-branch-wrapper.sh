@@ -9,3 +9,6 @@ source "$(dirname "$0")/gbranch-tab.sh"
 
 # Run the function
 fzf-branch-picker
+
+# Exit immediately after successful operation to close the pane
+exit 0
