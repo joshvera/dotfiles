@@ -33,7 +33,7 @@ function new-work() {
   git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" HEAD
 
   # 2. Create a new Zellij tab, cd into the worktree, and name the tab
-  zellij action new-tab --name "$BRANCH_NAME" --cwd "$WORKTREE_PATH"
+  zellij action new-tab --name "$BRANCH_NAME" --cwd "$WORKTREE_PATH" --layout single-bar
   
   echo "Created worktree '$BRANCH_NAME' and corresponding tab"
 }
@@ -119,7 +119,7 @@ function fzf-branch-picker() {
     echo "Switching to existing worktree: $branch_name"
     echo "DEBUG: Creating new tab for existing worktree"
     # Always create a new tab for existing worktrees (switching is unreliable)
-    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout default
+    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
     echo "DEBUG: Created new tab for existing worktree"
   else
     # Create new worktree and tab
@@ -138,7 +138,7 @@ function fzf-branch-picker() {
     fi
     
     # Create new zellij tab
-    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout default
+    zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
