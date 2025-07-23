@@ -16,29 +16,6 @@ function gbranch_tab() {
   fi
 }
 
-# Create new worktree and corresponding Zellij tab
-function new-work() {
-  if [ -z "$1" ]; then
-    echo "Usage: new-work <branch-name>"
-    return 1
-  fi
-
-  BRANCH_NAME=$1
-  # Get project name and create consistent worktree naming
-  PROJECT_NAME=$(basename -s .git "$(git config --get remote.origin.url)")
-  BRANCH_DIR=${BRANCH_NAME//\//-}  # Replace '/' with '-' for valid directory names
-  WORKTREE_NAME="${PROJECT_NAME}-${BRANCH_DIR}"
-  WORKTREE_PATH="../$WORKTREE_NAME"
-
-  # 1. Create the git worktree
-  git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" HEAD
-
-  # 2. Create a new Zellij tab, cd into the worktree, and name the tab
-  ABSOLUTE_WORKTREE_PATH=$(realpath "$WORKTREE_PATH")
-  zellij action new-tab --name "$BRANCH_NAME" --cwd "$ABSOLUTE_WORKTREE_PATH" --layout single-bar
-  
-  echo "Created worktree '$BRANCH_NAME' and corresponding tab"
-}
 
 # Quick tab switch by name (fuzzy search)
 function zt() {
