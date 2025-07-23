@@ -122,6 +122,7 @@ function fzf-branch-picker() {
     
     # Create the tab and change directory
     zellij action new-tab --layout single-bar --name "$branch_name"
+    sleep 0.2
     zellij action write-chars "cd '$absolute_worktree_path' && clear"
     zellij action write 10
   else
