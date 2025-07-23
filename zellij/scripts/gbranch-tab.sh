@@ -134,6 +134,9 @@ function fzf-branch-picker() {
     fi
     
     # Create new zellij tab
+    echo "DEBUG: About to create tab with cwd='$worktree_path'"
+    echo "DEBUG: Absolute path: $(realpath "$worktree_path" 2>/dev/null || echo "PATH DOES NOT EXIST")"
+    echo "DEBUG: Directory exists: $([ -d "$worktree_path" ] && echo "YES" || echo "NO")"
     zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
