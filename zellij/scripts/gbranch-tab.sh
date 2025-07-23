@@ -139,7 +139,11 @@ function fzf-branch-picker() {
     # Create new zellij tab with absolute path
     local absolute_worktree_path
     absolute_worktree_path=$(realpath "$worktree_path")
-    zellij action new-tab --name "$branch_name" --cwd "$absolute_worktree_path" --layout single-bar
+    echo "DEBUG: Running: zellij action new-tab --cwd '$absolute_worktree_path' --layout single-bar --name '$branch_name'"
+    zellij action new-tab --cwd "$absolute_worktree_path" --layout single-bar --name "$branch_name"
+    echo "DEBUG: zellij command exit code: $?"
+    # Give zellij a moment to process the command
+    sleep 0.1
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
