@@ -75,10 +75,6 @@ function fzf-branch-picker() {
     fi
   done <<< "$branches"
   
-  echo "DEBUG: About to run fzf with combined_list:"
-  echo -e "$combined_list" | head -5
-  echo "DEBUG: Running fzf command..."
-  
   local selection fzf_exit_code
   selection=$(echo -e "$combined_list" | fzf \
     --prompt="Branch/Worktree: " \
@@ -91,16 +87,10 @@ function fzf-branch-picker() {
     --no-sort)
   fzf_exit_code=$?
 
-  echo "DEBUG: fzf exit code: $fzf_exit_code"
-  
   # fzf returns 1 when no selection is made, but we might still have a query
   if [ $fzf_exit_code -eq 130 ]; then
-    echo "DEBUG: fzf interrupted (Ctrl+C)"
     return 1
   fi
-  
-  echo "DEBUG: fzf selection raw output:"
-  echo "'$selection'"
 
   local query key branch_line branch_name
   query=$(echo "$selection" | sed -n '1p')
@@ -108,15 +98,11 @@ function fzf-branch-picker() {
   branch_line=$(echo "$selection" | sed -n '3p')
 
   # Extract branch name from selection (remove emoji and worktree indicator)
-  echo "DEBUG: query='$query', key='$key', branch_line='$branch_line'"
   if [ -n "$branch_line" ]; then
     branch_name=$(echo "$branch_line" | sed 's/^🌳 //; s/ (worktree)$//')
-    echo "DEBUG: Using branch_line, branch_name='$branch_name'"
   elif [ -n "$query" ]; then
     branch_name="$query"
-    echo "DEBUG: Using query, branch_name='$branch_name'"
   else
-    echo "DEBUG: No valid branch name found, returning"
     return 1
   fi
 
@@ -127,13 +113,10 @@ function fzf-branch-picker() {
   worktree_path="../$worktree_name"
 
   # Check if worktree already exists
-  echo "DEBUG: Checking worktree_path='$worktree_path'"
   if [ -d "$worktree_path" ]; then
     echo "Switching to existing worktree: $branch_name"
-    echo "DEBUG: Creating new tab for existing worktree"
     # Always create a new tab for existing worktrees (switching is unreliable)
     zellij action new-tab --name "$branch_name" --cwd "$worktree_path" --layout single-bar
-    echo "DEBUG: Created new tab for existing worktree"
   else
     # Create new worktree and tab
     echo "Creating worktree and tab for: $branch_name"
