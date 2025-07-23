@@ -115,7 +115,19 @@ function fzf-branch-picker() {
   worktree_name="${project_name}-${branch_dir}"
   worktree_path="../$worktree_name"
 
-  # Check if worktree already exists
+  # Check if worktree already exists (try both sanitized and legacy unsanitized paths)
+  local legacy_worktree_name legacy_worktree_path
+  legacy_worktree_name="${project_name}-${branch_name}"
+  legacy_worktree_path="../$legacy_worktree_name"
+  
+  if [ -d "$worktree_path" ]; then
+    # Use sanitized path
+    worktree_path="$worktree_path"
+  elif [ -d "$legacy_worktree_path" ]; then
+    # Use legacy unsanitized path for existing worktrees
+    worktree_path="$legacy_worktree_path"
+  fi
+  
   if [ -d "$worktree_path" ]; then
     echo "Switching to existing worktree: $branch_name"
     # Always create a new tab for existing worktrees (switching is unreliable)
