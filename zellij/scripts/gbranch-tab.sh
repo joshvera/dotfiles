@@ -45,7 +45,7 @@ function zt() {
   fi
 }
 
-# Enhanced fzf branch picker - auto-creates branches if they don't exist
+# Enhanced fzf branch picker - auto-creates worktrees and tabs
 function fzf-branch-picker() {
   if ! git rev-parse --git-dir >/dev/null 2>&1; then
     echo "Not in a git repository"
@@ -57,16 +57,27 @@ function fzf-branch-picker() {
     return 1
   fi
 
-  # Get all git branches (local and remote)
-  local branches
+  # Get all git branches (local and remote) and existing worktrees
+  local branches worktrees combined_list
   branches=$(git branch -a | sed 's/^..//; s/remotes\/origin\///' | sort -u | grep -v '^HEAD')
+  worktrees=$(git worktree list --porcelain | grep "^worktree" | sed 's/^worktree //' | xargs -I {} basename {} 2>/dev/null | grep -v "$(basename $(pwd))")
+  
+  # Combine branches and mark existing worktrees
+  combined_list=""
+  while IFS= read -r branch; do
+    if echo "$worktrees" | grep -q "^${branch}$"; then
+      combined_list="${combined_list}🌳 ${branch} (worktree)\n"
+    else
+      combined_list="${combined_list}${branch}\n"
+    fi
+  done <<< "$branches"
   
   local selection
-  selection=$(echo "$branches" | fzf \
-    --prompt="Branch: " \
+  selection=$(echo -e "$combined_list" | fzf \
+    --prompt="Branch/Worktree: " \
     --print-query \
     --expect=enter \
-    --header="Enter to checkout/create branch, Esc to cancel" \
+    --header="Enter to create/switch to worktree, Esc to cancel" \
     --height=15 \
     --reverse \
     --border)
@@ -75,36 +86,48 @@ function fzf-branch-picker() {
     return 1
   fi
 
-  local query key branch_name
+  local query key branch_line branch_name
   query=$(echo "$selection" | sed -n '1p')
   key=$(echo "$selection" | sed -n '2p')
-  branch_name=$(echo "$selection" | sed -n '3p')
+  branch_line=$(echo "$selection" | sed -n '3p')
 
-  # If no branch was selected but query exists, use query as new branch name
-  if [ -z "$branch_name" ] && [ -n "$query" ]; then
+  # Extract branch name from selection (remove emoji and worktree indicator)
+  if [ -n "$branch_line" ]; then
+    branch_name=$(echo "$branch_line" | sed 's/^🌳 //; s/ (worktree)$//')
+  elif [ -n "$query" ]; then
     branch_name="$query"
-  elif [ -n "$branch_name" ]; then
-    # Use selected branch
-    branch_name="$branch_name"
   else
     return 1
   fi
 
-  # Check if branch exists locally
-  if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-    echo "Switching to existing branch: $branch_name"
-    git checkout "$branch_name"
-  else
-    # Check if it exists as a remote branch
-    if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-      echo "Creating local branch from remote: $branch_name"
-      git checkout -b "$branch_name" "origin/$branch_name"
-    else
-      echo "Creating new branch: $branch_name"
-      git checkout -b "$branch_name"
-    fi
-  fi
+  # Path for worktree (assumes you run from main worktree)
+  local worktree_path="../$branch_name"
 
-  # Update zellij tab name to match branch
-  gbranch_tab
+  # Check if worktree already exists
+  if [ -d "$worktree_path" ]; then
+    echo "Switching to existing worktree: $branch_name"
+    # Try to switch to existing tab, or create new one
+    if ! zellij action go-to-tab-name "$branch_name" 2>/dev/null; then
+      zellij action new-tab --name "$branch_name" --cwd "$worktree_path"
+    fi
+  else
+    # Create new worktree and tab
+    echo "Creating worktree and tab for: $branch_name"
+    
+    # Check if branch exists
+    if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+      # Branch exists locally - create worktree from it
+      git worktree add "$worktree_path" "$branch_name"
+    elif git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+      # Remote branch exists - create local branch and worktree
+      git worktree add -b "$branch_name" "$worktree_path" "origin/$branch_name"
+    else
+      # New branch - create it and worktree
+      git worktree add -b "$branch_name" "$worktree_path" HEAD
+    fi
+    
+    # Create new zellij tab
+    zellij action new-tab --name "$branch_name" --cwd "$worktree_path"
+    echo "Created worktree '$branch_name' and corresponding tab"
+  fi
 }
