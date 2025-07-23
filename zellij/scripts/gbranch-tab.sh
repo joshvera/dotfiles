@@ -113,6 +113,9 @@ function fzf-branch-picker() {
     # Try to switch to existing tab first
     if zellij action go-to-tab-name "$branch_name" 2>/dev/null; then
       echo "Switched to existing tab: $branch_name"
+      # Close the branch picker pane
+      sleep 0.1
+      zellij action close-pane
     else
       echo "No existing tab found, creating new tab"
       # Create the tab and change directory
@@ -120,6 +123,10 @@ function fzf-branch-picker() {
       sleep 0.2
       zellij action write-chars "cd '$absolute_worktree_path' && clear"
       zellij action write 10
+      # Close the branch picker pane on the original tab
+      zellij action go-to-previous-tab
+      zellij action close-pane
+      zellij action go-to-tab-name "$branch_name"
     fi
   else
     # Create new worktree and tab
@@ -147,6 +154,10 @@ function fzf-branch-picker() {
     zellij action write-chars "cd '$absolute_worktree_path' && clear"
     # Send enter to execute the commands
     zellij action write 10  # 10 is the ASCII code for newline
+    # Close the branch picker pane on the original tab
+    zellij action go-to-previous-tab
+    zellij action close-pane
+    zellij action go-to-tab-name "$branch_name"
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
