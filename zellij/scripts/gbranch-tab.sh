@@ -24,8 +24,10 @@ function new-work() {
   fi
 
   BRANCH_NAME=$1
-  # Adjust path as needed - assumes you run from main worktree
-  WORKTREE_PATH="../$BRANCH_NAME"
+  # Get project name and create consistent worktree naming
+  PROJECT_NAME=$(basename "$(git rev-parse --show-toplevel)")
+  WORKTREE_NAME="${PROJECT_NAME}-${BRANCH_NAME}"
+  WORKTREE_PATH="../$WORKTREE_NAME"
 
   # 1. Create the git worktree
   git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" HEAD
@@ -58,9 +60,10 @@ function fzf-branch-picker() {
   fi
 
   # Get all git branches (local and remote) and existing worktrees
-  local branches worktrees combined_list
+  local branches worktrees combined_list project_name
+  project_name=$(basename "$(git rev-parse --show-toplevel)")
   branches=$(git branch -a | sed 's/^..//; s/remotes\/origin\///' | sort -u | grep -v '^HEAD')
-  worktrees=$(git worktree list --porcelain | grep "^worktree" | sed 's/^worktree //' | xargs -I {} basename {} 2>/dev/null | grep -v "$(basename $(pwd))")
+  worktrees=$(git worktree list --porcelain | grep "^worktree" | sed 's/^worktree //' | xargs -I {} basename {} 2>/dev/null | grep -v "$(basename $(pwd))" | sed "s/^${project_name}-//")
   
   # Combine branches and mark existing worktrees
   combined_list=""
@@ -100,8 +103,11 @@ function fzf-branch-picker() {
     return 1
   fi
 
-  # Path for worktree (assumes you run from main worktree)
-  local worktree_path="../$branch_name"
+  # Get project name and create worktree path
+  local project_name worktree_name worktree_path
+  project_name=$(basename "$(git rev-parse --show-toplevel)")
+  worktree_name="${project_name}-${branch_name}"
+  worktree_path="../$worktree_name"
 
   # Check if worktree already exists
   if [ -d "$worktree_path" ]; then
