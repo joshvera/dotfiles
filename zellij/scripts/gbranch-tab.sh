@@ -25,8 +25,9 @@ function new-work() {
 
   BRANCH_NAME=$1
   # Get project name and create consistent worktree naming
-  PROJECT_NAME=$(basename "$(git rev-parse --show-toplevel)")
-  WORKTREE_NAME="${PROJECT_NAME}-${BRANCH_NAME}"
+  PROJECT_NAME=$(basename -s .git "$(git config --get remote.origin.url)")
+  BRANCH_DIR=${BRANCH_NAME//\//-}  # Replace '/' with '-' for valid directory names
+  WORKTREE_NAME="${PROJECT_NAME}-${BRANCH_DIR}"
   WORKTREE_PATH="../$WORKTREE_NAME"
 
   # 1. Create the git worktree
@@ -62,7 +63,7 @@ function fzf-branch-picker() {
 
   # Get all git branches (local and remote) and existing worktrees
   local branches worktrees combined_list project_name
-  project_name=$(basename "$(git rev-parse --show-toplevel)")
+  project_name=$(basename -s .git "$(git config --get remote.origin.url)")
   branches=$(git branch -a | sed 's/^..//; s/remotes\/origin\///' | sort -u | grep -v '^HEAD')
   worktrees=$(git worktree list --porcelain | grep "^worktree" | sed 's/^worktree //' | xargs -I {} basename {} 2>/dev/null | grep -v "$(basename $(pwd))" | sed "s/^${project_name}-//")
   
@@ -108,9 +109,10 @@ function fzf-branch-picker() {
   fi
 
   # Get project name and create worktree path
-  local project_name worktree_name worktree_path
-  project_name=$(basename "$(git rev-parse --show-toplevel)")
-  worktree_name="${project_name}-${branch_name}"
+  local project_name branch_dir worktree_name worktree_path
+  project_name=$(basename -s .git "$(git config --get remote.origin.url)")
+  branch_dir=${branch_name//\//-}  # Replace '/' with '-' for valid directory names
+  worktree_name="${project_name}-${branch_dir}"
   worktree_path="../$worktree_name"
 
   # Check if worktree already exists
@@ -121,11 +123,8 @@ function fzf-branch-picker() {
     absolute_worktree_path=$(realpath "$worktree_path")
     
     # Create the tab and change directory
-    echo "DEBUG: Existing worktree - absolute_worktree_path='$absolute_worktree_path'"
-    echo "DEBUG: Directory exists: $([ -d "$absolute_worktree_path" ] && echo "YES" || echo "NO")"
     zellij action new-tab --layout single-bar --name "$branch_name"
     sleep 0.2
-    echo "DEBUG: Sending cd command to new tab"
     zellij action write-chars "cd '$absolute_worktree_path' && clear"
     zellij action write 10
   else
