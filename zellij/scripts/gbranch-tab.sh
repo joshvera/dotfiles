@@ -119,7 +119,12 @@ function fzf-branch-picker() {
     # Always create a new tab for existing worktrees (switching is unreliable)
     local absolute_worktree_path
     absolute_worktree_path=$(realpath "$worktree_path")
-    zellij action new-tab --name "$branch_name" --cwd "$absolute_worktree_path" --layout single-bar
+    
+    # Create the tab and change directory
+    zellij action new-tab --layout single-bar --name "$branch_name"
+    sleep 0.2
+    zellij action write-chars "cd '$absolute_worktree_path'"
+    zellij action write 10
   else
     # Create new worktree and tab
     echo "Creating worktree and tab for: $branch_name"
@@ -136,14 +141,19 @@ function fzf-branch-picker() {
       git worktree add -b "$branch_name" "$worktree_path" HEAD
     fi
     
-    # Create new zellij tab with absolute path
+    # Create new zellij tab and change directory
     local absolute_worktree_path
     absolute_worktree_path=$(realpath "$worktree_path")
-    echo "DEBUG: Running: zellij action new-tab --cwd '$absolute_worktree_path' --layout single-bar --name '$branch_name'"
-    zellij action new-tab --cwd "$absolute_worktree_path" --layout single-bar --name "$branch_name"
-    echo "DEBUG: zellij command exit code: $?"
-    # Give zellij a moment to process the command
-    sleep 0.1
+    echo "DEBUG: Creating tab and changing to directory: $absolute_worktree_path"
+    
+    # Create the tab first
+    zellij action new-tab --layout single-bar --name "$branch_name"
+    # Give zellij a moment to create the tab
+    sleep 0.2
+    # Send cd command to the new tab
+    zellij action write-chars "cd '$absolute_worktree_path'"
+    # Send enter to execute the cd command
+    zellij action write 10  # 10 is the ASCII code for newline
     echo "Created worktree '$branch_name' and corresponding tab"
   fi
 }
