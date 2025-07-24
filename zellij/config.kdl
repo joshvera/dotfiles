@@ -42,7 +42,7 @@ keybinds {
 
 pane_frames false
 simplified_ui false
-default_layout "single-bar"
+default_layout "dual-bar"
 
 ui {
     pane_frames {
@@ -133,12 +133,12 @@ plugins {
         hide_frame_except_for_fullscreen "false"
     }
     zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
-        max_length 40
+        max_length 120
         overflow_str "…"
         pipe_name "zjstatus_hints"
         hide_in_base_mode false
-        max_hints 2
-        hint_max_length 8
-        separator "|"
+        max_hints 4
+        hint_max_length 12
+        separator " | "
     }
 }
