@@ -1,0 +1,188 @@
+#!/bin/bash
+# Smart zellij wrapper - auto-detects device type and uses appropriate config
+# Usage: smart-zellij [zellij-options]
+
+# Configuration paths
+ZELLIJ_DIR="$HOME/.config/zellij"
+MOBILE_CONFIG="$ZELLIJ_DIR/config-mobile.kdl"
+DESKTOP_CONFIG="$ZELLIJ_DIR/config-desktop.kdl"
+DEFAULT_CONFIG="$ZELLIJ_DIR/config.kdl"
+
+# Function to detect if we're on a mobile/touch device
+detect_device_type() {
+    # Method 1: Check terminal dimensions (mobile typically < 100 columns)
+    local cols=$(tput cols 2>/dev/null || echo 0)
+    local lines=$(tput lines 2>/dev/null || echo 0)
+    
+    # Method 2: Check for mobile-specific environment indicators
+    local is_mobile=false
+    
+    # Check if we're in Termux (Android terminal)
+    if [[ -n "$TERMUX_VERSION" || "$PREFIX" == *"com.termux"* ]]; then
+        is_mobile=true
+    fi
+    
+    # Check if we're in iSH (iOS terminal)
+    if [[ "$(uname -m)" == "i386" && "$(uname -s)" == "Linux" && -f "/proc/ish/version" ]]; then
+        is_mobile=true
+    fi
+    
+    # Check for a-Shell or other iOS terminals
+    if [[ -n "$SHELL_NAME" && "$SHELL_NAME" == *"a-Shell"* ]]; then
+        is_mobile=true
+    fi
+    
+    # Check terminal width (common mobile terminal widths)
+    if [[ $cols -gt 0 && $cols -lt 100 ]]; then
+        is_mobile=true
+    fi
+    
+    # Method 3: Check for SSH with mobile indicators
+    if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+        # If SSH, check if the client might be mobile based on terminal size
+        if [[ $cols -gt 0 && $cols -lt 90 ]]; then
+            is_mobile=true
+        fi
+    fi
+    
+    # Method 4: Check system info for mobile platforms
+    local uname_output=$(uname -a 2>/dev/null)
+    if [[ "$uname_output" == *"Android"* || "$uname_output" == *"aarch64"* ]]; then
+        # Additional check for Android or ARM (could be mobile)
+        if [[ $cols -lt 120 ]]; then
+            is_mobile=true
+        fi
+    fi
+    
+    # Method 5: Check for touch-specific environment variables or files
+    if [[ -f "/sys/class/input/event0/device/capabilities/abs" ]]; then
+        # Presence of absolute positioning (touchscreen) capability
+        is_mobile=true
+    fi
+    
+    if [[ "$is_mobile" == true ]]; then
+        echo "mobile"
+    else
+        echo "desktop" 
+    fi
+}
+
+# Function to get the appropriate config file
+get_config_file() {
+    local device_type="$1"
+    
+    case "$device_type" in
+        "mobile")
+            if [[ -f "$MOBILE_CONFIG" ]]; then
+                echo "$MOBILE_CONFIG"
+            else
+                echo "$DEFAULT_CONFIG"
+            fi
+            ;;
+        "desktop")
+            if [[ -f "$DESKTOP_CONFIG" ]]; then
+                echo "$DESKTOP_CONFIG"
+            else
+                echo "$DEFAULT_CONFIG"
+            fi
+            ;;
+        *)
+            echo "$DEFAULT_CONFIG"
+            ;;
+    esac
+}
+
+# Function to show help
+show_help() {
+    cat <<EOF
+Smart Zellij Wrapper - Auto-detects device type and uses appropriate config
+
+Usage: smart-zellij [OPTIONS] [ZELLIJ_ARGS...]
+
+OPTIONS:
+  --device-type TYPE    Force device type (mobile|desktop|auto)
+  --show-detection      Show device detection info and exit
+  --help               Show this help message
+
+ENVIRONMENT VARIABLES:
+  ZELLIJ_DEVICE_TYPE   Force device type (mobile|desktop)
+  
+EXAMPLES:
+  smart-zellij                          # Auto-detect and start zellij
+  smart-zellij --device-type mobile     # Force mobile config
+  smart-zellij --show-detection         # Show detection details
+  smart-zellij -s mysession             # Auto-detect + start session 'mysession'
+
+DEVICE DETECTION:
+  - Termux (Android): Always mobile
+  - iSH (iOS): Always mobile  
+  - Terminal width < 100 cols: Mobile
+  - SSH with narrow terminal: Mobile
+  - Default: Desktop
+
+CONFIG FILES:
+  Mobile:  $MOBILE_CONFIG
+  Desktop: $DESKTOP_CONFIG
+  Default: $DEFAULT_CONFIG
+EOF
+}
+
+# Parse arguments
+device_type=""
+show_detection=false
+zellij_args=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --device-type)
+            device_type="$2"
+            shift 2
+            ;;
+        --show-detection)
+            show_detection=true
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            zellij_args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Check environment variable override
+if [[ -z "$device_type" && -n "$ZELLIJ_DEVICE_TYPE" ]]; then
+    device_type="$ZELLIJ_DEVICE_TYPE"
+fi
+
+# Auto-detect if not specified
+if [[ -z "$device_type" || "$device_type" == "auto" ]]; then
+    device_type=$(detect_device_type)
+fi
+
+# Show detection info if requested
+if [[ "$show_detection" == true ]]; then
+    echo "=== Device Detection Info ==="
+    echo "Terminal size: $(tput cols)x$(tput lines)"
+    echo "TERMUX_VERSION: ${TERMUX_VERSION:-<not set>}"
+    echo "PREFIX: ${PREFIX:-<not set>}"
+    echo "SSH_CLIENT: ${SSH_CLIENT:-<not set>}"
+    echo "uname -a: $(uname -a)"
+    echo "Detected device type: $device_type"
+    echo "Config file: $(get_config_file "$device_type")"
+    exit 0
+fi
+
+# Get the appropriate config file
+config_file=$(get_config_file "$device_type")
+
+# Show which config we're using (optional, can be removed for cleaner output)
+if [[ -t 1 ]]; then  # Only show if stdout is a terminal
+    echo "🔧 Using $device_type config: $(basename "$config_file")" >&2
+fi
+
+# Launch zellij with the appropriate config
+exec zellij --config "$config_file" "${zellij_args[@]}"
