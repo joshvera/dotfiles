@@ -1,6 +1,6 @@
 #!/bin/bash
 # Smart zellij wrapper - auto-detects device type and uses appropriate config
-# Usage: smart-zellij [zellij-options]
+# Usage: z [zellij-options]
 
 # Configuration paths
 ZELLIJ_DIR="$HOME/.config/zellij"
@@ -97,7 +97,7 @@ show_help() {
     cat <<EOF
 Smart Zellij Wrapper - Auto-detects device type and uses appropriate config
 
-Usage: smart-zellij [OPTIONS] [ZELLIJ_ARGS...]
+Usage: z [OPTIONS] [ZELLIJ_ARGS...]
 
 OPTIONS:
   --device-type TYPE    Force device type (mobile|desktop|auto)
@@ -108,10 +108,10 @@ ENVIRONMENT VARIABLES:
   ZELLIJ_DEVICE_TYPE   Force device type (mobile|desktop)
   
 EXAMPLES:
-  smart-zellij                          # Auto-detect and start zellij
-  smart-zellij --device-type mobile     # Force mobile config
-  smart-zellij --show-detection         # Show detection details
-  smart-zellij -s mysession             # Auto-detect + start session 'mysession'
+  z                          # Auto-detect and start zellij
+  z --device-type mobile     # Force mobile config
+  z --show-detection         # Show detection details
+  z -s mysession             # Auto-detect + start session 'mysession'
 
 DEVICE DETECTION:
   - Termux (Android): Always mobile

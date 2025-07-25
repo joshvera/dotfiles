@@ -8,11 +8,8 @@ Auto-detecting zellij configurations that adapt to your device type (mobile/desk
 # Install the smart wrapper
 ./install-smart-zellij.sh
 
-# Use zellij with auto-detection
-smart-zellij
-
-# Optional: Add alias for convenience
-echo "alias zj='smart-zellij'" >> ~/.zshrc
+# Use zellij with auto-detection - just type 'z'!
+z
 ```
 
 ## The Problem This Solves
@@ -23,7 +20,7 @@ echo "alias zj='smart-zellij'" >> ~/.zshrc
 
 ## Auto-Detection Logic
 
-The `smart-zellij` wrapper detects your device type using:
+The `z` command detects your device type using:
 
 1. **Mobile Platforms**: Termux (Android), iSH (iOS), a-Shell
 2. **Terminal Dimensions**: < 100 columns typically indicates mobile
@@ -49,21 +46,21 @@ The `smart-zellij` wrapper detects your device type using:
 
 ```bash
 # Auto-detect and start
-smart-zellij
+z
 
 # Force specific device type
-smart-zellij --device-type mobile
-smart-zellij --device-type desktop
+z --device-type mobile
+z --device-type desktop
 
 # Show detection details
-smart-zellij --show-detection
+z --show-detection
 
 # Pass through zellij options
-smart-zellij -s mysession
-smart-zellij attach main
+z -s mysession
+z attach main
 
 # Environment variable override
-ZELLIJ_DEVICE_TYPE=desktop smart-zellij
+ZELLIJ_DEVICE_TYPE=desktop z
 ```
 
 ## Manual Override
@@ -75,14 +72,14 @@ If auto-detection isn't working correctly:
 export ZELLIJ_DEVICE_TYPE=mobile
 
 # Or use command line flag
-smart-zellij --device-type desktop
+z --device-type desktop
 ```
 
 ## Installation Details
 
 The install script:
 1. Copies configs to `~/.config/zellij/`
-2. Installs `smart-zellij` to `~/.local/bin/`
+2. Installs `z` to `~/.local/bin/`
 3. Copies layouts and scripts
 
 Make sure `~/.local/bin` is in your PATH:
@@ -106,10 +103,10 @@ rm -rf ~/.cache/org.Zellij-Contributors.Zellij/*/session_info/
 
 ```bash
 # Check what's being detected
-smart-zellij --show-detection
+z --show-detection
 
 # Override if needed
-smart-zellij --device-type desktop
+z --device-type desktop
 ```
 
 ### Config Not Found

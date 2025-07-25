@@ -1,14 +1,14 @@
 #!/bin/bash
-# Install script for smart-zellij wrapper
+# Install script for z (smart zellij wrapper)
 
 set -e
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ZELLIJ_DIR="$HOME/.config/zellij"
-SMART_ZELLIJ="$DOTFILES_DIR/zellij/smart-zellij"
+Z_SCRIPT="$DOTFILES_DIR/zellij/z"
 BIN_DIR="$HOME/.local/bin"
 
-echo "🔧 Installing smart-zellij wrapper..."
+echo "🔧 Installing z (smart zellij wrapper)..."
 
 # Create necessary directories
 mkdir -p "$BIN_DIR"
@@ -32,10 +32,10 @@ if [ -d "$DOTFILES_DIR/zellij/scripts" ]; then
     cp -r "$DOTFILES_DIR/zellij/scripts" "$ZELLIJ_DIR/"
 fi
 
-# Install smart-zellij to PATH
-echo "🔗 Installing smart-zellij to $BIN_DIR..."
-cp "$SMART_ZELLIJ" "$BIN_DIR/"
-chmod +x "$BIN_DIR/smart-zellij"
+# Install z to PATH
+echo "🔗 Installing z to $BIN_DIR..."
+cp "$Z_SCRIPT" "$BIN_DIR/"
+chmod +x "$BIN_DIR/z"
 
 # Check if .local/bin is in PATH
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
@@ -49,12 +49,9 @@ fi
 echo "✅ Installation complete!"
 echo ""
 echo "Usage:"
-echo "  smart-zellij                    # Auto-detect device and start"
-echo "  smart-zellij --show-detection   # Show detection info"
-echo "  smart-zellij --device-type mobile   # Force mobile config"
-echo ""
-echo "Optional: Add an alias to your shell profile:"
-echo "  alias zj='smart-zellij'"
+echo "  z                    # Auto-detect device and start"
+echo "  z --show-detection   # Show detection info"
+echo "  z --device-type mobile   # Force mobile config"
 echo ""
 echo "Test the installation:"
-echo "  smart-zellij --show-detection"
+echo "  z --show-detection"
