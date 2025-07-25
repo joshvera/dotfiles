@@ -1,10 +1,15 @@
-// Default zellij configuration - now acts as fallback
-// For device-specific configs, use:
-// - config-mobile.kdl for mobile/touch devices
-// - config-desktop.kdl for desktop environments
+// Mobile-optimized zellij configuration
+// Usage: zellij --config ~/.config/zellij/config-mobile.kdl
 
 keybinds {
     normal {
+        // Mobile-specific unbinds - remove desktop shortcuts that conflict with touch
+        unbind "Ctrl p"
+        unbind "Ctrl t" 
+        unbind "Ctrl n"
+        unbind "Ctrl h"
+        unbind "Ctrl s"
+        
         // Consistent keybindings (same across all configs)
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Ctrl v" { SwitchToMode "scroll"; PageScrollDown; }
@@ -49,7 +54,7 @@ keybinds {
         bind "k" { ScrollUp; }
         bind "Ctrl d" { HalfPageScrollDown; }
         bind "Ctrl u" { HalfPageScrollUp; }
-        // Emacs bindings
+        // Emacs bindings  
         bind "Ctrl v" { PageScrollDown; }
         bind "Alt v" { PageScrollUp; }
         // PageUp/PageDown continue scrolling in scroll mode
@@ -62,7 +67,7 @@ pane_frames false
 simplified_ui false
 default_layout "dual-bar"
 
-// Session serialization settings
+// Mobile-optimized session settings
 session_serialization true
 serialize-pane-viewport false
 
@@ -155,12 +160,12 @@ plugins {
         hide_frame_except_for_fullscreen "false"
     }
     zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
-        max_length 60
+        max_length 40  // Shorter for mobile screens
         overflow_str "…"
         pipe_name "zjstatus_hints"
         hide_in_base_mode false
-        max_hints 4
-        hint_max_length 12
+        max_hints 3    // Fewer hints on mobile
+        hint_max_length 10
         separator " | "
     }
 }

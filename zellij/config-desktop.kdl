@@ -1,7 +1,5 @@
-// Default zellij configuration - now acts as fallback
-// For device-specific configs, use:
-// - config-mobile.kdl for mobile/touch devices
-// - config-desktop.kdl for desktop environments
+// Desktop-optimized zellij configuration  
+// Usage: zellij --config ~/.config/zellij/config-desktop.kdl
 
 keybinds {
     normal {
@@ -21,6 +19,12 @@ keybinds {
         bind "F9" { TogglePaneFrames; }
         bind "PageUp" { SwitchToMode "scroll"; PageScrollUp; }
         bind "PageDown" { SwitchToMode "scroll"; PageScrollDown; }
+        
+        // Desktop-specific bindings (additional shortcuts that work well with keyboard)
+        bind "Ctrl p" { SwitchToMode "pane"; }
+        bind "Ctrl t" { SwitchToMode "tab"; }
+        bind "Ctrl n" { NewPane; }
+        bind "Ctrl h" { MoveFocus "Left"; }
     }
     pane {
         bind "Esc" { SwitchToMode "normal"; }
@@ -62,7 +66,7 @@ pane_frames false
 simplified_ui false
 default_layout "dual-bar"
 
-// Session serialization settings
+// Desktop-optimized session settings  
 session_serialization true
 serialize-pane-viewport false
 
@@ -155,12 +159,12 @@ plugins {
         hide_frame_except_for_fullscreen "false"
     }
     zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
-        max_length 60
+        max_length 80  // More space on desktop
         overflow_str "…"
         pipe_name "zjstatus_hints"
         hide_in_base_mode false
-        max_hints 4
-        hint_max_length 12
+        max_hints 5    // More hints on desktop
+        hint_max_length 15
         separator " | "
     }
 }
