@@ -41,4 +41,4 @@ alias k='kubectl'
 alias gcm='git commit -m'
 alias gs='git status'
 
-alias z='zellij'
+# z command now provided by smart zellij wrapper in ~/.local/bin/z
