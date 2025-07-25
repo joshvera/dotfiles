@@ -9,17 +9,20 @@ keybinds {
         
         // Mobile-optimized bindings
         bind "Alt f" { ToggleFloatingPanes; }
-        bind "Ctrl v" { HalfPageScrollDown; }
-        bind "Alt v" { HalfPageScrollUp; }
-        bind "Ctrl d" { HalfPageScrollDown; }
-        bind "Ctrl u" { HalfPageScrollUp; }
+        bind "Ctrl v" { SwitchToMode "scroll"; PageScrollDown; }
+        bind "Alt v" { SwitchToMode "scroll"; PageScrollUp; }
+        bind "Ctrl d" { SwitchToMode "scroll"; HalfPageScrollDown; }
+        bind "Ctrl u" { SwitchToMode "scroll"; HalfPageScrollUp; }
         bind "F1" { SwitchToMode "pane"; }
         bind "F2" { SwitchToMode "tab"; }
         bind "F3" { SwitchToMode "resize"; }
         bind "F4" { SwitchToMode "move"; }
         bind "F5" { SwitchToMode "entersearch"; }
+        bind "F6" { SwitchToMode "scroll"; }
         bind "F7" { Run "/Users/vera/github/dotfiles/zellij/scripts/fzf-branch-wrapper.sh" { direction "Down"; close_on_exit true; }; }
         bind "F9" { TogglePaneFrames; }
+        bind "PageUp" { SwitchToMode "scroll"; PageScrollUp; }
+        bind "PageDown" { SwitchToMode "scroll"; PageScrollDown; }
     }
     pane {
         bind "Esc" { SwitchToMode "normal"; }
@@ -37,6 +40,23 @@ keybinds {
     search {
         bind "n" { Search "Down"; }
         bind "Esc" { SwitchToMode "normal"; }
+    }
+    scroll {
+        bind "Esc" { SwitchToMode "normal"; }
+        bind "e" { EditScrollback; SwitchToMode "normal"; }
+        bind "s" { SwitchToMode "entersearch"; SearchInput 0; }
+        bind "Ctrl c" { ScrollToBottom; SwitchToMode "normal"; }
+        // Vim bindings
+        bind "j" { ScrollDown; }
+        bind "k" { ScrollUp; }
+        bind "Ctrl d" { HalfPageScrollDown; }
+        bind "Ctrl u" { HalfPageScrollUp; }
+        // Emacs bindings
+        bind "Ctrl v" { PageScrollDown; }
+        bind "Alt v" { PageScrollUp; }
+        // PageUp/PageDown continue scrolling in scroll mode
+        bind "PageUp" { PageScrollUp; }
+        bind "PageDown" { PageScrollDown; }
     }
 }
 
