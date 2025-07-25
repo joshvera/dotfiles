@@ -6,6 +6,8 @@ keybinds {
         unbind "Ctrl p"
         unbind "Ctrl t"
         unbind "Ctrl n"
+        unbind "Ctrl h"
+        unbind "Ctrl s"
         
         // Mobile-optimized bindings
         bind "Alt f" { ToggleFloatingPanes; }
@@ -63,6 +65,10 @@ keybinds {
 pane_frames false
 simplified_ui false
 default_layout "dual-bar"
+
+// Session serialization settings
+session_serialization true
+serialize-pane-viewport false
 
 ui {
     pane_frames {
