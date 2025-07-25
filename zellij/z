@@ -2,11 +2,11 @@
 # Smart zellij wrapper - auto-detects device type and uses appropriate config
 # Usage: z [zellij-options]
 
-# Configuration paths
-ZELLIJ_DIR="$HOME/.config/zellij"
-MOBILE_CONFIG="$ZELLIJ_DIR/config-mobile.kdl"
-DESKTOP_CONFIG="$ZELLIJ_DIR/config-desktop.kdl"
-DEFAULT_CONFIG="$ZELLIJ_DIR/config.kdl"
+# Configuration paths - use configs from dotfiles directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MOBILE_CONFIG="$SCRIPT_DIR/config-mobile.kdl"
+DESKTOP_CONFIG="$SCRIPT_DIR/config-desktop.kdl"
+DEFAULT_CONFIG="$SCRIPT_DIR/config.kdl"
 
 # Function to detect if we're on a mobile/touch device
 detect_device_type() {
@@ -121,9 +121,9 @@ DEVICE DETECTION:
   - Default: Desktop
 
 CONFIG FILES:
-  Mobile:  $MOBILE_CONFIG
-  Desktop: $DESKTOP_CONFIG
-  Default: $DEFAULT_CONFIG
+  Mobile:  {dotfiles}/zellij/config-mobile.kdl
+  Desktop: {dotfiles}/zellij/config-desktop.kdl
+  Default: {dotfiles}/zellij/config.kdl
 EOF
 }
 

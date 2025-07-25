@@ -5,10 +5,11 @@ Auto-detecting zellij configurations that adapt to your device type (mobile/desk
 ## Quick Start
 
 ```bash
-# Install the smart wrapper
-./install-smart-zellij.sh
+# Just run the z command directly from your dotfiles!
+./zellij/z
 
-# Use zellij with auto-detection - just type 'z'!
+# Or add dotfiles/zellij to your PATH for global access
+export PATH="$HOME/path/to/dotfiles/zellij:$PATH"
 z
 ```
 
@@ -75,16 +76,19 @@ export ZELLIJ_DEVICE_TYPE=mobile
 z --device-type desktop
 ```
 
-## Installation Details
+## Setup
 
-The install script:
-1. Copies configs to `~/.config/zellij/`
-2. Installs `z` to `~/.local/bin/`
-3. Copies layouts and scripts
+No installation needed! The `z` script finds configs relative to its location in your dotfiles.
 
-Make sure `~/.local/bin` is in your PATH:
+**Option 1: Run directly**
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+./zellij/z
+```
+
+**Option 2: Add to PATH for global access**
+```bash
+# Add this to your shell profile (.zshrc, .bashrc, etc.)
+export PATH="$HOME/path/to/your/dotfiles/zellij:$PATH"
 ```
 
 ## Troubleshooting
@@ -112,11 +116,11 @@ z --device-type desktop
 ### Config Not Found
 
 ```bash
-# Re-run the installer
-./install-smart-zellij.sh
+# Make sure you're running z from the zellij directory or it's in your PATH
+./zellij/z --show-detection
 
-# Or manually copy configs
-cp config*.kdl ~/.config/zellij/
+# Configs should be in the same directory as the z script
+ls -la zellij/config*.kdl
 ```
 
 ## Technical Details
