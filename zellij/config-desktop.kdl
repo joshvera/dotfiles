@@ -159,12 +159,13 @@ plugins {
         hide_frame_except_for_fullscreen "false"
     }
     zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
-        max_length 80  // More space on desktop
+        max_length 999  // Let it use available space
         overflow_str "…"
         pipe_name "zjstatus_hints"
         hide_in_base_mode false
-        max_hints 5    // More hints on desktop
-        hint_max_length 15
+        max_hints 8     // More hints when space allows
+        hint_max_length 999  // Let hints use available space
         separator " | "
+        padding 1       // Minimal padding for flexibility
     }
 }

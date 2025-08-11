@@ -1,0 +1,161 @@
+#!/bin/zsh
+# Clean up merged branch/worktree and return to updated main branch
+
+if [ -z "$1" ]; then
+  echo "Usage: finish-work <branch-name>"
+  echo "Run this after your PR has been merged to clean up and return to main"
+  return 1
+fi
+
+local branch_name="$1"
+local project_name branch_dir worktree_name worktree_path current_dir
+current_dir=$(pwd)
+
+# Try to get project name from git config, with fallback for orphaned worktrees
+if git config --get remote.origin.url >/dev/null 2>&1; then
+  project_name=$(basename -s .git "$(git config --get remote.origin.url)")
+else
+  # Fallback: extract project name from current directory pattern
+  local current_basename=$(basename "$current_dir")
+  if [[ "$current_basename" =~ ^([^-]+)-(.*) ]]; then
+    project_name="${match[1]}"
+    echo "⚠️  Detected orphaned worktree. Inferred project name: $project_name"
+  else
+    echo "❌ Cannot determine project name. Are you in a git worktree directory?"
+    echo "Expected directory pattern: <project>-<branch> (e.g., yohio-feat-something)"
+    return 1
+  fi
+fi
+
+branch_dir=${branch_name//\//-}  # Replace '/' with '-' for valid directory names
+worktree_name="${project_name}-${branch_dir}"
+worktree_path="../$worktree_name"
+
+# Check for legacy unsanitized path as well
+local legacy_worktree_name legacy_worktree_path actual_worktree_path
+legacy_worktree_name="${project_name}-${branch_name}"
+legacy_worktree_path="../$legacy_worktree_name"
+
+echo "🧹 Cleaning up after merged PR for branch: $branch_name"
+
+# If we're currently in a worktree, navigate to main project first
+if [[ "$current_dir" == *"$worktree_name"* ]] || [[ "$current_dir" == *"$legacy_worktree_name"* ]]; then
+  echo "📁 Currently in worktree, navigating to main project..."
+  
+  # Try the expected path first
+  if [ -d "../$project_name/.git" ]; then
+    cd "../$project_name" || {
+      echo "❌ Failed to navigate to main project directory: ../$project_name"
+      return 1
+    }
+  else
+    echo "⚠️  Expected main project not found at ../$project_name"
+    echo "🔍 Looking for main project directory..."
+    
+    # Look for any directory with .git in the parent
+    local main_project_found=""
+    for dir in ../*/; do
+      if [ -d "$dir/.git" ]; then
+        main_project_found="${dir%/}"  # Remove trailing slash
+        break
+      fi
+    done
+    
+    if [ -n "$main_project_found" ]; then
+      echo "📂 Found main project at: $main_project_found"
+      cd "$main_project_found" || {
+        echo "❌ Failed to navigate to found project directory: $main_project_found"
+        return 1
+      }
+    else
+      echo "❌ No git repository found in parent directory"
+      echo "💡 For orphaned worktrees, you can manually:"
+      echo "   1. cd to your main project directory"
+      echo "   2. git worktree remove --force $current_dir"
+      echo "   3. rm -rf $current_dir"
+      return 1
+    fi
+  fi
+fi
+
+# Update main branch with latest changes
+echo "🔄 Updating main branch..."
+git checkout main
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to checkout main branch"
+  return 1
+fi
+
+git pull origin main
+if [ $? -ne 0 ]; then
+  echo "⚠️  Warning: Failed to pull latest changes from origin/main"
+fi
+
+# Determine which worktree path exists
+if [ -d "$worktree_path" ]; then
+  actual_worktree_path="$worktree_path"
+  echo "📂 Found worktree: $worktree_path"
+elif [ -d "$legacy_worktree_path" ]; then
+  actual_worktree_path="$legacy_worktree_path"
+  echo "📂 Found legacy worktree: $legacy_worktree_path"
+else
+  echo "⚠️  No worktree found for branch '$branch_name', checking for local branch only..."
+  actual_worktree_path=""
+fi
+
+# Remove worktree if it exists
+if [ -n "$actual_worktree_path" ]; then
+  echo "🗑️  Removing worktree: $actual_worktree_path"
+  git worktree remove --force "$actual_worktree_path"
+  local worktree_remove_exit=$?
+  if [ $worktree_remove_exit -eq 0 ]; then
+    echo "✅ Worktree removed successfully"
+  else
+    echo "⚠️  Git worktree remove failed (likely orphaned). Trying manual cleanup..."
+    if [ -d "$actual_worktree_path" ]; then
+      # Try to fix permissions and remove
+      chmod -R u+w "$actual_worktree_path" 2>/dev/null
+      rm -rf "$actual_worktree_path"
+      if [ $? -eq 0 ]; then
+        echo "✅ Orphaned worktree directory removed manually"
+      else
+        echo "⚠️  Some files couldn't be removed (permission issues). You may need to manually run:"
+        echo "   sudo rm -rf $actual_worktree_path"
+      fi
+    fi
+  fi
+fi
+
+# Remove local branch if it exists
+if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+  echo "🌿 Removing local branch: $branch_name"
+  git branch -D "$branch_name"
+  if [ $? -eq 0 ]; then
+    echo "✅ Local branch removed successfully"
+  else
+    echo "⚠️  Warning: Failed to remove local branch"
+  fi
+else
+  echo "ℹ️  Local branch '$branch_name' not found (already cleaned up)"
+fi
+
+# Clean up any remote tracking branches
+if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+  echo "🌐 Cleaning up remote tracking branch..."
+  git branch -dr "origin/$branch_name"
+fi
+
+# Prune any stale remote references
+echo "🧹 Pruning stale remote references..."
+git remote prune origin
+
+# Show current status
+echo ""
+echo "✅ Cleanup complete! Current status:"
+echo "📍 Current branch: $(git branch --show-current)"
+echo "📊 Worktree list:"
+git worktree list
+echo ""
+echo "🎉 Ready for new work! You can now:"
+echo "   • new-work <new-branch-name>  - Start new feature branch"
+echo "   • git status                  - Check main branch status"

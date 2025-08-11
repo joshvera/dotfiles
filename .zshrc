@@ -146,8 +146,7 @@ fi
 # Source secrets
 source ~/.secrets/.secrets
 
-# Add dotfiles bin to PATH
-export PATH="$HOME/github/dotfiles/bin:$PATH"
+# PATH Configuration moved to .zshenv for better shell compatibility
 
 source ~/github/dotfiles/zsh/aliases
 

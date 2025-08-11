@@ -21,13 +21,14 @@ layout {
         pane size=1 borderless=true {
             plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
                 format_left "{mode}"
-                format_center "#[fg=#073642,bg=#268bd2]{pipe_zjstatus_hints}"
+                format_center "#[fg=#073642,bg=#268bd2] {pipe_zjstatus_hints} "
                 format_right "#[fg=#268bd2,bg=#073642] {datetime}"
-                format_space ""
+                format_space "#[bg=#073642]"
                 
-                // Responsive configuration for mobile compatibility
+                // Enhanced responsive configuration
                 format_hide_on_overlength "true"
-                format_precedence "lcr"
+                format_precedence "clr"
+                format_swap_segments_on_overlength "true"
                 
                 border_enabled "false"
                 border_char "─"
