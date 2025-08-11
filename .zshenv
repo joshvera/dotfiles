@@ -70,8 +70,42 @@ source "$HOME/.cargo/env"
 
 export XDG_CONFIG_HOME=~/.config
 
-export PATH="/opt/homebrew/anaconda3/bin:$PATH"
-export PATH="/Users/vera/.local/bin:$PATH"
+# ============================================================================
+# PATH Configuration - All PATH modifications should be in .zshenv
+# (This ensures PATH is available to all shell contexts: interactive, 
+#  non-interactive, login, non-login shells, scripts, cron jobs, etc.)
+# ============================================================================
+
+# System paths (order matters - earlier entries take precedence)
+export PATH="/opt/homebrew/bin:$PATH"                        # Homebrew primary
+export PATH="/opt/homebrew/anaconda3/bin:$PATH"              # Anaconda
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"      # PostgreSQL 15
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"              # libpq tools
+export PATH="/opt/homebrew/opt/mysql@5.7/bin:$PATH"          # MySQL 5.7
+
+# User local paths
+export PATH="$HOME/.local/bin:$PATH"                         # User local binaries
+export PATH="$HOME/.cargo/bin:$PATH"                         # Rust cargo
+export PATH="$HOME/.npm/bin:$PATH"                           # npm global packages
+export PATH="$HOME/.nodenv/shims:$PATH"                      # Node version manager
+export PATH="$HOME/.poetry/bin:$PATH"                        # Python poetry
+export PATH="$HOME/.pack/bin:$PATH"                          # Pack CLI
+export PATH="$HOME/.bun/bin:$PATH"                           # Bun runtime
+export PATH="$HOME/.ghcup/bin:$HOME/.cabal/bin:$PATH"        # Haskell tools
+
+# Language-specific paths
+export PATH="$HOME/go/bin:$PATH"                             # Go binaries
+export PATH="$HOME/miniconda3/bin:$PATH"                     # Miniconda
+
+# Project/development paths
+export PATH="./node_modules/.bin:$PATH"                      # Local npm binaries
+export PATH="$HOME/github/dotfiles/bin:$PATH"                # Dotfiles utilities
+export PATH="$HOME/github/dotfiles/zellij:$PATH"             # Smart zellij wrapper
+
+# Specialized tools
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"            # kubectl krew
+export PATH="$HOME/github/HoTT:$PATH"                        # HoTT tools
+export PATH="/Applications/Isabelle2018.app/Isabelle/bin:$PATH"  # Isabelle prover
 
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 . "$HOME/.cargo/env"

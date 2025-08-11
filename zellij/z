@@ -10,13 +10,17 @@ DEFAULT_CONFIG="$SCRIPT_DIR/config.kdl"
 
 # Function to detect if we're on a mobile/touch device
 detect_device_type() {
-    # Method 1: Check terminal dimensions (mobile typically < 100 columns)
-    local cols=$(tput cols 2>/dev/null || echo 0)
-    local lines=$(tput lines 2>/dev/null || echo 0)
-    
-    # Method 2: Check for mobile-specific environment indicators
+    local hostname=$(hostname 2>/dev/null || echo "unknown")
     local is_mobile=false
     
+    # Method 1: Hostname-based detection (most reliable)
+    if [[ "$hostname" == "wintermute" ]]; then
+        # wintermute is desktop
+        echo "desktop"
+        return
+    fi
+    
+    # Method 2: Check for mobile-specific environment indicators
     # Check if we're in Termux (Android terminal)
     if [[ -n "$TERMUX_VERSION" || "$PREFIX" == *"com.termux"* ]]; then
         is_mobile=true
@@ -32,31 +36,32 @@ detect_device_type() {
         is_mobile=true
     fi
     
-    # Check terminal width (common mobile terminal widths)
-    if [[ $cols -gt 0 && $cols -lt 100 ]]; then
-        is_mobile=true
-    fi
-    
-    # Method 3: Check for SSH with mobile indicators
+    # Method 3: Check for mosh (mobile shell) - typically used for phone connections
     if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
-        # If SSH, check if the client might be mobile based on terminal size
-        if [[ $cols -gt 0 && $cols -lt 90 ]]; then
+        # Check if we're connected via mosh (common for mobile connections)
+        if pgrep -f "mosh-server" >/dev/null 2>&1; then
+            is_mobile=true
+        # Or if parent process is mosh
+        elif [[ "$(ps -o comm= -p $PPID 2>/dev/null)" == *"mosh"* ]]; then
             is_mobile=true
         fi
     fi
     
     # Method 4: Check system info for mobile platforms
     local uname_output=$(uname -a 2>/dev/null)
-    if [[ "$uname_output" == *"Android"* || "$uname_output" == *"aarch64"* ]]; then
-        # Additional check for Android or ARM (could be mobile)
-        if [[ $cols -lt 120 ]]; then
-            is_mobile=true
-        fi
+    if [[ "$uname_output" == *"Android"* ]]; then
+        is_mobile=true
     fi
     
     # Method 5: Check for touch-specific environment variables or files
     if [[ -f "/sys/class/input/event0/device/capabilities/abs" ]]; then
         # Presence of absolute positioning (touchscreen) capability
+        is_mobile=true
+    fi
+    
+    # Fallback: Very narrow terminals are likely mobile
+    local cols=$(tput cols 2>/dev/null || echo 0)
+    if [[ $cols -gt 0 && $cols -lt 60 ]]; then
         is_mobile=true
     fi
     
@@ -114,10 +119,11 @@ EXAMPLES:
   z -s mysession             # Auto-detect + start session 'mysession'
 
 DEVICE DETECTION:
+  - wintermute hostname: Always desktop
   - Termux (Android): Always mobile
   - iSH (iOS): Always mobile  
-  - Terminal width < 100 cols: Mobile
-  - SSH with narrow terminal: Mobile
+  - mosh connections: Mobile (phone usage)
+  - Terminal width < 60 cols: Mobile
   - Default: Desktop
 
 CONFIG FILES:
