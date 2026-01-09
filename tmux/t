@@ -1,0 +1,200 @@
+#!/bin/bash
+# Smart tmux wrapper - auto-detects device type and sets environment
+# Usage: t [tmux-options]
+# Mirrors the zellij `z` wrapper behavior
+
+# Function to detect if we're on a mobile/touch device
+detect_device_type() {
+    local hostname=$(hostname 2>/dev/null || echo "unknown")
+    local is_mobile=false
+
+    # Method 1: Check for mosh FIRST - mosh connections are typically mobile
+    # This takes priority over hostname since we're connecting remotely
+    if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+        # Check if we're connected via mosh (common for mobile connections)
+        if pgrep -f "mosh-server" >/dev/null 2>&1; then
+            is_mobile=true
+        # Or if parent process is mosh
+        elif [[ "$(ps -o comm= -p $PPID 2>/dev/null)" == *"mosh"* ]]; then
+            is_mobile=true
+        fi
+    fi
+
+    # Method 2: Check for mobile-specific environment indicators
+    # Check if we're in Termux (Android terminal)
+    if [[ -n "$TERMUX_VERSION" || "$PREFIX" == *"com.termux"* ]]; then
+        is_mobile=true
+    fi
+
+    # Check if we're in iSH (iOS terminal)
+    if [[ "$(uname -m)" == "i386" && "$(uname -s)" == "Linux" && -f "/proc/ish/version" ]]; then
+        is_mobile=true
+    fi
+
+    # Check for a-Shell or other iOS terminals
+    if [[ -n "$SHELL_NAME" && "$SHELL_NAME" == *"a-Shell"* ]]; then
+        is_mobile=true
+    fi
+
+    # If already detected as mobile, return early
+    if [[ "$is_mobile" == true ]]; then
+        echo "mobile"
+        return
+    fi
+
+    # Method 3: Hostname-based detection (for local sessions only)
+    if [[ "$hostname" == "wintermute" ]]; then
+        # wintermute locally is desktop
+        echo "desktop"
+        return
+    fi
+
+    # Method 4: Check system info for mobile platforms
+    local uname_output=$(uname -a 2>/dev/null)
+    if [[ "$uname_output" == *"Android"* ]]; then
+        is_mobile=true
+    fi
+
+    # Method 5: Check for touch-specific environment variables or files
+    if [[ -f "/sys/class/input/event0/device/capabilities/abs" ]]; then
+        # Presence of absolute positioning (touchscreen) capability
+        is_mobile=true
+    fi
+
+    # Fallback: Very narrow terminals are likely mobile
+    # Only check terminal width if we have a valid TTY
+    if [[ -t 0 ]]; then
+        local cols=$(tput cols 2>/dev/null || echo 0)
+        if [[ $cols -gt 0 && $cols -lt 60 ]]; then
+            is_mobile=true
+        fi
+    fi
+
+    if [[ "$is_mobile" == true ]]; then
+        echo "mobile"
+    else
+        echo "desktop"
+    fi
+}
+
+# Function to show help
+show_help() {
+    cat <<EOF
+Smart tmux Wrapper - Auto-detects device type for appropriate config
+
+Usage: t [OPTIONS] [TMUX_ARGS...]
+
+OPTIONS:
+  --device-type TYPE    Force device type (mobile|desktop|auto)
+  --show-detection      Show device detection info and exit
+  --help               Show this help message
+
+ENVIRONMENT VARIABLES:
+  TMUX_DEVICE_TYPE     Force device type (mobile|desktop)
+
+EXAMPLES:
+  t                          # Auto-detect and start tmux
+  t --device-type mobile     # Force mobile config
+  t --show-detection         # Show detection details
+  t new -s mysession         # Auto-detect + new session 'mysession'
+  t attach -t main           # Auto-detect + attach to 'main'
+
+DEVICE DETECTION:
+  - wintermute hostname: Always desktop
+  - Termux (Android): Always mobile
+  - iSH (iOS): Always mobile
+  - mosh connections: Mobile (phone usage)
+  - Terminal width < 60 cols: Mobile
+  - Default: Desktop
+
+LAYOUT DIFFERENCES:
+  Desktop: Dual status bars (top: tabs, bottom: mode/hints/time)
+  Mobile:  Single top bar (tabs only), popup hints via ? or F10
+EOF
+}
+
+# Parse arguments
+device_type=""
+show_detection=false
+tmux_args=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --device-type)
+            device_type="$2"
+            shift 2
+            ;;
+        --show-detection)
+            show_detection=true
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            tmux_args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Check environment variable override
+if [[ -z "$device_type" && -n "$TMUX_DEVICE_TYPE" ]]; then
+    device_type="$TMUX_DEVICE_TYPE"
+fi
+
+# Auto-detect if not specified
+if [[ -z "$device_type" || "$device_type" == "auto" ]]; then
+    device_type=$(detect_device_type)
+fi
+
+# Show detection info if requested
+if [[ "$show_detection" == true ]]; then
+    echo "=== Device Detection Info ==="
+    echo "Hostname: $(hostname 2>/dev/null || echo 'unknown')"
+    if [[ -t 0 ]]; then
+        echo "Terminal size: $(tput cols 2>/dev/null || echo '?')x$(tput lines 2>/dev/null || echo '?')"
+    else
+        echo "Terminal size: (no tty)"
+    fi
+    echo "TERMUX_VERSION: ${TERMUX_VERSION:-<not set>}"
+    echo "PREFIX: ${PREFIX:-<not set>}"
+    echo "SSH_CLIENT: ${SSH_CLIENT:-<not set>}"
+    echo "uname -a: $(uname -a)"
+    echo ""
+    echo "Detected device type: $device_type"
+    echo ""
+    echo "Layout:"
+    if [[ "$device_type" == "mobile" ]]; then
+        echo "  - Single top status bar"
+        echo "  - Popup hints via ? or F10"
+    else
+        echo "  - Dual status bars (top + bottom)"
+        echo "  - Inline hints on bottom bar"
+    fi
+    exit 0
+fi
+
+# Export device type for tmux config to use
+export TMUX_DEVICE_TYPE="$device_type"
+
+# Ensure we have a terminal before starting tmux
+if [[ ! -t 0 ]]; then
+    echo "Error: No terminal available. Run 't' from an interactive shell." >&2
+    exit 1
+fi
+
+# Show which config we're using (only if stderr is a terminal)
+if [[ -t 2 ]]; then
+    echo "tmux ($device_type)" >&2
+fi
+
+# Small delay for mosh connections to ensure terminal is fully ready
+# This prevents "open terminal failed: not a terminal" errors
+if [[ -n "$SSH_CLIENT" ]] && pgrep -f "mosh-server" >/dev/null 2>&1; then
+    sleep 0.1
+fi
+
+# Launch tmux
+exec tmux "${tmux_args[@]}"
