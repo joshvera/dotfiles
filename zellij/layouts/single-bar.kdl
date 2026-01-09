@@ -5,6 +5,7 @@ layout {
         // Single comprehensive status bar at bottom
         pane size=1 borderless=true {
             plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                _allow "ReadApplicationState"
                 // Mobile ultra-compact with slants
                 format_left "{mode}#[fg=#268bd2,bg=#073642]{tabs}"
                 format_center ""
