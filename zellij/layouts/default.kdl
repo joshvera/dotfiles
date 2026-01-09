@@ -8,6 +8,7 @@ layout {
         // Bottom bar for keybindings and status
         pane size=1 borderless=true {
             plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                _allow "ReadApplicationState"
                 format_left "#[fg=#98a8a8,bold]{mode} #[fg=#5b7279]| #[fg=#98a8a8]F1:Pane #[fg=#8faaab]F3:Resize #[fg=#98a8a8]F4:Move #[fg=#8faaab]F9:Full #[fg=#98a8a8]C-f:Search #[fg=#8faaab]A-f:Float"
                 format_center ""
                 format_right "#[fg=#8faaab] #[fg=#5b7279]{datetime}"
