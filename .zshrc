@@ -160,7 +160,6 @@ bindkey '^K' kill-line
 bindkey '^Y' yank
 
 eval "$(mise activate zsh)"
-alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 
 # Sync history to bash for Termius autocomplete
 function sync_history_to_bash() {
@@ -176,3 +175,49 @@ add-zsh-hook precmd sync_history_to_bash
 # Also sync on exit
 trap sync_history_to_bash EXIT
 
+
+# Claude-Native integration
+export CLAUDE_NATIVE_HOME="$HOME/.claude-native"
+export PATH="$CLAUDE_NATIVE_HOME/scripts:$PATH"
+
+# Auto-sync on directory change (optional)
+claude_native_cd() {
+    builtin cd "$@" && {
+        if [[ -x "$CLAUDE_NATIVE_HOME/scripts/claude-native" ]]; then
+            "$CLAUDE_NATIVE_HOME/scripts/claude-native" sync --quiet 2>/dev/null || true
+        fi
+    }
+}
+
+# Enable auto-sync (uncomment to activate)
+# alias cd="claude_native_cd"
+
+
+# pnpm
+export PNPM_HOME="$HOME/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:$HOME/.lmstudio/bin"
+# End of LM Studio CLI section
+
+export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh 
+
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=($HOME/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions
+
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export PATH="$JAVA_HOME/bin:$PATH"
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+op-wintermute() {
+  export OP_SERVICE_ACCOUNT_TOKEN="$(op item get 'Service Account Auth Token: Wintermute' --vault Personal --fields credential --reveal)"
+  echo "1Password Wintermute service account activated"
+}
