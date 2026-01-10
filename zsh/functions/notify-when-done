@@ -1,0 +1,37 @@
+#!/bin/zsh
+# Run command and notify on completion
+# Usage: notify-when-done <command> [args...]
+
+notify-when-done() {
+  if [[ $# -eq 0 ]]; then
+    echo "Usage: notify-when-done <command> [args...]"
+    return 1
+  fi
+
+  local start=$EPOCHSECONDS
+  "$@"
+  local exit_code=$?
+  local duration=$(( EPOCHSECONDS - start ))
+
+  # Get session name if in tmux
+  local session
+  if [[ -n "$TMUX" ]]; then
+    session="$(tmux display-message -p '#{session_name}' 2>/dev/null)"
+  else
+    session="$(hostname -s)"
+  fi
+
+  # Build notification
+  local title="tmux: $session"
+  local message="Exit $exit_code after ${duration}s: $*"
+  local priority
+  if [[ $exit_code -eq 0 ]]; then
+    priority="high"
+  else
+    priority="max"
+  fi
+
+  # Open Blink app (no command, just focus)
+  notify "$message" "$title" "$priority" "blinkshell://"
+  return $exit_code
+}

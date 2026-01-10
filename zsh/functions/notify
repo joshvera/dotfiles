@@ -1,0 +1,27 @@
+#!/bin/zsh
+# Send ntfy notification
+# Usage: notify "message" ["title"] ["priority"] ["click_url"]
+
+notify() {
+  local message="${1:?Message required}"
+  local title="${2:-Notification}"
+  local priority="${3:-default}"
+  local click="${4:-}"
+  local topic="${NTFY_TOPIC:-wintermute}"
+  local url="${NTFY_URL:-http://wintermute-1.REDACTED.ts.net:2586}"
+
+  if [[ -n "$click" ]]; then
+    curl -sS \
+      -H "Title: $title" \
+      -H "Priority: $priority" \
+      -H "Click: $click" \
+      -d "$message" \
+      "$url/$topic" >/dev/null
+  else
+    curl -sS \
+      -H "Title: $title" \
+      -H "Priority: $priority" \
+      -d "$message" \
+      "$url/$topic" >/dev/null
+  fi
+}
