@@ -2,70 +2,69 @@
                         ================
 
   Press 'q' to close this popup
+  Prefix: Ctrl-Space
 
-  MODE SWITCHING (no prefix needed)
-  ---------------------------------
-  F1          Pane selection (shows pane numbers)
-  F3          Resize mode (h/j/k/l to resize, Esc to exit)
-  F4          Move mode (h/j/k/l to navigate, H/J/K/L to swap)
-  F5          Search mode (enter copy mode + search)
-  F6          Scroll/Copy mode
-  F9          Toggle pane borders
-  F10         Show this help (mobile)
+  NO-PREFIX SHORTCUTS (instant access)
+  ------------------------------------
+  Alt-h/j/k/l     Navigate panes (vim-style)
+  Alt-H/J/K/L     Resize panes
+  Alt-1 to Alt-9  Switch to window N (browser-style)
+  Alt-n / Alt-p   Next / previous window
+  Alt-c           New window
+  Alt-\           Split vertical (side by side)
+  Alt--           Split horizontal (stacked)
+  PageUp/Down     Enter scroll mode
 
-  PageUp      Enter scroll mode + page up
-  PageDown    Enter scroll mode + page down
+  F-KEY MODES (no prefix needed)
+  ------------------------------
+  F1              Pane selection (shows numbers)
+  F3              Resize mode (h/j/k/l, Esc to exit)
+  F4              Move mode (navigate/swap panes)
+  F5              Search in scrollback
+  F6              Scroll/copy mode
+  F9              Toggle pane borders
+  F10             Show this help (mobile)
+
+  PREFIX COMMANDS (Ctrl-Space, then...)
+  -------------------------------------
+  c               New window
+  -               Split horizontal (stacked)
+  |               Split vertical (side by side)
+  x               Kill pane
+  &               Kill window
+  d               Detach session
+  s               Session list
+  w               Window list
+  z               Zoom pane (fullscreen toggle)
+  r               Reload config
+  ?               Show this help
+
+  COPY/SCROLL MODE (F6 or PageUp)
+  -------------------------------
+  j/k             Scroll line by line
+  Ctrl-d/u        Half-page scroll
+  Ctrl-v / Alt-v  Page down / up
+  /               Search forward
+  ?               Search backward
+  n/N             Next/previous match
+  v               Begin selection
+  y               Copy selection
+  Esc/q           Exit copy mode
 
   RESIZE MODE (F3)
   ----------------
-  h/j/k/l     Resize pane (5 cells)
-  H/J/K/L     Resize pane (1 cell, fine control)
-  Arrows      Resize pane (5 cells)
-  Esc/q       Exit resize mode
+  h/j/k/l         Resize pane (5 cells)
+  H/J/K/L         Fine resize (1 cell)
+  Esc/q           Exit resize mode
 
   MOVE MODE (F4)
   --------------
-  h/j/k/l     Select pane in direction
-  H/J/K/L     Swap pane in direction
-  Arrows      Select pane in direction
-  Esc/q       Exit move mode
-
-  COPY/SCROLL MODE (F6 or PageUp)
-  --------------------------------
-  j/k         Scroll line by line
-  Ctrl+d/u    Half-page scroll
-  Ctrl+v      Page down (Emacs)
-  Alt+v       Page up (Emacs)
-  PageUp/Down Page scroll
-  /           Search forward
-  ?           Search backward
-  n/N         Next/previous search result
-  v           Begin selection
-  y           Copy selection
-  Esc/q       Exit copy mode
-
-  PREFIX COMMANDS (Ctrl+b then...)
-  ---------------------------------
-  c           New window (preserves path)
-  %           Split horizontal (preserves path)
-  "           Split vertical (preserves path)
-  x           Kill pane
-  &           Kill window
-  d           Detach session
-  s           Session list
-  w           Window list
-  r           Reload config
-  ?           Show this help
-
-  WINDOWS & PANES
-  ---------------
-  Ctrl+b 0-9  Switch to window N
-  Ctrl+b n/p  Next/previous window
-  Ctrl+b z    Toggle pane zoom (fullscreen)
-  Alt+f       Popup terminal (desktop only)
+  h/j/k/l         Select pane
+  H/J/K/L         Swap pane
+  Esc/q           Exit move mode
 
   SESSIONS
   --------
-  Ctrl+b $    Rename session
-  Ctrl+b (/)  Switch session prev/next
-  Ctrl+b L    Last session
+  Ctrl-Space $    Rename session
+  Ctrl-Space (/)  Switch session prev/next
+  Ctrl-Space L    Last session
