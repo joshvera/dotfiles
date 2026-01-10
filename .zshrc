@@ -207,11 +207,8 @@ export PATH="$PATH:$HOME/.lmstudio/bin"
 
 export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh 
 
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+# Docker CLI completions (fpath only - compinit handled by Oh-My-Zsh)
 fpath=($HOME/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
 
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 export PATH="$JAVA_HOME/bin:$PATH"
