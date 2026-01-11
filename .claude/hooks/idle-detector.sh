@@ -669,6 +669,7 @@ start_idle_monitor() {
 }
 
 # Function to mark activity (Claude finished responding)
+# Implements full event lifecycle with desktop notification and mobile scheduler
 mark_claude_finished() {
     local device_type
     device_type=$(detect_device_type)
@@ -679,33 +680,61 @@ mark_claude_finished() {
         hook_input=$(cat)
     fi
 
-    # Extract and save transcript path for background worker
+    # Extract transcript path
     local transcript_path
     transcript_path=$(echo "$hook_input" | jq -r '.transcript_path // empty' 2>/dev/null)
-    if [[ -n "$transcript_path" ]]; then
-        echo "$transcript_path" > "$TRANSCRIPT_PATH_FILE"
-    fi
 
     echo "$(date): Stop hook triggered - Claude finished (device: $device_type, transcript: ${transcript_path:-none})" >> /tmp/claude-hook-debug.log
 
-    # Kill any existing monitor first (prevents multiple timers)
-    if [[ -f "$IDLE_DETECTOR_PID_FILE" ]]; then
-        local old_pid
-        old_pid=$(cat "$IDLE_DETECTOR_PID_FILE" 2> /dev/null || echo "")
-        if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2> /dev/null; then
-            kill "$old_pid" 2> /dev/null || true
+    # Initialize state directory and generate unique event ID
+    local state_dir
+    state_dir=$(initialize_state_dir) || {
+        echo "$(date): Failed to initialize state directory" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    local event_id
+    event_id=$(generate_event_id)
+    echo "$(date): Generated event ID: $event_id" >> /tmp/claude-hook-debug.log
+
+    # Kill any pending timers from previous events
+    kill_pending_timers
+
+    # Mark all previous events in this session as superseded
+    mark_events_superseded "$event_id"
+
+    # Extract transcript and generate summary using Haiku
+    local summary=""
+    if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
+        local response
+        response=$(get_last_response "$transcript_path")
+        if [[ -n "$response" ]]; then
+            summary=$(summarize_with_haiku "$response")
+            echo "$(date): Generated summary: $summary" >> /tmp/claude-hook-debug.log
         fi
-        rm -f "$IDLE_DETECTOR_PID_FILE"
     fi
 
-    # Both desktop and mobile: start idle monitor for ntfy notification
-    touch "$IDLE_STATE_FILE"
-    start_idle_monitor
-
-    # Desktop also gets immediate osascript notification (subtle backup)
-    if [[ "$device_type" == "desktop" ]]; then
-        send_desktop_notification
+    # Use default message if no summary available
+    if [[ -z "$summary" ]]; then
+        summary="Response ready"
     fi
+
+    # Record event metadata
+    record_event_metadata "$event_id" "stop" "$summary" || {
+        echo "$(date): Failed to record event metadata" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    # Send desktop notification with reaction detection (immediate)
+    local cwd_basename
+    cwd_basename=$(basename "$(pwd)")
+    local title="Claude Code: $cwd_basename"
+    send_desktop_notification_with_reaction "$title" "$summary" "$event_id"
+
+    # Schedule mobile notification (30 second delay)
+    schedule_mobile_notification "$event_id" "$summary"
+
+    echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
 }
 
 # Handle user activity: cancel all pending notifications and clear state
@@ -1289,8 +1318,161 @@ case "${1:-start}" in
 
         unset TEST_MOBILE_DELAY
         ;;
+    "test-stop-handler")
+        # Test mark_claude_finished function with full event lifecycle
+        echo "Testing mark_claude_finished function..."
+
+        # Override delay for faster testing
+        export TEST_MOBILE_DELAY=5
+
+        # Initialize state
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+        timers_dir="${state_dir}/timers"
+
+        # Test 1: Full event lifecycle with mock transcript
+        echo -e "\nTest 1: Full stop handler event lifecycle"
+
+        # Create a mock transcript file
+        mock_transcript="/tmp/test-transcript-$$.jsonl"
+        cat > "$mock_transcript" <<'EOF'
+{"role":"assistant","message":{"content":[{"type":"text","text":"I've successfully implemented the new notification system with dual-channel support."}]}}
+EOF
+        echo "Created mock transcript: $mock_transcript"
+
+        # Create mock hook input with transcript path
+        mock_hook_input=$(jq -n --arg path "$mock_transcript" '{transcript_path: $path}')
+
+        # Trigger stop handler with mock input
+        echo -e "\nTriggering mark_claude_finished with mock transcript..."
+        echo "$mock_hook_input" | "$0" claude-finished
+
+        # Wait briefly for processing
+        sleep 1
+
+        # Verify state directory has event metadata
+        echo -e "\nState directory contents:"
+        ls -la "$state_dir"
+
+        # Find the event ID (newest JSON file)
+        event_id=$(ls -t "$state_dir"/*.json 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.json$//')
+        if [[ -z "$event_id" ]]; then
+            echo "✗ No event metadata created"
+        else
+            echo "✓ Event created: $event_id"
+
+            # Verify metadata structure
+            metadata_file="$state_dir/${event_id}.json"
+            echo -e "\nEvent metadata:"
+            cat "$metadata_file" | jq .
+
+            # Check required fields
+            event_type=$(jq -r '.event_type' "$metadata_file")
+            summary=$(jq -r '.summary' "$metadata_file")
+            session_id=$(jq -r '.session_id' "$metadata_file")
+
+            if [[ "$event_type" == "stop" ]]; then
+                echo "✓ Event type is 'stop'"
+            else
+                echo "✗ Event type is '$event_type' (expected 'stop')"
+            fi
+
+            if [[ -n "$summary" && "$summary" != "null" ]]; then
+                echo "✓ Summary generated: $summary"
+            else
+                echo "✗ Summary missing or null"
+            fi
+
+            if [[ -n "$session_id" && "$session_id" != "null" ]]; then
+                echo "✓ Session ID set: $session_id"
+            else
+                echo "✗ Session ID missing or null"
+            fi
+
+            # Verify timer scheduled
+            timer_file="$timers_dir/${event_id}.timer"
+            if [[ -f "$timer_file" ]]; then
+                timer_pid=$(cat "$timer_file")
+                echo "✓ Mobile notification timer scheduled (PID: $timer_pid)"
+
+                # Verify timer process is running
+                if kill -0 "$timer_pid" 2>/dev/null; then
+                    echo "✓ Timer process is running"
+                else
+                    echo "✗ Timer process not found"
+                fi
+            else
+                echo "✗ Timer file not created: $timer_file"
+            fi
+
+            # Test 2: Verify supersession on second event
+            echo -e "\nTest 2: Verify supersession on second event"
+
+            # Trigger another stop handler
+            echo -e "\nTriggering second mark_claude_finished..."
+            echo "$mock_hook_input" | "$0" claude-finished
+
+            sleep 1
+
+            # Find the new event ID
+            event_id2=$(ls -t "$state_dir"/*.json 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.json$//')
+
+            if [[ "$event_id2" != "$event_id" ]]; then
+                echo "✓ New event created: $event_id2"
+
+                # Verify first event was superseded
+                superseded=$(jq -r '.flags.superseded' "$metadata_file")
+                if [[ "$superseded" == "true" ]]; then
+                    echo "✓ First event marked as superseded"
+                else
+                    echo "✗ First event NOT marked as superseded (superseded: $superseded)"
+                fi
+
+                # Verify first event's timer was killed
+                if [[ ! -f "$timers_dir/${event_id}.timer" ]]; then
+                    echo "✓ First event's timer was killed"
+                else
+                    echo "✗ First event's timer still exists"
+                fi
+            else
+                echo "✗ Second event was not created (same event_id)"
+            fi
+
+            # Test 3: Verify desktop reaction detection
+            echo -e "\nTest 3: Verify desktop reaction detection (wait 3s)..."
+            sleep 3
+
+            # Check for cancel marker
+            cancel_marker="$state_dir/.cancel-${event_id2}"
+            if [[ -f "$cancel_marker" ]]; then
+                echo "✓ Cancel marker created after desktop notification: $cancel_marker"
+            else
+                echo "✗ Cancel marker NOT found: $cancel_marker"
+            fi
+
+            # Check for desktop_reacted flag
+            metadata_file2="$state_dir/${event_id2}.json"
+            desktop_reacted=$(jq -r '.flags.desktop_reacted // empty' "$metadata_file2")
+            if [[ "$desktop_reacted" == "true" ]]; then
+                echo "✓ Metadata updated with desktop_reacted: true"
+            else
+                echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+            fi
+        fi
+
+        # Cleanup
+        rm -f "$mock_transcript"
+
+        echo -e "\nFinal state directory contents:"
+        ls -la "$state_dir"
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 30 /tmp/claude-hook-debug.log | grep -E "(Stop hook|event|desktop|mobile|superseded)"
+
+        unset TEST_MOBILE_DELAY
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler}"
         exit 1
         ;;
 esac
