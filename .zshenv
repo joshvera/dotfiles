@@ -108,5 +108,8 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"            # kubectl krew
 export PATH="$HOME/github/HoTT:$PATH"                        # HoTT tools
 export PATH="/Applications/Isabelle2018.app/Isabelle/bin:$PATH"  # Isabelle prover
 
+# Deduplicate PATH (keeps first occurrence of each entry)
+typeset -U path
+
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 . "$HOME/.cargo/env"
