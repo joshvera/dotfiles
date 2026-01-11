@@ -737,6 +737,70 @@ mark_claude_finished() {
     echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
 }
 
+# Handle permission request from Claude
+# Implements full event lifecycle with permission-aware message
+on_permission_request() {
+    local device_type
+    device_type=$(detect_device_type)
+
+    # Read hook input from stdin (contains tool_name)
+    local hook_input=""
+    if [[ ! -t 0 ]]; then
+        hook_input=$(cat)
+    fi
+
+    # Extract tool name for permission context
+    local tool_name
+    tool_name=$(echo "$hook_input" | jq -r '.tool_name // "unknown"' 2>/dev/null)
+
+    echo "$(date): PermissionRequest hook triggered - tool: $tool_name (device: $device_type)" >> /tmp/claude-hook-debug.log
+
+    # Initialize state directory and generate unique event ID
+    local state_dir
+    state_dir=$(initialize_state_dir) || {
+        echo "$(date): Failed to initialize state directory" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    local event_id
+    event_id=$(generate_event_id)
+    echo "$(date): Generated event ID: $event_id" >> /tmp/claude-hook-debug.log
+
+    # Kill any pending timers from previous events
+    kill_pending_timers
+
+    # Mark all previous events in this session as superseded
+    mark_events_superseded "$event_id"
+
+    # Generate permission-aware message using get_permission_summary
+    local message
+    message=$(get_permission_summary "$tool_name")
+
+    # Use generic message if get_permission_summary returns empty
+    if [[ -z "$message" ]]; then
+        message="Waiting for permission"
+    fi
+
+    echo "$(date): Permission message: $message" >> /tmp/claude-hook-debug.log
+
+    # Record event metadata
+    record_event_metadata "$event_id" "permission_request" "$message" || {
+        echo "$(date): Failed to record event metadata" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    # Send desktop notification with reaction detection (immediate)
+    local cwd_basename
+    cwd_basename=$(basename "$(pwd)")
+    local title="Claude Code: $cwd_basename"
+    send_desktop_notification_with_reaction "$title" "$message" "$event_id"
+
+    # Schedule mobile notification (30 second delay)
+    schedule_mobile_notification "$event_id" "$message"
+
+    echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+}
+
 # Handle user activity: cancel all pending notifications and clear state
 # Usage: on_user_activity
 # Kills all pending timer processes via kill_pending_timers()
@@ -814,32 +878,7 @@ case "${1:-start}" in
         ;;
     "permission-request")
         # PermissionRequest hook - fires for both permission dialogs AND AskUserQuestion
-        hook_input=""
-        if [[ ! -t 0 ]]; then
-            hook_input=$(cat)
-        fi
-
-        # Extract tool name for context
-        tool_name=$(echo "$hook_input" | jq -r '.tool_name // "unknown"' 2>/dev/null)
-
-        echo "$(date): PermissionRequest hook triggered - tool: $tool_name" >> /tmp/claude-hook-debug.log
-
-        # Save context for notification message
-        echo "$tool_name" > "$PERMISSION_CONTEXT_FILE"
-
-        # Kill any existing monitor and start fresh
-        if [[ -f "$IDLE_DETECTOR_PID_FILE" ]]; then
-            local old_pid
-            old_pid=$(cat "$IDLE_DETECTOR_PID_FILE" 2>/dev/null || echo "")
-            if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
-                kill "$old_pid" 2>/dev/null || true
-            fi
-            rm -f "$IDLE_DETECTOR_PID_FILE"
-        fi
-
-        # Start idle monitor (will send notification after timeout)
-        touch "$IDLE_STATE_FILE"
-        start_idle_monitor
+        on_permission_request
         ;;
     "test")
         send_idle_notification
@@ -1471,8 +1510,184 @@ EOF
 
         unset TEST_MOBILE_DELAY
         ;;
+    "test-permission-handler")
+        # Test on_permission_request function with full event lifecycle
+        echo "Testing on_permission_request function..."
+
+        # Override delay for faster testing
+        export TEST_MOBILE_DELAY=5
+
+        # Initialize state
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+        timers_dir="${state_dir}/timers"
+
+        # Test 1: Full event lifecycle with AskUserQuestion
+        echo -e "\nTest 1: Full permission handler event lifecycle (AskUserQuestion)"
+
+        # Create mock hook input with tool_name
+        mock_hook_input=$(jq -n --arg tool "AskUserQuestion" '{tool_name: $tool}')
+
+        # Trigger permission handler with mock input
+        echo -e "\nTriggering on_permission_request with AskUserQuestion..."
+        echo "$mock_hook_input" | "$0" permission-request
+
+        # Wait briefly for processing
+        sleep 1
+
+        # Verify state directory has event metadata
+        echo -e "\nState directory contents:"
+        ls -la "$state_dir"
+
+        # Find the event ID (newest JSON file)
+        event_id=$(ls -t "$state_dir"/*.json 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.json$//')
+        if [[ -z "$event_id" ]]; then
+            echo "✗ No event metadata created"
+        else
+            echo "✓ Event created: $event_id"
+
+            # Verify metadata structure
+            metadata_file="$state_dir/${event_id}.json"
+            echo -e "\nEvent metadata:"
+            cat "$metadata_file" | jq .
+
+            # Check required fields
+            event_type=$(jq -r '.event_type' "$metadata_file")
+            summary=$(jq -r '.summary' "$metadata_file")
+            session_id=$(jq -r '.session_id' "$metadata_file")
+
+            if [[ "$event_type" == "permission_request" ]]; then
+                echo "✓ Event type is 'permission_request'"
+            else
+                echo "✗ Event type is '$event_type' (expected 'permission_request')"
+            fi
+
+            if [[ "$summary" == "Waiting for your answer" ]]; then
+                echo "✓ Summary is permission-aware: $summary"
+            else
+                echo "✗ Summary not as expected: $summary (expected 'Waiting for your answer')"
+            fi
+
+            if [[ -n "$session_id" && "$session_id" != "null" ]]; then
+                echo "✓ Session ID set: $session_id"
+            else
+                echo "✗ Session ID missing or null"
+            fi
+
+            # Verify timer scheduled
+            timer_file="$timers_dir/${event_id}.timer"
+            if [[ -f "$timer_file" ]]; then
+                timer_pid=$(cat "$timer_file")
+                echo "✓ Mobile notification timer scheduled (PID: $timer_pid)"
+
+                # Verify timer process is running
+                if kill -0 "$timer_pid" 2>/dev/null; then
+                    echo "✓ Timer process is running"
+                else
+                    echo "✗ Timer process not found"
+                fi
+            else
+                echo "✗ Timer file not created: $timer_file"
+            fi
+        fi
+
+        # Test 2: Different tool types
+        echo -e "\nTest 2: Test different tool types"
+
+        # Test Edit permission
+        mock_hook_input=$(jq -n --arg tool "Edit" '{tool_name: $tool}')
+        echo -e "\nTriggering on_permission_request with Edit..."
+        echo "$mock_hook_input" | "$0" permission-request
+        sleep 1
+
+        event_id2=$(ls -t "$state_dir"/*.json 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.json$//')
+        metadata_file2="$state_dir/${event_id2}.json"
+        summary2=$(jq -r '.summary' "$metadata_file2")
+
+        if [[ "$summary2" == "Waiting for permission: File edit" ]]; then
+            echo "✓ Edit tool message correct: $summary2"
+        else
+            echo "✗ Edit tool message incorrect: $summary2"
+        fi
+
+        # Test Bash permission
+        mock_hook_input=$(jq -n --arg tool "Bash" '{tool_name: $tool}')
+        echo -e "\nTriggering on_permission_request with Bash..."
+        echo "$mock_hook_input" | "$0" permission-request
+        sleep 1
+
+        event_id3=$(ls -t "$state_dir"/*.json 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.json$//')
+        metadata_file3="$state_dir/${event_id3}.json"
+        summary3=$(jq -r '.summary' "$metadata_file3")
+
+        if [[ "$summary3" == "Waiting for permission: Run command" ]]; then
+            echo "✓ Bash tool message correct: $summary3"
+        else
+            echo "✗ Bash tool message incorrect: $summary3"
+        fi
+
+        # Test 3: Verify supersession between permission events
+        echo -e "\nTest 3: Verify supersession on second permission request"
+
+        # Verify earlier events were superseded
+        superseded1=$(jq -r '.flags.superseded' "$metadata_file")
+        superseded2=$(jq -r '.flags.superseded' "$metadata_file2")
+
+        if [[ "$superseded1" == "true" ]]; then
+            echo "✓ First event marked as superseded"
+        else
+            echo "✗ First event NOT marked as superseded"
+        fi
+
+        if [[ "$superseded2" == "true" ]]; then
+            echo "✓ Second event marked as superseded"
+        else
+            echo "✗ Second event NOT marked as superseded"
+        fi
+
+        # Verify earlier timers were killed
+        if [[ ! -f "$timers_dir/${event_id}.timer" ]]; then
+            echo "✓ First event's timer was killed"
+        else
+            echo "✗ First event's timer still exists"
+        fi
+
+        if [[ ! -f "$timers_dir/${event_id2}.timer" ]]; then
+            echo "✓ Second event's timer was killed"
+        else
+            echo "✗ Second event's timer still exists"
+        fi
+
+        # Test 4: Verify desktop reaction detection
+        echo -e "\nTest 4: Verify desktop reaction detection (wait 3s)..."
+        sleep 3
+
+        # Check for cancel marker on latest event
+        cancel_marker="$state_dir/.cancel-${event_id3}"
+        if [[ -f "$cancel_marker" ]]; then
+            echo "✓ Cancel marker created after desktop notification: $cancel_marker"
+        else
+            echo "✗ Cancel marker NOT found: $cancel_marker"
+        fi
+
+        # Check for desktop_reacted flag
+        desktop_reacted=$(jq -r '.flags.desktop_reacted // empty' "$metadata_file3")
+        if [[ "$desktop_reacted" == "true" ]]; then
+            echo "✓ Metadata updated with desktop_reacted: true"
+        else
+            echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+        fi
+
+        echo -e "\nFinal state directory contents:"
+        ls -la "$state_dir"
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 40 /tmp/claude-hook-debug.log | grep -E "(PermissionRequest|event|desktop|mobile|superseded)"
+
+        unset TEST_MOBILE_DELAY
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler}"
         exit 1
         ;;
 esac
