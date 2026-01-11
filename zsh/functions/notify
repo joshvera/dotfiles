@@ -8,7 +8,7 @@ notify() {
   local priority="${3:-default}"
   local click="${4:-}"
   local topic="${NTFY_TOPIC:-}"
-  local url="${NTFY_URL:-http://wintermute-1.REDACTED.ts.net:2586}"
+  local url="${NTFY_URL:?NTFY_URL not set - add to ~/.secrets/.secrets}"
 
   if [[ -n "$click" ]]; then
     curl -sS \
