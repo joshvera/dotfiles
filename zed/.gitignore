@@ -1,0 +1,14 @@
+# AI conversation history - may contain PII
+conversations/
+
+# macOS
+.DS_Store
+
+# Zed temporary files
+.tmp*
+
+# Database lock files
+**/lock.mdb
+
+# Prompts database - binary format, doesn't diff well
+prompts/
