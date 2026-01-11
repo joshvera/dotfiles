@@ -45,10 +45,21 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 3. Permission Summary Function
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Extract permission summary logic into standalone `get_permission_summary()` function. Already partially implemented inline in `notify-with-summary` case - refactor to reusable function. Map AskUserQuestion → "Waiting for your answer", Edit/Write/MultiEdit → "Waiting for permission: File edit", Bash/BashOutput → "Waiting for permission: Run command", others → "Waiting for permission: {tool_name}".
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Each tool type returns appropriate human-readable summary; existing functionality preserved
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Extracted `get_permission_summary()` function that takes tool_name as parameter
+  - Maps AskUserQuestion → "Waiting for your answer"
+  - Maps Edit/Write/MultiEdit → "Waiting for permission: File edit"
+  - Maps Bash/BashOutput → "Waiting for permission: Run command"
+  - Maps all other tools → "Waiting for permission: {tool_name}"
+  - Refactored `notify-with-summary` case to use new function (reduced 15 lines to 2)
+  - Added `test-permission-summary` test command for validation
+  - All tests pass: AskUserQuestion, Edit, Write, MultiEdit, Bash, BashOutput, WebFetch work correctly
+  - Existing functionality fully preserved - integration tests confirm workflow still works
 
 ### 4. tmux Context Capture
 - **Priority**: medium
