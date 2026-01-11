@@ -75,6 +75,161 @@ initialize_state_dir() {
     echo "$state_dir"
 }
 
+# Generate unique event ID for notification lifecycle tracking
+# Uses uuidgen if available, otherwise falls back to timestamp+random
+# Returns: Event ID string (UUID4 or timestamp-based)
+generate_event_id() {
+    if command -v uuidgen > /dev/null 2>&1; then
+        # Prefer uuidgen for true UUID4
+        uuidgen | tr '[:upper:]' '[:lower:]'
+    else
+        # Fallback: timestamp + random number
+        local timestamp
+        timestamp=$(date +%s%N 2>/dev/null || date +%s)
+        local random_part
+        random_part=$(( RANDOM * RANDOM ))
+        echo "${timestamp}-${random_part}"
+    fi
+}
+
+# Create JSON metadata file for an event
+# Usage: record_event_metadata EVENT_ID EVENT_TYPE [SUMMARY]
+# Creates: ${STATE_DIR}/${EVENT_ID}.json with standardized fields
+record_event_metadata() {
+    local event_id="$1"
+    local event_type="$2"
+    local summary="${3:-}"
+
+    if [[ -z "$event_id" || -z "$event_type" ]]; then
+        echo "$(date): record_event_metadata: missing event_id or event_type" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    local session_id
+    session_id=$(get_session_id)
+
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    local metadata_file="${state_dir}/${event_id}.json"
+
+    # Build JSON using jq for proper escaping
+    jq -n \
+        --arg event_id "$event_id" \
+        --arg event_type "$event_type" \
+        --arg timestamp "$timestamp" \
+        --arg session_id "$session_id" \
+        --arg summary "$summary" \
+        '{
+            event_id: $event_id,
+            event_type: $event_type,
+            timestamp: $timestamp,
+            session_id: $session_id,
+            summary: $summary,
+            flags: {}
+        }' > "$metadata_file" || {
+        echo "$(date): Failed to create metadata file: $metadata_file" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    echo "$(date): Created event metadata: $metadata_file" >> /tmp/claude-hook-debug.log
+    echo "$metadata_file"
+}
+
+# Atomically update a single field in event metadata
+# Usage: update_event_field EVENT_ID FIELD_NAME FIELD_VALUE
+# Updates the JSON file in place using jq
+update_event_field() {
+    local event_id="$1"
+    local field_name="$2"
+    local field_value="$3"
+
+    if [[ -z "$event_id" || -z "$field_name" ]]; then
+        echo "$(date): update_event_field: missing event_id or field_name" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    local metadata_file="${state_dir}/${event_id}.json"
+
+    if [[ ! -f "$metadata_file" ]]; then
+        echo "$(date): update_event_field: metadata file not found: $metadata_file" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Create temp file for atomic update
+    local temp_file="${metadata_file}.tmp"
+
+    # Update field using jq (handle both top-level and flags.* fields)
+    if [[ "$field_name" == flags.* ]]; then
+        # Update nested flag field
+        local flag_key="${field_name#flags.}"
+        jq --arg key "$flag_key" --arg value "$field_value" \
+            '.flags[$key] = ($value | if . == "true" then true elif . == "false" then false else . end)' \
+            "$metadata_file" > "$temp_file" || {
+            rm -f "$temp_file"
+            echo "$(date): update_event_field: jq failed for $field_name" >> /tmp/claude-hook-debug.log
+            return 1
+        }
+    else
+        # Update top-level field
+        jq --arg key "$field_name" --arg value "$field_value" \
+            '.[$key] = $value' \
+            "$metadata_file" > "$temp_file" || {
+            rm -f "$temp_file"
+            echo "$(date): update_event_field: jq failed for $field_name" >> /tmp/claude-hook-debug.log
+            return 1
+        }
+    fi
+
+    # Atomic move
+    mv "$temp_file" "$metadata_file" || {
+        rm -f "$temp_file"
+        echo "$(date): update_event_field: failed to move temp file" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    echo "$(date): Updated event field: $event_id.$field_name = $field_value" >> /tmp/claude-hook-debug.log
+}
+
+# Mark all previous events in the session as superseded
+# Usage: mark_events_superseded CURRENT_EVENT_ID
+# Sets flags.superseded=true on all other .json files in STATE_DIR
+mark_events_superseded() {
+    local current_event_id="$1"
+
+    if [[ -z "$current_event_id" ]]; then
+        echo "$(date): mark_events_superseded: missing current_event_id" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    # Find all JSON files except the current one
+    local count=0
+    for metadata_file in "$state_dir"/*.json; do
+        [[ ! -f "$metadata_file" ]] && continue
+
+        local basename
+        basename=$(basename "$metadata_file" .json)
+
+        # Skip current event
+        [[ "$basename" == "$current_event_id" ]] && continue
+
+        # Mark as superseded
+        update_event_field "$basename" "flags.superseded" "true"
+        count=$((count + 1))
+    done
+
+    echo "$(date): Marked $count events as superseded" >> /tmp/claude-hook-debug.log
+}
+
 # Detect device type: desktop (local) vs mobile (SSH/mosh)
 detect_device_type() {
     # Explicit override
@@ -523,8 +678,55 @@ case "${1:-start}" in
             exit 1
         fi
         ;;
+    "test-event-id")
+        # Test event ID generation
+        event_id=$(generate_event_id)
+        echo "Generated event ID: $event_id"
+        ;;
+    "test-metadata")
+        # Test event metadata creation and updates
+        echo "Testing event metadata system..."
+
+        # Generate event ID
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+
+        # Create metadata
+        metadata_file=$(record_event_metadata "$event_id" "stop" "Test summary message")
+        echo "Created: $metadata_file"
+        echo "Contents:"
+        cat "$metadata_file" | jq .
+
+        # Update a field
+        echo -e "\nUpdating summary field..."
+        update_event_field "$event_id" "summary" "Updated summary"
+        echo "After update:"
+        cat "$metadata_file" | jq .summary
+
+        # Update a flag
+        echo -e "\nUpdating flags.desktop_reacted flag..."
+        update_event_field "$event_id" "flags.desktop_reacted" "true"
+        echo "After flag update:"
+        cat "$metadata_file" | jq .flags
+
+        # Create a second event and test supersession
+        echo -e "\nCreating second event to test supersession..."
+        event_id2=$(generate_event_id)
+        metadata_file2=$(record_event_metadata "$event_id2" "permission" "Second event")
+        echo "Created: $metadata_file2"
+
+        # Mark first event as superseded
+        echo -e "\nMarking previous events as superseded..."
+        mark_events_superseded "$event_id2"
+        echo "First event after superseding:"
+        cat "$metadata_file" | jq .flags.superseded
+
+        echo -e "\nTest complete. State directory:"
+        state_dir=$(initialize_state_dir)
+        ls -la "$state_dir"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata}"
         exit 1
         ;;
 esac

@@ -29,10 +29,19 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 2. Event ID and Metadata System
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Add event lifecycle management. Implement `generate_event_id()` (UUID4 via uuidgen with fallback), `record_event_metadata()` (JSON with event_id, event_type, timestamp, session_id, summary, flags), and `update_event_field()` for atomic updates. Mark previous events as superseded when new events arrive.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Metadata JSON created in state directory; fields update atomically; supersession tracking works
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `generate_event_id()` using uuidgen with fallback to timestamp+random
+  - Implemented `record_event_metadata()` creating JSON with all required fields (event_id, event_type, timestamp, session_id, summary, flags)
+  - Implemented `update_event_field()` with atomic updates using jq and temp files
+  - Supports both top-level fields and nested flags.* fields with proper boolean conversion
+  - Implemented `mark_events_superseded()` to mark all previous events in session as superseded
+  - Added test commands: `test-event-id` and `test-metadata` (comprehensive test of all functions)
+  - All tests pass successfully with proper JSON structure and atomic updates
 
 ### 3. Permission Summary Function
 - **Priority**: medium
