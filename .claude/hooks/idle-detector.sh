@@ -92,6 +92,30 @@ generate_event_id() {
     fi
 }
 
+# Get human-readable permission summary for a tool
+# Usage: get_permission_summary TOOL_NAME
+# Returns: Human-readable string describing what permission is being requested
+get_permission_summary() {
+    local tool_name="$1"
+
+    case "$tool_name" in
+        "AskUserQuestion")
+            echo "Waiting for your answer"
+            ;;
+        "Edit"|"Write"|"MultiEdit")
+            echo "Waiting for permission: File edit"
+            ;;
+        "Bash"|"BashOutput")
+            echo "Waiting for permission: Run command"
+            ;;
+        *)
+            if [[ -n "$tool_name" && "$tool_name" != "unknown" ]]; then
+                echo "Waiting for permission: $tool_name"
+            fi
+            ;;
+    esac
+}
+
 # Create JSON metadata file for an event
 # Usage: record_event_metadata EVENT_ID EVENT_TYPE [SUMMARY]
 # Creates: ${STATE_DIR}/${EVENT_ID}.json with standardized fields
@@ -606,23 +630,8 @@ case "${1:-start}" in
             permission_context=$(cat "$PERMISSION_CONTEXT_FILE" 2>/dev/null)
             rm -f "$PERMISSION_CONTEXT_FILE"
 
-            # Generate context-aware message
-            case "$permission_context" in
-                "AskUserQuestion")
-                    summary="Waiting for your answer"
-                    ;;
-                "Edit"|"Write"|"MultiEdit")
-                    summary="Waiting for permission: $permission_context"
-                    ;;
-                "Bash"|"BashOutput")
-                    summary="Waiting for permission: Run command"
-                    ;;
-                *)
-                    if [[ -n "$permission_context" && "$permission_context" != "unknown" ]]; then
-                        summary="Waiting for permission: $permission_context"
-                    fi
-                    ;;
-            esac
+            # Generate context-aware message using get_permission_summary
+            summary=$(get_permission_summary "$permission_context")
             echo "$(date): Permission context: $permission_context -> $summary" >> /tmp/claude-hook-debug.log
         fi
 
@@ -725,8 +734,23 @@ case "${1:-start}" in
         state_dir=$(initialize_state_dir)
         ls -la "$state_dir"
         ;;
+    "test-permission-summary")
+        # Test permission summary function
+        echo "Testing get_permission_summary function..."
+        echo ""
+        echo "AskUserQuestion: $(get_permission_summary 'AskUserQuestion')"
+        echo "Edit: $(get_permission_summary 'Edit')"
+        echo "Write: $(get_permission_summary 'Write')"
+        echo "MultiEdit: $(get_permission_summary 'MultiEdit')"
+        echo "Bash: $(get_permission_summary 'Bash')"
+        echo "BashOutput: $(get_permission_summary 'BashOutput')"
+        echo "WebFetch: $(get_permission_summary 'WebFetch')"
+        echo "Read: $(get_permission_summary 'Read')"
+        echo "unknown: $(get_permission_summary 'unknown')"
+        echo "empty: $(get_permission_summary '')"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary}"
         exit 1
         ;;
 esac
