@@ -9,6 +9,8 @@ Personal configuration files for macOS development environment.
 - **git_template/** - Git hooks and configuration
 - **vscode/** - Visual Studio Code settings and keybindings
 - **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
+- **.claude/** - Claude Code configuration (commands, hooks, agents, skills)
+- **skills/** - Claude Code skills (clawdhub-managed)
 - **emacs** - Emacs configuration
 - **DefaultKeyBinding.dict** - macOS key bindings
 
@@ -36,6 +38,13 @@ Personal configuration files for macOS development environment.
    # VS Code (macOS)
    ln -s ~/github/dotfiles/vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
    ln -s ~/github/dotfiles/vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
+
+   # Claude Code (backup existing first)
+   mv ~/.claude ~/.claude.bak  # if exists
+   ln -s ~/github/dotfiles/.claude ~/.claude
+   # Restore runtime state from backup
+   cp ~/.claude.bak/history.jsonl ~/.claude/
+   cp -r ~/.claude.bak/{todos,plans,plugins,cache,statsig} ~/.claude/
    ```
 
 ## Key Features
