@@ -77,10 +77,24 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 6. Desktop Notification with Reaction Detection
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Create `send_desktop_notification_with_reaction()` function that sends osascript notification immediately, then spawns background process that waits 2 seconds and creates `.cancel-${event_id}` marker and updates metadata `desktop_reacted: true`. This replaces the simple `send_desktop_notification()` for the new architecture.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Desktop notification appears; cancel marker created after 2s delay; metadata updated
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `send_desktop_notification_with_reaction()` function that takes title, message, and event_id as parameters
+  - Sends immediate macOS desktop notification via osascript
+  - Spawns fully detached background process using `( ... ) &>/dev/null & disown` pattern
+  - Background process waits 2 seconds, then creates `.cancel-${event_id}` marker file
+  - Background process updates event metadata with `desktop_reacted: true` flag via `update_event_field()`
+  - Added comprehensive test command `test-desktop-reaction` that validates:
+    - Desktop notification is sent (visible on macOS)
+    - Cancel marker is created after 2s delay
+    - Metadata is updated with desktop_reacted flag
+    - All state directory contents are correct
+  - All tests pass successfully
+  - Function is ready to be integrated into hook orchestration handlers (Tasks 10 & 11)
 
 ### 7. Mobile Notification Scheduler
 - **Priority**: high

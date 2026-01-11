@@ -468,6 +468,41 @@ send_desktop_notification() {
     osascript -e "display notification \"$message\" with title \"$title\"" 2>/dev/null || true
 }
 
+# Function to send desktop notification with reaction detection
+# Usage: send_desktop_notification_with_reaction TITLE MESSAGE EVENT_ID
+# Sends immediate desktop notification, then spawns detached background process
+# that waits 2 seconds and creates cancel marker + updates metadata
+send_desktop_notification_with_reaction() {
+    local title="$1"
+    local message="$2"
+    local event_id="$3"
+
+    if [[ -z "$title" || -z "$message" || -z "$event_id" ]]; then
+        echo "$(date): send_desktop_notification_with_reaction: missing required parameters" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Send immediate desktop notification
+    osascript -e "display notification \"$message\" with title \"$title\"" 2>/dev/null || true
+
+    # Get state directory for cancel marker
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    # Spawn fully detached background process to detect reaction
+    # After 2 seconds, assume user saw notification and create cancel marker
+    (
+        sleep 2
+        # Create cancel marker
+        touch "${state_dir}/.cancel-${event_id}"
+        # Update metadata with desktop_reacted flag
+        update_event_field "${event_id}" "flags.desktop_reacted" "true"
+    ) &>/dev/null &
+    disown
+
+    echo "$(date): Desktop notification sent with reaction detection for event: $event_id" >> /tmp/claude-hook-debug.log
+}
+
 # Function to start idle monitoring
 start_idle_monitor() {
     # Kill existing monitor for this project
@@ -830,8 +865,62 @@ case "${1:-start}" in
         echo -e "\nTest complete. Check debug log:"
         tail -n 10 /tmp/claude-hook-debug.log
         ;;
+    "test-desktop-reaction")
+        # Test desktop notification with reaction detection
+        echo "Testing send_desktop_notification_with_reaction function..."
+
+        # Initialize state
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+
+        # Generate event ID
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+
+        # Record metadata
+        echo "Creating event metadata..."
+        metadata_file=$(record_event_metadata "$event_id" "test" "Test desktop notification with reaction")
+        echo "Metadata file: $metadata_file"
+        echo "Initial metadata:"
+        cat "$metadata_file" | jq .
+
+        # Send desktop notification with reaction detection
+        echo -e "\nSending desktop notification..."
+        send_desktop_notification_with_reaction "Claude Code: Test" "Testing reaction detection" "$event_id"
+
+        # Wait 3 seconds for background process to complete
+        echo "Waiting 3 seconds for reaction detection..."
+        sleep 3
+
+        # Verify cancel marker exists
+        echo -e "\nChecking for cancel marker..."
+        cancel_marker="${state_dir}/.cancel-${event_id}"
+        if [[ -f "$cancel_marker" ]]; then
+            echo "✓ Cancel marker created: $cancel_marker"
+        else
+            echo "✗ Cancel marker NOT found: $cancel_marker"
+        fi
+
+        # Verify metadata has desktop_reacted flag
+        echo -e "\nChecking metadata for desktop_reacted flag..."
+        desktop_reacted=$(cat "$metadata_file" | jq -r '.flags.desktop_reacted // empty')
+        if [[ "$desktop_reacted" == "true" ]]; then
+            echo "✓ Metadata updated with desktop_reacted: true"
+        else
+            echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+        fi
+
+        echo -e "\nFinal metadata:"
+        cat "$metadata_file" | jq .
+
+        echo -e "\nState directory contents:"
+        ls -la "$state_dir"
+
+        echo -e "\nTest complete. Check debug log:"
+        tail -n 5 /tmp/claude-hook-debug.log
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction}"
         exit 1
         ;;
 esac
