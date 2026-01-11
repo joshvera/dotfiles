@@ -218,3 +218,7 @@ op-wintermute() {
   export OP_SERVICE_ACCOUNT_TOKEN="$(op item get 'Service Account Auth Token: Wintermute' --vault Personal --fields credential --reveal)"
   echo "1Password Wintermute service account activated"
 }
+export PATH="$PATH:$HOME/github/ralph-playbook/files"
+
+# Deduplicate PATH (in case entries were added after .zshenv)
+typeset -U path
