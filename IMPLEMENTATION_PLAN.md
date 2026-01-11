@@ -144,10 +144,26 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 9. User Activity Cancellation Refactor
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Refactor `stop_idle_monitor()` into `on_user_activity()`. Kill all pending timers using `kill_pending_timers()`. Create cancel markers for all active events. Clear legacy state files. Ensure graceful handling of missing state. Maintain backward compatibility with existing state file cleanup.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: User activity cancels all pending notifications; no orphan timers left; legacy cleanup preserved
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `on_user_activity()` function that handles user activity cancellation
+  - Calls `kill_pending_timers()` to kill all pending mobile notification timer processes
+  - Creates cancel markers (`.cancel-${event_id}`) for all active (non-superseded) events in state directory
+  - Gracefully handles missing state directory (no errors if directory doesn't exist)
+  - Clears legacy state files for backward compatibility (IDLE_STATE_FILE, IDLE_DETECTOR_PID_FILE)
+  - Maintained backward compatibility by keeping `stop_idle_monitor()` as a wrapper that calls `on_user_activity()`
+  - Added comprehensive test command `test-user-activity` that validates:
+    - Timer cleanup on user activity (Test 1)
+    - Cancel marker creation for active events only (Test 2) - correctly skips superseded events
+    - Graceful handling of missing state directory (Test 3)
+    - Legacy state file cleanup for backward compatibility (Test 4)
+  - All tests pass successfully
+  - Debug logging shows proper operation: "User activity detected", timer cleanup, cancel marker creation
+  - Function is ready to be called from "user-activity" case in hook orchestration (already wired up)
 
 ### 10. Hook Orchestration - Stop Handler
 - **Priority**: high

@@ -708,17 +708,67 @@ mark_claude_finished() {
     fi
 }
 
-# Function to stop idle monitoring (user provided input)
-stop_idle_monitor() {
+# Handle user activity: cancel all pending notifications and clear state
+# Usage: on_user_activity
+# Kills all pending timer processes via kill_pending_timers()
+# Creates cancel markers for all active (non-superseded) events
+# Clears legacy state files for backward compatibility
+# Handles missing state directory gracefully (no errors if absent)
+on_user_activity() {
+    echo "$(date): User activity detected" >> /tmp/claude-hook-debug.log
+
+    # Kill all pending mobile notification timers
+    kill_pending_timers
+
+    # Create cancel markers for all active events (not yet superseded)
+    # Gracefully handle missing state directory
+    local state_dir
+    state_dir=$(initialize_state_dir 2>/dev/null) || true
+
+    if [[ -n "$state_dir" && -d "$state_dir" ]]; then
+        local count=0
+        for metadata_file in "$state_dir"/*.json; do
+            # Skip if no JSON files exist (glob doesn't match)
+            [[ ! -f "$metadata_file" ]] && continue
+
+            # Check if event is superseded
+            local superseded
+            superseded=$(jq -r '.flags.superseded // false' "$metadata_file" 2>/dev/null)
+
+            # Only create cancel marker for active (non-superseded) events
+            if [[ "$superseded" != "true" ]]; then
+                local basename
+                basename=$(basename "$metadata_file" .json)
+                local cancel_marker="${state_dir}/.cancel-${basename}"
+
+                # Create cancel marker if it doesn't exist
+                if [[ ! -f "$cancel_marker" ]]; then
+                    touch "$cancel_marker"
+                    count=$((count + 1))
+                    echo "$(date): Created cancel marker for event: $basename" >> /tmp/claude-hook-debug.log
+                fi
+            fi
+        done
+
+        echo "$(date): Created $count cancel marker(s)" >> /tmp/claude-hook-debug.log
+    fi
+
+    # Clear legacy state files for backward compatibility
     rm -f "$IDLE_STATE_FILE"
     if [[ -f "$IDLE_DETECTOR_PID_FILE" ]]; then
         local pid
-        pid=$(cat "$IDLE_DETECTOR_PID_FILE" 2> /dev/null || echo "")
-        if [[ -n "$pid" ]] && kill -0 "$pid" 2> /dev/null; then
-            kill "$pid" 2> /dev/null || true
+        pid=$(cat "$IDLE_DETECTOR_PID_FILE" 2>/dev/null || echo "")
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+            kill "$pid" 2>/dev/null || true
         fi
         rm -f "$IDLE_DETECTOR_PID_FILE"
     fi
+}
+
+# Legacy function for backward compatibility
+# Calls on_user_activity() to stop idle monitoring
+stop_idle_monitor() {
+    on_user_activity
 }
 
 # Main logic based on arguments
@@ -1108,8 +1158,139 @@ case "${1:-start}" in
 
         unset TEST_MOBILE_DELAY
         ;;
+    "test-user-activity")
+        # Test on_user_activity function with various scenarios
+        echo "Testing on_user_activity function..."
+
+        # Override delay for faster testing
+        export TEST_MOBILE_DELAY=30
+
+        # Initialize state
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+        timers_dir="${state_dir}/timers"
+
+        # Test 1: Kill pending timers
+        echo -e "\nTest 1: Verify timer cleanup on user activity"
+
+        # Create some test events with timers
+        event_id1=$(generate_event_id)
+        metadata_file1=$(record_event_metadata "$event_id1" "test" "Event 1")
+        schedule_mobile_notification "$event_id1" "Event 1 notification"
+
+        event_id2=$(generate_event_id)
+        metadata_file2=$(record_event_metadata "$event_id2" "test" "Event 2")
+        schedule_mobile_notification "$event_id2" "Event 2 notification"
+
+        echo "Created 2 active timers"
+        echo "Timers before on_user_activity:"
+        ls -la "$timers_dir"/*.timer 2>/dev/null || echo "No timer files"
+
+        # Trigger user activity
+        echo -e "\nTriggering on_user_activity..."
+        on_user_activity
+
+        # Verify timers were killed
+        echo -e "\nTimers after on_user_activity:"
+        ls -la "$timers_dir"/*.timer 2>/dev/null || echo "No timer files (cleanup successful)"
+
+        # Test 2: Create cancel markers for active events
+        echo -e "\nTest 2: Verify cancel markers created for active events"
+
+        # Create new events (some superseded, some active)
+        event_id3=$(generate_event_id)
+        metadata_file3=$(record_event_metadata "$event_id3" "test" "Active event 3")
+        schedule_mobile_notification "$event_id3" "Event 3 notification"
+
+        event_id4=$(generate_event_id)
+        metadata_file4=$(record_event_metadata "$event_id4" "test" "Superseded event 4")
+        schedule_mobile_notification "$event_id4" "Event 4 notification"
+        update_event_field "$event_id4" "flags.superseded" "true"  # Mark as superseded
+
+        event_id5=$(generate_event_id)
+        metadata_file5=$(record_event_metadata "$event_id5" "test" "Active event 5")
+        schedule_mobile_notification "$event_id5" "Event 5 notification"
+
+        echo "Created 3 events: 2 active, 1 superseded"
+        echo "Metadata files:"
+        ls -la "$state_dir"/*.json
+
+        # Trigger user activity
+        echo -e "\nTriggering on_user_activity..."
+        on_user_activity
+
+        # Verify cancel markers created for active events only
+        echo -e "\nCancel markers after on_user_activity:"
+        ls -la "$state_dir"/.cancel-* 2>/dev/null || echo "No cancel markers"
+
+        # Check individual markers
+        if [[ -f "$state_dir/.cancel-${event_id3}" ]]; then
+            echo "✓ Cancel marker created for active event 3"
+        else
+            echo "✗ Cancel marker NOT created for active event 3"
+        fi
+
+        if [[ -f "$state_dir/.cancel-${event_id4}" ]]; then
+            echo "✗ Cancel marker incorrectly created for superseded event 4"
+        else
+            echo "✓ Cancel marker correctly NOT created for superseded event 4"
+        fi
+
+        if [[ -f "$state_dir/.cancel-${event_id5}" ]]; then
+            echo "✓ Cancel marker created for active event 5"
+        else
+            echo "✗ Cancel marker NOT created for active event 5"
+        fi
+
+        # Test 3: Graceful handling of missing state directory
+        echo -e "\nTest 3: Test graceful handling of missing state directory"
+
+        # Remove state directory
+        rm -rf "$state_dir"
+        echo "Removed state directory"
+
+        # Trigger user activity (should not error)
+        echo "Triggering on_user_activity with missing state directory..."
+        on_user_activity && {
+            echo "✓ on_user_activity handled missing state directory gracefully"
+        } || {
+            echo "✗ on_user_activity failed with missing state directory"
+        }
+
+        # Test 4: Backward compatibility - legacy state file cleanup
+        echo -e "\nTest 4: Test legacy state file cleanup"
+
+        # Create legacy state files
+        touch "$IDLE_STATE_FILE"
+        echo "99999" > "$IDLE_DETECTOR_PID_FILE"
+        echo "Created legacy state files"
+        echo "  IDLE_STATE_FILE: $IDLE_STATE_FILE"
+        echo "  IDLE_DETECTOR_PID_FILE: $IDLE_DETECTOR_PID_FILE"
+
+        # Trigger user activity
+        echo -e "\nTriggering on_user_activity..."
+        on_user_activity
+
+        # Verify legacy files cleaned up
+        if [[ ! -f "$IDLE_STATE_FILE" ]]; then
+            echo "✓ Legacy IDLE_STATE_FILE cleaned up"
+        else
+            echo "✗ Legacy IDLE_STATE_FILE still exists"
+        fi
+
+        if [[ ! -f "$IDLE_DETECTOR_PID_FILE" ]]; then
+            echo "✓ Legacy IDLE_DETECTOR_PID_FILE cleaned up"
+        else
+            echo "✗ Legacy IDLE_DETECTOR_PID_FILE still exists"
+        fi
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 30 /tmp/claude-hook-debug.log | grep -E "(User activity|cancel marker|timer)"
+
+        unset TEST_MOBILE_DELAY
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity}"
         exit 1
         ;;
 esac
