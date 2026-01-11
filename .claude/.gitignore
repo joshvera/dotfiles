@@ -1,0 +1,30 @@
+# Runtime state
+history.jsonl
+todos/
+plans/
+projects/
+file-history/
+shell-snapshots/
+session-env/
+paste-cache/
+downloads/
+ide/
+powerline/
+
+# Telemetry and cache
+statsig/
+telemetry/
+debug/
+cache/
+stats-cache.json
+claude-powerline.json
+.ccplugins_backups/
+
+# Plugin runtime
+plugins/
+
+# macOS
+.DS_Store
+
+# Local settings (per-machine)
+settings.local.json
