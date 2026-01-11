@@ -167,10 +167,33 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 10. Hook Orchestration - Stop Handler
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Refactor `mark_claude_finished()` to use new infrastructure: generate session_id and event_id, initialize state directory, kill existing timers, extract transcript and summarize with Haiku, record metadata, send desktop notification with reaction detection, schedule mobile notification. Preserve existing device detection logic.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Stop hook triggers full event lifecycle; desktop notification immediate; mobile scheduled at 30s
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Refactored `mark_claude_finished()` to use full event lifecycle infrastructure
+  - Implements the following flow:
+    1. Initialize state directory via `initialize_state_dir()`
+    2. Generate unique event ID via `generate_event_id()`
+    3. Kill any pending timers from previous events via `kill_pending_timers()`
+    4. Mark all previous events as superseded via `mark_events_superseded()`
+    5. Extract transcript and generate summary via Haiku API (reuses existing `get_last_response()` and `summarize_with_haiku()`)
+    6. Record event metadata via `record_event_metadata()` with event_type="stop"
+    7. Send desktop notification with reaction detection via `send_desktop_notification_with_reaction()`
+    8. Schedule mobile notification with 30s delay via `schedule_mobile_notification()`
+  - Preserves device detection logic but now uses it for logging only (device-aware routing will be implemented in Task 12)
+  - Default summary is "Response ready" if transcript unavailable or summarization fails
+  - Added comprehensive test command `test-stop-handler` that validates:
+    - Full event lifecycle (event ID generation, metadata creation, timer scheduling)
+    - Haiku summary generation from mock transcript
+    - Event supersession when second event is triggered
+    - Timer cleanup when superseded events occur
+    - Desktop reaction detection (cancel marker + metadata update after 2s)
+  - All tests pass successfully with proper state management
+  - Debug logging shows complete event lifecycle: "Stop hook complete - event: {id}, desktop notified, mobile scheduled"
+  - Function is ready for production use; device-aware routing (Task 12) will optimize for mobile-only sessions
 
 ### 11. Hook Orchestration - PermissionRequest Handler
 - **Priority**: high
