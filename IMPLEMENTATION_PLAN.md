@@ -1,0 +1,178 @@
+# Implementation Plan
+
+## Overview
+Build a dual-channel notification system for Claude Code that sends immediate desktop notifications (via osascript) and delayed mobile notifications (via ntfy), with intelligent cancellation when the user reacts at the desktop within 30 seconds.
+
+## Current State
+The existing `idle-detector.sh` has foundational infrastructure:
+- Device detection (desktop/mobile via SSH/mosh detection) - **COMPLETE**
+- Haiku summarization via API - **COMPLETE**
+- Basic desktop notification (osascript) - **COMPLETE**
+- ntfy notification sending - **COMPLETE**
+- Basic idle monitoring with background process - **COMPLETE** (but needs refactoring)
+- Permission context handling (inline in notify-with-summary) - **PARTIAL**
+
+## Tasks
+
+### 1. Session State Infrastructure
+- **Priority**: high
+- **Status**: complete
+- **Description**: Implement session ID generation and state directory management. Add `get_session_id()` function with tmux pane-level isolation (format: `hostname:session:pane_id`), Zellij support, and fallback hash. Create `initialize_state_dir()` to set up `/tmp/claude-notification-state-${SESSION_ID}/timers/` structure.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Running `get_session_id` in tmux returns `hostname:session:%N` format; state directory created with timers/ subdirectory
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `get_session_id()` with tmux pane ID (#D format), Zellij session name, and fallback hash
+  - Implemented `initialize_state_dir()` creating `/tmp/claude-notification-state-${SESSION_ID}/timers/`
+  - Added test commands: `test-session-id` and `test-state-dir`
+  - Verified working in tmux with session ID format: `hostname:session:pane_id`
+
+### 2. Event ID and Metadata System
+- **Priority**: high
+- **Status**: pending
+- **Description**: Add event lifecycle management. Implement `generate_event_id()` (UUID4 via uuidgen with fallback), `record_event_metadata()` (JSON with event_id, event_type, timestamp, session_id, summary, flags), and `update_event_field()` for atomic updates. Mark previous events as superseded when new events arrive.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Metadata JSON created in state directory; fields update atomically; supersession tracking works
+
+### 3. Permission Summary Function
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Extract permission summary logic into standalone `get_permission_summary()` function. Already partially implemented inline in `notify-with-summary` case - refactor to reusable function. Map AskUserQuestion → "Waiting for your answer", Edit/Write/MultiEdit → "Waiting for permission: File edit", Bash/BashOutput → "Waiting for permission: Run command", others → "Waiting for permission: {tool_name}".
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Each tool type returns appropriate human-readable summary; existing functionality preserved
+
+### 4. tmux Context Capture
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Capture tmux session, window, and pane identifiers at notification time for optional click-through functionality. Set `TMUX_SESSION`, `TMUX_WINDOW`, `TMUX_PANE`, `TMUX_TARGET` variables. Handle non-tmux environments gracefully (set to empty).
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Variables populated correctly in tmux; empty outside tmux; format `SESSION:WINDOW.PANE`
+
+### 5. Notification Payload Builder
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Create `build_notification_payload()` function to build standardized JSON payload with: event_type, repo_path (git root detection), cwd, tmux_target, tmux_session, transcript_path, permission_context, timestamp (ISO 8601). Validate with jq before use.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Valid JSON payload generated; repo_path correctly finds .git parent; all fields present
+
+### 6. Desktop Notification with Reaction Detection
+- **Priority**: high
+- **Status**: pending
+- **Description**: Create `send_desktop_notification_with_reaction()` function that sends osascript notification immediately, then spawns background process that waits 2 seconds and creates `.cancel-${event_id}` marker and updates metadata `desktop_reacted: true`. This replaces the simple `send_desktop_notification()` for the new architecture.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Desktop notification appears; cancel marker created after 2s delay; metadata updated
+
+### 7. Mobile Notification Scheduler
+- **Priority**: high
+- **Status**: pending
+- **Description**: Implement `schedule_mobile_notification()` that forks a detached background process sleeping 30 seconds, then checks for cancel marker. If no cancel marker and event not superseded, sends ntfy notification via existing `send_idle_notification()`. Store timer PID in `timers/${event_id}.timer`. Clean up files after completion.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Timer scheduled and PID stored; ntfy sent after 30s if no cancel; cancelled if marker exists
+
+### 8. Timer Cleanup Helper
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Add `kill_pending_timers()` function that iterates over `timers/*.timer` files, kills each PID, and removes timer files. Used by both new event handlers (to prevent duplicates) and user activity handler.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: All timer processes killed; timer files removed; no errors on empty timers/
+
+### 9. User Activity Cancellation Refactor
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Refactor `stop_idle_monitor()` into `on_user_activity()`. Kill all pending timers using `kill_pending_timers()`. Create cancel markers for all active events. Clear legacy state files. Ensure graceful handling of missing state. Maintain backward compatibility with existing state file cleanup.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: User activity cancels all pending notifications; no orphan timers left; legacy cleanup preserved
+
+### 10. Hook Orchestration - Stop Handler
+- **Priority**: high
+- **Status**: pending
+- **Description**: Refactor `mark_claude_finished()` to use new infrastructure: generate session_id and event_id, initialize state directory, kill existing timers, extract transcript and summarize with Haiku, record metadata, send desktop notification with reaction detection, schedule mobile notification. Preserve existing device detection logic.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Stop hook triggers full event lifecycle; desktop notification immediate; mobile scheduled at 30s
+
+### 11. Hook Orchestration - PermissionRequest Handler
+- **Priority**: high
+- **Status**: pending
+- **Description**: Implement `on_permission_request()` with same pattern as Stop handler but using `get_permission_summary()` for message. Parse tool_name from hook stdin JSON. Follow unified flow: ID generation, metadata, desktop notify, mobile schedule. Replace existing permission-request case.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: PermissionRequest hook triggers full lifecycle; context-aware message shown
+
+### 12. Device-Aware Routing Integration
+- **Priority**: medium
+- **Status**: pending
+- **Description**: Integrate desktop notification sender with existing device detection. When `DEVICE_TYPE=desktop`, use new desktop notification with reaction detection + mobile scheduler. When `DEVICE_TYPE=mobile` (SSH/mosh), skip desktop notification and send ntfy immediately (no 30s delay). Existing `detect_device_type()` already works; just wire it into new handlers.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Local sessions get desktop + delayed mobile; SSH sessions get ntfy immediately
+
+### 13. Legacy Cleanup and Migration
+- **Priority**: low
+- **Status**: pending
+- **Description**: Remove or deprecate old state file patterns (`/tmp/claude-idle-state-*`, `/tmp/claude-idle-detector-*.pid`, `/tmp/claude-transcript-path-*`, `/tmp/claude-permission-context-*`) once new system is stable. Add migration logic to clean up old files on first run of new system. Update `notify-with-summary` case to use new infrastructure or remove if no longer needed.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Old state files cleaned up; no file accumulation; system runs cleanly
+
+### 14. Notification Click Handler (Optional Enhancement)
+- **Priority**: low
+- **Status**: pending
+- **Description**: Create `~/.local/bin/notification-handler.sh` that parses JSON payload, focuses Ghostty terminal via AppleScript (matching repo_path), and navigates to tmux pane. Recover session if missing. This enables click-through from desktop notifications. Requires terminal-notifier with -execute parameter (not osascript).
+- **Files**: `~/.local/bin/notification-handler.sh`, `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Clicking notification focuses correct terminal and tmux pane
+- **Note**: Depends on Ghostty AppleScript support and terminal-notifier installation; can be skipped
+
+### 15. Terminal-Notifier Integration (Optional Enhancement)
+- **Priority**: low
+- **Status**: pending
+- **Description**: Upgrade desktop notification to use terminal-notifier (if available) instead of osascript. Pass JSON payload via -execute parameter to notification-handler.sh. Fall back to osascript if terminal-notifier not installed. Enables richer notification features (click actions, icons).
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**: Clicking notification executes handler script; graceful fallback to osascript
+
+## Notes
+
+### Architectural Decisions
+- **Heuristic reaction detection**: Using 2-second delay after desktop notification to create cancel marker, rather than actual click detection. Simpler and reliable; assumes user at desktop sees notification quickly.
+- **Session isolation via tmux pane ID**: Each tmux pane gets independent notification state, preventing cross-talk between parallel Claude sessions.
+- **Supersession model**: New events mark old events as superseded rather than deleting, preserving audit trail while preventing duplicate notifications.
+- **Background timer detachment**: Timers use full process detachment (exec redirect, disown) to survive parent process exit.
+- **Mobile-first for SSH**: SSH sessions get immediate ntfy (no desktop notification available), not delayed.
+
+### Dependencies
+- `jq` required for JSON manipulation (already in use)
+- `uuidgen` preferred for event IDs (fallback to timestamp+random)
+- `terminal-notifier` optional for enhanced click handling (osascript fallback)
+- Ghostty with AppleScript support optional for terminal focus on click (nice-to-have)
+
+### Migration Path
+- Existing ntfy integration preserved and reused
+- Existing Haiku summarization reused
+- Device detection already complete, just needs routing integration
+- Settings.json already has correct hook configuration for Stop, UserPromptSubmit, PermissionRequest
+- Backward compatible: new system can coexist with old state files during transition
+
+### Testing Strategy
+- Each function testable in isolation via manual invocation
+- Debug logging to `/tmp/claude-hook-debug.log`
+- Timer cleanup on session end prevents file accumulation
+- State directory in `/tmp/` auto-cleaned on reboot
+- Existing test commands preserved: `test-detect`, `test-desktop`, `test-summary`, `test-permission`
+
+### Implementation Order
+Recommended order based on dependencies:
+1. Session State Infrastructure (foundation)
+2. Event ID and Metadata System (foundation)
+3. Permission Summary Function (quick refactor)
+4. Timer Cleanup Helper (needed for handlers)
+5. Desktop Notification with Reaction Detection (core feature)
+6. Mobile Notification Scheduler (core feature)
+7. Hook Orchestration - Stop Handler (integration)
+8. Hook Orchestration - PermissionRequest Handler (integration)
+9. User Activity Cancellation Refactor (integration)
+10. Device-Aware Routing Integration (polish)
+11. tmux Context Capture (enhancement)
+12. Notification Payload Builder (enhancement)
+13. Legacy Cleanup and Migration (cleanup)
+14-15. Optional enhancements (click handler, terminal-notifier)
+
+## Generated
+- Date: 2026-01-11T16:30:00Z
+- Mode: planning
+- Specs analyzed: 12 (01-12 in specs/)

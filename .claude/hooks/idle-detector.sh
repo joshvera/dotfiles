@@ -5,9 +5,75 @@
 
 set -euo pipefail
 
+# Source secrets if API key not already set (needed for Haiku summarization)
+if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$HOME/.secrets/.secrets" ]]; then
+    source "$HOME/.secrets/.secrets"
+fi
+
 IDLE_TIMEOUT=${CLAUDE_IDLE_TIMEOUT:-30} # Default 30 seconds (configurable)
 IDLE_STATE_FILE="/tmp/claude-idle-state-$(basename "$(pwd)")"
 IDLE_DETECTOR_PID_FILE="/tmp/claude-idle-detector-$(basename "$(pwd)").pid"
+
+# Generate unique session ID for notification state isolation
+# Format: hostname:session:pane_id
+# Returns: Session ID string for use in state directory naming
+get_session_id() {
+    local hostname
+    hostname=$(hostname -s)
+
+    # Tmux: use session name and pane ID for pane-level isolation
+    if [[ -n "${TMUX:-}" ]]; then
+        local session pane_id
+        session=$(tmux display-message -p '#S' 2>/dev/null || echo "tmux")
+        pane_id=$(tmux display-message -p '#D' 2>/dev/null || echo "0")
+        # Remove leading % from pane_id if present
+        pane_id="${pane_id#%}"
+        echo "${hostname}:${session}:${pane_id}"
+        return
+    fi
+
+    # Zellij: use session name (Zellij doesn't expose pane ID as easily)
+    if [[ -n "${ZELLIJ:-}" || -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
+        local session="${ZELLIJ_SESSION_NAME:-zellij}"
+        echo "${hostname}:${session}:0"
+        return
+    fi
+
+    # Fallback: hash of terminal device and PID for uniqueness
+    local term_device="${TTY:-notty}"
+    local hash
+    hash=$(echo "${hostname}:${term_device}:$$" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "$$")
+    echo "${hostname}:shell:${hash:0:8}"
+}
+
+# Initialize state directory structure for notification system
+# Creates: /tmp/claude-notification-state-${SESSION_ID}/timers/
+# Returns: 0 on success
+initialize_state_dir() {
+    local session_id
+    session_id=$(get_session_id)
+
+    local state_dir="/tmp/claude-notification-state-${session_id}"
+    local timers_dir="${state_dir}/timers"
+
+    # Create state directory if it doesn't exist
+    if [[ ! -d "$state_dir" ]]; then
+        mkdir -p "$state_dir" || {
+            echo "$(date): Failed to create state directory: $state_dir" >> /tmp/claude-hook-debug.log
+            return 1
+        }
+    fi
+
+    # Create timers subdirectory
+    if [[ ! -d "$timers_dir" ]]; then
+        mkdir -p "$timers_dir" || {
+            echo "$(date): Failed to create timers directory: $timers_dir" >> /tmp/claude-hook-debug.log
+            return 1
+        }
+    fi
+
+    echo "$state_dir"
+}
 
 # Detect device type: desktop (local) vs mobile (SSH/mosh)
 detect_device_type() {
@@ -45,28 +111,76 @@ detect_device_type() {
     echo "desktop"
 }
 
-# Function to send idle notification (mobile - ntfy)
+# File to store transcript path for background worker
+TRANSCRIPT_PATH_FILE="/tmp/claude-transcript-path-$(basename "$(pwd)")"
+
+# File to store permission context (tool name) for notification message
+PERMISSION_CONTEXT_FILE="/tmp/claude-permission-context-$(basename "$(pwd)")"
+
+# Extract last assistant response from transcript
+get_last_response() {
+    local transcript="$1"
+    [[ -z "$transcript" || ! -f "$transcript" ]] && return
+
+    grep '"role":"assistant"' "$transcript" 2>/dev/null | tail -1 | jq -r '
+        .message.content | map(select(.type == "text")) | map(.text) | join("\n")
+    ' 2>/dev/null | head -c 4000
+}
+
+# Summarize response with Claude Haiku
+summarize_with_haiku() {
+    local text="$1"
+    if [[ -z "$text" ]]; then
+        echo "$(date): summarize_with_haiku: empty text" >> /tmp/claude-hook-debug.log
+        return
+    fi
+    if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+        echo "$(date): summarize_with_haiku: no API key" >> /tmp/claude-hook-debug.log
+        return
+    fi
+
+    # Build JSON payload using jq for proper escaping
+    local payload
+    payload=$(jq -n \
+        --arg text "$text" \
+        '{
+            model: "claude-3-5-haiku-latest",
+            max_tokens: 100,
+            messages: [{
+                role: "user",
+                content: ("Summarize in 1 brief sentence for a notification (under 100 chars):\n\n" + $text)
+            }]
+        }')
+
+    local response
+    response=$(curl -s --max-time 15 \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d "$payload" \
+        "https://api.anthropic.com/v1/messages" 2>&1)
+
+    local summary
+    summary=$(echo "$response" | jq -r '.content[0].text // empty' 2>/dev/null)
+
+    if [[ -z "$summary" ]]; then
+        echo "$(date): summarize_with_haiku: API response: $response" >> /tmp/claude-hook-debug.log
+    fi
+
+    echo "$summary"
+}
+
+# Function to send idle notification via ntfy
+# Usage: send_idle_notification [summary]
 send_idle_notification() {
-    local config_file=""
-    if [[ -f "$HOME/.claude/.config/claudetainer/ntfy.json" ]]; then
-        config_file="$HOME/.claude/.config/claudetainer/ntfy.json"
-    elif [[ -f "$HOME/.config/claude-native/ntfy.json" ]]; then
-        config_file="$HOME/.config/claude-native/ntfy.json"
-    else
-        return 0
-    fi
+    local summary="${1:-}"
 
-    if ! command -v jq > /dev/null 2>&1; then
-        return 0
-    fi
+    # Use env vars consistent with zsh notify function
+    local ntfy_url="${NTFY_URL:-}"
+    local ntfy_topic="${NTFY_TOPIC:-wintermute}"
 
-    local ntfy_topic
-    ntfy_topic=$(jq -r '.ntfy_topic // ""' "$config_file" 2> /dev/null || echo "")
-    local ntfy_server
-    ntfy_server=$(jq -r '.ntfy_server // "https://ntfy.sh"' "$config_file" 2> /dev/null || echo "https://ntfy.sh")
-
-    if [[ -z "$ntfy_topic" ]]; then
-        return 0
+    if [[ -z "$ntfy_url" ]]; then
+        return 0  # No ntfy configured
     fi
 
     local cwd_basename
@@ -77,8 +191,20 @@ send_idle_notification() {
         local hostname
         hostname=$(hostname)
         session_info=" → ${hostname}:${ZELLIJ_SESSION_NAME}"
+    elif [[ -n "${TMUX:-}" ]]; then
+        local hostname
+        hostname=$(hostname)
+        local tmux_session
+        tmux_session=$(tmux display-message -p '#S' 2>/dev/null || echo "tmux")
+        session_info=" → ${hostname}:${tmux_session}"
     fi
-    local message="Claude waiting for input (idle >${IDLE_TIMEOUT}s)${session_info}"
+
+    local message
+    if [[ -n "$summary" ]]; then
+        message="${summary}${session_info}"
+    else
+        message="Waiting for input (idle >${IDLE_TIMEOUT}s)${session_info}"
+    fi
     local tags="claude-code,idle,custom"
 
     # Build Blink deep link - simplified to just open the app
@@ -100,13 +226,13 @@ send_idle_notification() {
             -H "Click: $click_action" \
             -H "Actions: view, Open Blink, $click_action" \
             -d "$message" \
-            "$ntfy_server/$ntfy_topic" > /dev/null 2>&1 || true
+            "$ntfy_url/$ntfy_topic" > /dev/null 2>&1 || true
     else
         curl -s --max-time 5 \
             -H "Title: $title" \
             -H "Tags: $tags" \
             -d "$message" \
-            "$ntfy_server/$ntfy_topic" > /dev/null 2>&1 || true
+            "$ntfy_url/$ntfy_topic" > /dev/null 2>&1 || true
     fi
 }
 
@@ -166,8 +292,8 @@ start_idle_monitor() {
                 if [[ \$time_diff -ge \$timeout_val ]]; then
                     echo \"[\$(date)] Sending notification\"
                     
-                    # Call the original script's test function
-                    \"$0\" test
+                    # Call the original script to send notification with summary
+                    \"$0\" notify-with-summary
                     rm -f \"\$state_file\"
                 fi
             else
@@ -203,8 +329,8 @@ start_idle_monitor() {
                 if [[ \$time_diff -ge \$timeout_val ]]; then
                     echo \"[\$(date)] Sending notification\"
                     
-                    # Call the original script's test function
-                    \"$0\" test
+                    # Call the original script to send notification with summary
+                    \"$0\" notify-with-summary
                     rm -f \"\$state_file\"
                 fi
             else
@@ -222,7 +348,21 @@ start_idle_monitor() {
 mark_claude_finished() {
     local device_type
     device_type=$(detect_device_type)
-    echo "$(date): Stop hook triggered - Claude finished (device: $device_type)" >> /tmp/claude-hook-debug.log
+
+    # Read hook input from stdin (contains transcript_path)
+    local hook_input=""
+    if [[ ! -t 0 ]]; then
+        hook_input=$(cat)
+    fi
+
+    # Extract and save transcript path for background worker
+    local transcript_path
+    transcript_path=$(echo "$hook_input" | jq -r '.transcript_path // empty' 2>/dev/null)
+    if [[ -n "$transcript_path" ]]; then
+        echo "$transcript_path" > "$TRANSCRIPT_PATH_FILE"
+    fi
+
+    echo "$(date): Stop hook triggered - Claude finished (device: $device_type, transcript: ${transcript_path:-none})" >> /tmp/claude-hook-debug.log
 
     # Kill any existing monitor first (prevents multiple timers)
     if [[ -f "$IDLE_DETECTOR_PID_FILE" ]]; then
@@ -234,13 +374,13 @@ mark_claude_finished() {
         rm -f "$IDLE_DETECTOR_PID_FILE"
     fi
 
+    # Both desktop and mobile: start idle monitor for ntfy notification
+    touch "$IDLE_STATE_FILE"
+    start_idle_monitor
+
+    # Desktop also gets immediate osascript notification (subtle backup)
     if [[ "$device_type" == "desktop" ]]; then
-        # Desktop: immediate notification, no idle timer
         send_desktop_notification
-    else
-        # Mobile: start idle monitor for 30s delayed ntfy notification
-        touch "$IDLE_STATE_FILE"
-        start_idle_monitor
     fi
 }
 
@@ -264,12 +404,87 @@ case "${1:-start}" in
         ;;
     "user-activity")
         stop_idle_monitor
+        rm -f "$PERMISSION_CONTEXT_FILE"  # Clear permission context on user input
         ;;
     "stop")
         stop_idle_monitor
         ;;
+    "permission-request")
+        # PermissionRequest hook - fires for both permission dialogs AND AskUserQuestion
+        hook_input=""
+        if [[ ! -t 0 ]]; then
+            hook_input=$(cat)
+        fi
+
+        # Extract tool name for context
+        tool_name=$(echo "$hook_input" | jq -r '.tool_name // "unknown"' 2>/dev/null)
+
+        echo "$(date): PermissionRequest hook triggered - tool: $tool_name" >> /tmp/claude-hook-debug.log
+
+        # Save context for notification message
+        echo "$tool_name" > "$PERMISSION_CONTEXT_FILE"
+
+        # Kill any existing monitor and start fresh
+        if [[ -f "$IDLE_DETECTOR_PID_FILE" ]]; then
+            local old_pid
+            old_pid=$(cat "$IDLE_DETECTOR_PID_FILE" 2>/dev/null || echo "")
+            if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+                kill "$old_pid" 2>/dev/null || true
+            fi
+            rm -f "$IDLE_DETECTOR_PID_FILE"
+        fi
+
+        # Start idle monitor (will send notification after timeout)
+        touch "$IDLE_STATE_FILE"
+        start_idle_monitor
+        ;;
     "test")
         send_idle_notification
+        ;;
+    "notify-with-summary")
+        # Read transcript, generate summary, send notification
+        summary=""
+        permission_context=""
+
+        # Check for permission context (AskUserQuestion, Edit, Write, etc.)
+        if [[ -f "$PERMISSION_CONTEXT_FILE" ]]; then
+            permission_context=$(cat "$PERMISSION_CONTEXT_FILE" 2>/dev/null)
+            rm -f "$PERMISSION_CONTEXT_FILE"
+
+            # Generate context-aware message
+            case "$permission_context" in
+                "AskUserQuestion")
+                    summary="Waiting for your answer"
+                    ;;
+                "Edit"|"Write"|"MultiEdit")
+                    summary="Waiting for permission: $permission_context"
+                    ;;
+                "Bash"|"BashOutput")
+                    summary="Waiting for permission: Run command"
+                    ;;
+                *)
+                    if [[ -n "$permission_context" && "$permission_context" != "unknown" ]]; then
+                        summary="Waiting for permission: $permission_context"
+                    fi
+                    ;;
+            esac
+            echo "$(date): Permission context: $permission_context -> $summary" >> /tmp/claude-hook-debug.log
+        fi
+
+        # If no permission context, try transcript summarization (for Stop hook)
+        if [[ -z "$summary" && -f "$TRANSCRIPT_PATH_FILE" ]]; then
+            transcript_path=$(cat "$TRANSCRIPT_PATH_FILE" 2>/dev/null)
+            if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
+                response=$(get_last_response "$transcript_path")
+                if [[ -n "$response" ]]; then
+                    summary=$(summarize_with_haiku "$response")
+                    echo "$(date): Generated summary: $summary" >> /tmp/claude-hook-debug.log
+                fi
+            fi
+            rm -f "$TRANSCRIPT_PATH_FILE"
+        fi
+
+        send_idle_notification "$summary"
         ;;
     "test-detect")
         echo "Device type: $(detect_device_type)"
@@ -277,8 +492,39 @@ case "${1:-start}" in
     "test-desktop")
         send_desktop_notification
         ;;
+    "test-summary")
+        # Test summary generation with sample text
+        test_text="${2:-Claude has finished implementing the notification feature and is waiting for you to test it.}"
+        summary=$(summarize_with_haiku "$test_text")
+        echo "Summary: $summary"
+        send_idle_notification "$summary"
+        ;;
+    "test-permission")
+        # Test permission notification (simulates PermissionRequest hook)
+        tool_name="${2:-AskUserQuestion}"
+        echo "$tool_name" > "$PERMISSION_CONTEXT_FILE"
+        echo "Testing permission notification for: $tool_name"
+        # Directly call notify-with-summary to test
+        "$0" notify-with-summary
+        ;;
+    "test-session-id")
+        # Test session ID generation
+        session_id=$(get_session_id)
+        echo "Session ID: $session_id"
+        ;;
+    "test-state-dir")
+        # Test state directory initialization
+        state_dir=$(initialize_state_dir)
+        if [[ $? -eq 0 ]]; then
+            echo "State directory created: $state_dir"
+            ls -la "$state_dir"
+        else
+            echo "Failed to create state directory"
+            exit 1
+        fi
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|test|test-detect|test-desktop}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir}"
         exit 1
         ;;
 esac
