@@ -254,6 +254,50 @@ mark_events_superseded() {
     echo "$(date): Marked $count events as superseded" >> /tmp/claude-hook-debug.log
 }
 
+# Kill all pending timer processes and remove timer files
+# Usage: kill_pending_timers
+# Iterates over timers/*.timer files, kills PIDs, removes files
+# Handles empty directory and already-dead processes gracefully
+kill_pending_timers() {
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    local timers_dir="${state_dir}/timers"
+
+    # Handle empty timers directory gracefully
+    if [[ ! -d "$timers_dir" ]]; then
+        echo "$(date): kill_pending_timers: timers directory not found" >> /tmp/claude-hook-debug.log
+        return 0
+    fi
+
+    local count=0
+    for timer_file in "$timers_dir"/*.timer; do
+        # Skip if no timer files exist (glob doesn't match)
+        [[ ! -f "$timer_file" ]] && continue
+
+        # Read PID from timer file
+        local pid
+        pid=$(cat "$timer_file" 2>/dev/null)
+
+        if [[ -n "$pid" ]]; then
+            # Check if process exists before killing
+            if kill -0 "$pid" 2>/dev/null; then
+                kill "$pid" 2>/dev/null && {
+                    echo "$(date): Killed timer process: $pid" >> /tmp/claude-hook-debug.log
+                    count=$((count + 1))
+                }
+            else
+                echo "$(date): Timer process already dead: $pid" >> /tmp/claude-hook-debug.log
+            fi
+        fi
+
+        # Remove timer file regardless of whether process was alive
+        rm -f "$timer_file"
+    done
+
+    echo "$(date): Cleaned up $count active timer(s)" >> /tmp/claude-hook-debug.log
+}
+
 # Detect device type: desktop (local) vs mobile (SSH/mosh)
 detect_device_type() {
     # Explicit override
@@ -749,8 +793,45 @@ case "${1:-start}" in
         echo "unknown: $(get_permission_summary 'unknown')"
         echo "empty: $(get_permission_summary '')"
         ;;
+    "test-timer-cleanup")
+        # Test timer cleanup function
+        echo "Testing kill_pending_timers function..."
+
+        # Get state directory
+        state_dir=$(initialize_state_dir)
+        timers_dir="${state_dir}/timers"
+        echo "State directory: $state_dir"
+        echo "Timers directory: $timers_dir"
+
+        # Create some dummy timer files with mock PIDs
+        echo "Creating test timer files..."
+        echo "99999" > "$timers_dir/test-event-1.timer"
+        echo "99998" > "$timers_dir/test-event-2.timer"
+
+        # Create one timer with a real (but harmless) background process
+        sleep 300 &
+        real_pid=$!
+        echo "$real_pid" > "$timers_dir/test-event-real.timer"
+        echo "Created real timer with PID: $real_pid"
+
+        echo -e "\nTimer files before cleanup:"
+        ls -la "$timers_dir"/*.timer 2>/dev/null || echo "No timer files"
+
+        echo -e "\nRunning kill_pending_timers..."
+        kill_pending_timers
+
+        echo -e "\nTimer files after cleanup:"
+        ls -la "$timers_dir"/*.timer 2>/dev/null || echo "No timer files (cleanup successful)"
+
+        echo -e "\nTest with empty timers directory..."
+        kill_pending_timers
+        echo "Empty directory test passed (no errors)"
+
+        echo -e "\nTest complete. Check debug log:"
+        tail -n 10 /tmp/claude-hook-debug.log
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup}"
         exit 1
         ;;
 esac

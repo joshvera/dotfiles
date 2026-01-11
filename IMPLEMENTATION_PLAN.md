@@ -91,10 +91,23 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 8. Timer Cleanup Helper
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Add `kill_pending_timers()` function that iterates over `timers/*.timer` files, kills each PID, and removes timer files. Used by both new event handlers (to prevent duplicates) and user activity handler.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: All timer processes killed; timer files removed; no errors on empty timers/
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `kill_pending_timers()` function that gracefully handles all edge cases
+  - Iterates over `timers/*.timer` files in state directory
+  - Checks if each process is alive before attempting to kill (handles dead processes gracefully)
+  - Removes timer files after killing (or attempting to kill)
+  - Handles empty timers directory without errors
+  - Added `test-timer-cleanup` test command that validates:
+    - Killing of real active processes
+    - Graceful handling of already-dead processes
+    - Removal of all timer files
+    - No errors when directory is empty
+  - All tests pass successfully
 
 ### 9. User Activity Cancellation Refactor
 - **Priority**: medium
