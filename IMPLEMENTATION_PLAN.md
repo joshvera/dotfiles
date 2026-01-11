@@ -197,10 +197,38 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 11. Hook Orchestration - PermissionRequest Handler
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Implement `on_permission_request()` with same pattern as Stop handler but using `get_permission_summary()` for message. Parse tool_name from hook stdin JSON. Follow unified flow: ID generation, metadata, desktop notify, mobile schedule. Replace existing permission-request case.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: PermissionRequest hook triggers full lifecycle; context-aware message shown
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `on_permission_request()` function following the same pattern as `mark_claude_finished()`
+  - Implements the following flow:
+    1. Parse tool_name from hook stdin JSON via jq
+    2. Initialize state directory via `initialize_state_dir()`
+    3. Generate unique event ID via `generate_event_id()`
+    4. Kill any pending timers from previous events via `kill_pending_timers()`
+    5. Mark all previous events as superseded via `mark_events_superseded()`
+    6. Generate permission-aware message via `get_permission_summary(tool_name)`
+    7. Record event metadata via `record_event_metadata()` with event_type="permission_request"
+    8. Send desktop notification with reaction detection via `send_desktop_notification_with_reaction()`
+    9. Schedule mobile notification with 30s delay via `schedule_mobile_notification()`
+  - Replaced existing permission-request case (28 lines of legacy code) with single call to `on_permission_request()`
+  - Uses permission-aware messages: "Waiting for your answer", "Waiting for permission: File edit", etc.
+  - Default message is "Waiting for permission" if get_permission_summary returns empty
+  - Added comprehensive test command `test-permission-handler` that validates:
+    - Full event lifecycle with AskUserQuestion tool (Test 1)
+    - Different tool types generate correct permission messages (Test 2: Edit, Bash)
+    - Event supersession works correctly between permission requests (Test 3)
+    - Timer cleanup when superseded events occur
+    - Desktop reaction detection (cancel marker + metadata update after 2s) (Test 4)
+  - Verified with direct invocation tests:
+    - AskUserQuestion → "Waiting for your answer" ✓
+    - Write/Edit → "Waiting for permission: File edit" ✓
+    - Bash → "Waiting for permission: Run command" ✓
+  - Debug logging shows complete event lifecycle: "PermissionRequest hook complete - event: {id}, desktop notified, mobile scheduled"
+  - Function is ready for production use; device-aware routing (Task 12) will optimize for mobile-only sessions
 
 ### 12. Device-Aware Routing Integration
 - **Priority**: medium
