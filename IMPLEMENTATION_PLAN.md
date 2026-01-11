@@ -98,10 +98,29 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 7. Mobile Notification Scheduler
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Implement `schedule_mobile_notification()` that forks a detached background process sleeping 30 seconds, then checks for cancel marker. If no cancel marker and event not superseded, sends ntfy notification via existing `send_idle_notification()`. Store timer PID in `timers/${event_id}.timer`. Clean up files after completion.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Timer scheduled and PID stored; ntfy sent after 30s if no cancel; cancelled if marker exists
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `schedule_mobile_notification()` function taking event_id and message as parameters
+  - Spawns fully detached background process using `( ... ) &>/dev/null & disown` pattern (same as desktop reaction)
+  - Background process sleeps 30 seconds (configurable via TEST_MOBILE_DELAY for testing)
+  - Checks for cancel marker `.cancel-${event_id}` before sending notification
+  - Checks event metadata for `superseded: true` flag before sending notification
+  - Calls existing `send_idle_notification()` to send ntfy notification if not cancelled
+  - Stores timer PID in `timers/${event_id}.timer` immediately after fork for cleanup via `kill_pending_timers()`
+  - Cleans up timer file after completion (whether cancelled, superseded, or successfully sent)
+  - Added comprehensive test command `test-mobile-scheduler` that validates:
+    - Timer is scheduled and PID file created with running process
+    - Timer can be cancelled via cancel marker (Test 2)
+    - Timer can be cancelled via superseded flag (Test 3)
+    - Timer sends notification if not cancelled (Test 4)
+    - All timer files are cleaned up after completion
+  - All tests pass successfully with 5-second test delay
+  - Verified integration with `kill_pending_timers()` via existing test-timer-cleanup
+  - Function is ready to be integrated into hook orchestration handlers (Tasks 10 & 11)
 
 ### 8. Timer Cleanup Helper
 - **Priority**: medium

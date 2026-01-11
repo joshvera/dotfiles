@@ -503,6 +503,72 @@ send_desktop_notification_with_reaction() {
     echo "$(date): Desktop notification sent with reaction detection for event: $event_id" >> /tmp/claude-hook-debug.log
 }
 
+# Schedule mobile notification timer (30 second delay)
+# Usage: schedule_mobile_notification EVENT_ID MESSAGE
+# Creates detached background process that sleeps 30s, checks for cancel marker,
+# then sends ntfy notification if not cancelled or superseded
+schedule_mobile_notification() {
+    local event_id="$1"
+    local message="$2"
+
+    if [[ -z "$event_id" || -z "$message" ]]; then
+        echo "$(date): schedule_mobile_notification: missing event_id or message" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Get state directory for cancel marker and timer file
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+
+    local timers_dir="${state_dir}/timers"
+    local timer_file="${timers_dir}/${event_id}.timer"
+    local cancel_marker="${state_dir}/.cancel-${event_id}"
+    local metadata_file="${state_dir}/${event_id}.json"
+
+    # Spawn fully detached background process for delayed notification
+    # Pattern: same as send_desktop_notification_with_reaction()
+    (
+        # Sleep 30 seconds (configurable for testing via TEST_MOBILE_DELAY)
+        local delay="${TEST_MOBILE_DELAY:-30}"
+        sleep "$delay"
+
+        # Check for cancel marker
+        if [[ -f "$cancel_marker" ]]; then
+            echo "$(date): Mobile notification cancelled via marker: $event_id" >> /tmp/claude-hook-debug.log
+            rm -f "$timer_file"
+            return 0
+        fi
+
+        # Check if event was superseded by reading metadata
+        if [[ -f "$metadata_file" ]]; then
+            local superseded
+            superseded=$(jq -r '.flags.superseded // false' "$metadata_file" 2>/dev/null)
+            if [[ "$superseded" == "true" ]]; then
+                echo "$(date): Mobile notification cancelled (superseded): $event_id" >> /tmp/claude-hook-debug.log
+                rm -f "$timer_file"
+                return 0
+            fi
+        fi
+
+        # Send ntfy notification
+        echo "$(date): Sending mobile notification for event: $event_id" >> /tmp/claude-hook-debug.log
+        send_idle_notification "$message"
+
+        # Clean up timer file
+        rm -f "$timer_file"
+    ) &>/dev/null &
+
+    # Capture PID and store it
+    local timer_pid=$!
+
+    # Store PID in timer file for cleanup
+    echo "$timer_pid" > "$timer_file"
+
+    disown "$timer_pid" 2>/dev/null || true
+
+    echo "$(date): Mobile notification scheduled (PID: $timer_pid, event: $event_id)" >> /tmp/claude-hook-debug.log
+}
+
 # Function to start idle monitoring
 start_idle_monitor() {
     # Kill existing monitor for this project
@@ -919,8 +985,131 @@ case "${1:-start}" in
         echo -e "\nTest complete. Check debug log:"
         tail -n 5 /tmp/claude-hook-debug.log
         ;;
+    "test-mobile-scheduler")
+        # Test mobile notification scheduler with cancel scenarios
+        echo "Testing schedule_mobile_notification function..."
+
+        # Override delay for faster testing (5 seconds instead of 30)
+        export TEST_MOBILE_DELAY=5
+
+        # Initialize state
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+        timers_dir="${state_dir}/timers"
+
+        # Test 1: Schedule and verify PID stored
+        echo -e "\nTest 1: Schedule timer and verify PID file creation"
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+
+        metadata_file=$(record_event_metadata "$event_id" "test" "Test mobile notification")
+        echo "Created metadata: $metadata_file"
+
+        schedule_mobile_notification "$event_id" "Test mobile notification message"
+
+        timer_file="${timers_dir}/${event_id}.timer"
+        if [[ -f "$timer_file" ]]; then
+            timer_pid=$(cat "$timer_file")
+            echo "✓ Timer file created: $timer_file (PID: $timer_pid)"
+
+            # Verify process is running
+            if kill -0 "$timer_pid" 2>/dev/null; then
+                echo "✓ Timer process is running (PID: $timer_pid)"
+            else
+                echo "✗ Timer process not found (PID: $timer_pid)"
+            fi
+        else
+            echo "✗ Timer file NOT created: $timer_file"
+        fi
+
+        # Test 2: Cancel via cancel marker
+        echo -e "\nTest 2: Test cancellation via cancel marker"
+        event_id2=$(generate_event_id)
+        echo "Event ID: $event_id2"
+
+        metadata_file2=$(record_event_metadata "$event_id2" "test" "Test cancellation")
+        schedule_mobile_notification "$event_id2" "This should be cancelled"
+
+        timer_file2="${timers_dir}/${event_id2}.timer"
+        echo "Timer scheduled: $timer_file2"
+
+        # Create cancel marker immediately
+        cancel_marker="${state_dir}/.cancel-${event_id2}"
+        touch "$cancel_marker"
+        echo "Created cancel marker: $cancel_marker"
+
+        # Wait for timer to complete (should exit early due to cancel marker)
+        echo "Waiting for timer to check cancel marker..."
+        sleep 6
+
+        # Verify timer cleaned up
+        if [[ ! -f "$timer_file2" ]]; then
+            echo "✓ Timer file cleaned up after cancellation"
+        else
+            echo "✗ Timer file still exists: $timer_file2"
+        fi
+
+        # Test 3: Cancel via superseded flag
+        echo -e "\nTest 3: Test cancellation via superseded flag"
+        event_id3=$(generate_event_id)
+        echo "Event ID: $event_id3"
+
+        metadata_file3=$(record_event_metadata "$event_id3" "test" "Test superseded")
+        schedule_mobile_notification "$event_id3" "This should be superseded"
+
+        timer_file3="${timers_dir}/${event_id3}.timer"
+        echo "Timer scheduled: $timer_file3"
+
+        # Mark event as superseded
+        update_event_field "$event_id3" "flags.superseded" "true"
+        echo "Marked event as superseded"
+        echo "Metadata superseded flag: $(jq -r '.flags.superseded' "$metadata_file3")"
+
+        # Wait for timer to complete (should exit early due to superseded flag)
+        echo "Waiting for timer to check superseded flag..."
+        sleep 6
+
+        # Verify timer cleaned up
+        if [[ ! -f "$timer_file3" ]]; then
+            echo "✓ Timer file cleaned up after superseded"
+        else
+            echo "✗ Timer file still exists: $timer_file3"
+        fi
+
+        # Test 4: Successful notification (no cancel, no superseded)
+        echo -e "\nTest 4: Test successful notification delivery"
+        event_id4=$(generate_event_id)
+        echo "Event ID: $event_id4"
+
+        metadata_file4=$(record_event_metadata "$event_id4" "test" "Test successful delivery")
+        schedule_mobile_notification "$event_id4" "This should be delivered"
+
+        timer_file4="${timers_dir}/${event_id4}.timer"
+        echo "Timer scheduled: $timer_file4"
+        echo "Waiting ${TEST_MOBILE_DELAY}s for notification to send..."
+
+        # Wait for timer to complete and send notification
+        sleep 6
+
+        # Verify timer cleaned up
+        if [[ ! -f "$timer_file4" ]]; then
+            echo "✓ Timer file cleaned up after delivery"
+        else
+            echo "✗ Timer file still exists: $timer_file4"
+        fi
+
+        echo -e "\nState directory contents:"
+        ls -la "$state_dir"
+        echo -e "\nTimers directory contents:"
+        ls -la "$timers_dir" 2>/dev/null || echo "No timer files (expected)"
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 20 /tmp/claude-hook-debug.log | grep -E "(Mobile notification|schedule_mobile_notification)"
+
+        unset TEST_MOBILE_DELAY
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler}"
         exit 1
         ;;
 esac
