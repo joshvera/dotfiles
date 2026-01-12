@@ -70,3 +70,4 @@ secrets.sh
 .secrets
 *.pem
 *.key
+.worktrees/
