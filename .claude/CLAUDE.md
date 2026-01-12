@@ -68,6 +68,10 @@ Verification is the single biggest factor in output quality.
 - Run tests and linting before committing
 - Keep PRs reviewable
 
+### Git Worktrees
+- Always use `worktrunk` instead of `git worktree` for managing worktrees
+- Run `/worktrunk` skill for guidance on configuration and usage
+
 ## Communication Style
 
 - Be concise and direct
