@@ -377,22 +377,22 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 16. Terminal-Notifier Click Handler (Optional Enhancement)
 - **Priority**: low
-- **Status**: pending
+- **Status**: deferred
 - **Description**: Implement `send_desktop_notification_with_click_handler()` that uses terminal-notifier's `-execute` parameter for true click-based notification dismissal. Creates cancel marker when user clicks notification. Falls back gracefully to osascript if terminal-notifier not installed. Works alongside user activity cancellation (both paths create cancel markers, idempotent).
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**:
   - Clicking notification cancels mobile notification
   - Works with or without terminal-notifier installed
   - Graceful fallback to osascript
-- **Note**: Optional enhancement - terminal-notifier via `brew install terminal-notifier`
+- **Note**: Deferred to follow-up branch. Optional enhancement - terminal-notifier via `brew install terminal-notifier`
 
 ### 17. Notification Click Handler Script (Optional Enhancement)
 - **Priority**: low
-- **Status**: pending
+- **Status**: deferred
 - **Description**: Create `~/.local/bin/notification-handler.sh` that parses JSON payload, focuses Ghostty terminal via AppleScript (matching repo_path), and navigates to tmux pane. Recover session if missing. This enables click-through navigation from desktop notifications. Requires terminal-notifier with -execute parameter (not osascript).
 - **Files**: `~/.local/bin/notification-handler.sh`, `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Clicking notification focuses correct terminal and tmux pane
-- **Note**: Depends on Ghostty AppleScript support and terminal-notifier installation; can be skipped
+- **Note**: Deferred to follow-up branch. Depends on Ghostty AppleScript support and terminal-notifier installation
 
 ## Notes
 
@@ -440,11 +440,13 @@ Recommended order based on dependencies:
 11. ✅ tmux Context Capture (enhancement)
 12. ✅ Notification Payload Builder (enhancement)
 13. ✅ Legacy Cleanup and Migration (cleanup)
-14. ⏳ **Reaction Detection Fix** (critical bug - Spec 13)
-15. ⏳ **Osascript String Escaping** (critical bug - Spec 15)
-16-17. Optional enhancements (terminal-notifier click handler, navigation handler - Specs 04, 14)
+14. ✅ **Reaction Detection Fix** (critical bug - Spec 13)
+15. ✅ **Osascript String Escaping** (critical bug - Spec 15)
+16-17. ⏸️ Deferred to follow-up branch (terminal-notifier click handler, navigation handler)
 
 ## Generated
 - Date: 2026-01-11T21:00:00Z
 - Mode: planning
 - Specs analyzed: 15 (01-15 in specs/)
+- Completed: 2026-01-11 (Tasks 1-15)
+- Deferred: Tasks 16-17 (UX enhancements for follow-up branch)
