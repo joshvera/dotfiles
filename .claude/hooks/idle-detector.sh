@@ -690,16 +690,25 @@ send_desktop_notification_with_click_handler() {
             return 1
         }
 
-        # Write payload to temp file for handler script
+        # Write payload to temp file for handler script (atomic write pattern)
         # Use restrictive permissions (owner-only) since payload contains private paths
         local payload_file="/tmp/claude-notification-payload-${event_id}.json"
+        local temp_file="${payload_file}.tmp.$$"
         local old_umask
         old_umask=$(umask)
         umask 0077
-        if ! echo "$payload" > "$payload_file"; then
+        # Write to temp file first, then atomic mv to final location
+        if ! echo "$payload" > "$temp_file"; then
             umask "$old_umask"
-            echo "$(date): send_desktop_notification_with_click_handler: failed to write payload file" >> /tmp/claude-hook-debug.log
-            rm -f "$payload_file"  # Clean up partial file if any
+            echo "$(date): send_desktop_notification_with_click_handler: failed to write temp payload file" >> /tmp/claude-hook-debug.log
+            rm -f "$temp_file"  # Clean up partial file if any
+            return 1
+        fi
+        # Atomic move to final location (prevents race condition with concurrent notifications)
+        if ! mv "$temp_file" "$payload_file"; then
+            umask "$old_umask"
+            echo "$(date): send_desktop_notification_with_click_handler: failed to move temp file to final location" >> /tmp/claude-hook-debug.log
+            rm -f "$temp_file"
             return 1
         fi
         umask "$old_umask"
