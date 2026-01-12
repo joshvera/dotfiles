@@ -25,18 +25,27 @@ if ! command -v jq &>/dev/null; then
     exit 1
 fi
 
-# Extract fields from JSON payload
-EVENT_ID=$(echo "$PAYLOAD" | jq -r '.event_id // empty' 2>/dev/null || echo "")
-REPO_PATH=$(echo "$PAYLOAD" | jq -r '.repo_path // empty' 2>/dev/null || echo "")
-TMUX_TARGET=$(echo "$PAYLOAD" | jq -r '.tmux_target // empty' 2>/dev/null || echo "")
-TMUX_SESSION=$(echo "$PAYLOAD" | jq -r '.tmux_session // empty' 2>/dev/null || echo "")
-CWD=$(echo "$PAYLOAD" | jq -r '.cwd // empty' 2>/dev/null || echo "")
+# Validate JSON is well-formed using jq -e (exits non-zero on parse error)
+if ! echo "$PAYLOAD" | jq -e . >/dev/null 2>&1; then
+    # Log first 100 chars of payload for debugging
+    PAYLOAD_SNIPPET="${PAYLOAD:0:100}"
+    log_debug "ERROR: Malformed JSON payload (first 100 chars): $PAYLOAD_SNIPPET"
+    exit 1
+fi
+
+# Extract fields from JSON payload using jq -e for strict parsing
+EVENT_ID=$(echo "$PAYLOAD" | jq -e -r '.event_id // empty' 2>/dev/null || echo "")
+REPO_PATH=$(echo "$PAYLOAD" | jq -e -r '.repo_path // empty' 2>/dev/null || echo "")
+TMUX_TARGET=$(echo "$PAYLOAD" | jq -e -r '.tmux_target // empty' 2>/dev/null || echo "")
+TMUX_SESSION=$(echo "$PAYLOAD" | jq -e -r '.tmux_session // empty' 2>/dev/null || echo "")
+CWD=$(echo "$PAYLOAD" | jq -e -r '.cwd // empty' 2>/dev/null || echo "")
 
 log_debug "Parsed fields: event_id=$EVENT_ID, repo_path=$REPO_PATH, tmux_target=$TMUX_TARGET, tmux_session=$TMUX_SESSION, cwd=$CWD"
 
-# Validate required fields
+# Validate required fields are non-empty
 if [[ -z "$EVENT_ID" ]]; then
-    log_debug "ERROR: event_id missing from payload"
+    PAYLOAD_SNIPPET="${PAYLOAD:0:100}"
+    log_debug "ERROR: Required field 'event_id' is missing or empty (first 100 chars): $PAYLOAD_SNIPPET"
     exit 1
 fi
 

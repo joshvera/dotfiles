@@ -16,17 +16,22 @@ Tasks 1-17 from the previous plan are complete. The notification system is funct
 
 ### 1. JSON Schema Validation in notification-handler.sh
 - **Priority**: medium
-- **Status**: pending
+- **Status**: completed
 - **Description**: Add strict JSON validation to `notification-handler.sh`. Use `jq -e` flag for strict parsing. Validate all required fields (event_id) are non-empty after extraction. Exit with clear error if payload is malformed. Log payload snippet on failure for debugging.
 - **Files**: `bin/notification-handler.sh`
 - **Acceptance**:
   - Malformed JSON payloads cause explicit error (not silent failure)
   - Missing required fields (event_id) cause explicit error with message
   - Error messages logged to debug log with payload snippet (first 100 chars)
+- **Implementation Notes**:
+  - Added upfront JSON validation using `jq -e .` that fails fast on malformed JSON
+  - Changed all field extractions to use `jq -e` for strict parsing
+  - Added payload snippet logging (first 100 chars) on both malformed JSON and missing event_id errors
+  - Improved error message for missing event_id to be more explicit about the field requirement
 
 ### 2. Atomic Payload File Writes
 - **Priority**: medium
-- **Status**: complete
+- **Status**: completed
 - **Description**: Fix race condition in `send_desktop_notification_with_click_handler()` where payload file creation could conflict with concurrent notifications. Write to temp file first, then atomic `mv` to final location.
 - **Files**: `.claude/hooks/idle-detector.sh`
 - **Acceptance**:
@@ -97,14 +102,25 @@ No new dependencies. All changes use existing tools (jq, bash builtins).
 
 ### Implementation Order
 Recommended order based on priority and dependencies:
-1. Atomic Payload File Writes (Task 2) - prevents race conditions
-2. JSON Schema Validation (Task 1) - depends on Task 2 for stable test environment
-3. Test Coverage for Edge Cases (Task 5) - validates Tasks 1-2
+1. ~~Atomic Payload File Writes (Task 2)~~ - COMPLETE
+2. ~~JSON Schema Validation (Task 1)~~ - COMPLETE
+3. Test Coverage for Edge Cases (Task 5) - validates Task 1 (next priority)
 4. tmux Navigation Exit Codes (Task 3) - documentation/minor code changes
 5. jq Dependency Documentation (Task 4) - documentation only
 6. Session ID Documentation (Task 6) - documentation only
 
+### jq Dependency Behavior
+
+**Current behavior (documented for Task 4)**:
+
+| Component | jq Available | jq Missing |
+|-----------|-------------|------------|
+| idle-detector.sh | Full functionality with click-through | Falls back to osascript (no click-through) |
+| notification-handler.sh | Parses JSON, navigates tmux | Exits with error (click-through disabled) |
+
+**Summary**: jq is required for click-through features. Basic notifications work without jq via osascript fallback.
+
 ## Generated
-- Date: 2026-01-11T22:00:00Z
+- Date: 2026-01-11T22:30:00Z
 - Mode: planning
 - Specs analyzed: 16 (click handler hardening)
