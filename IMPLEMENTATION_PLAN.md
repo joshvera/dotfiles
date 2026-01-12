@@ -271,10 +271,30 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 12. Device-Aware Routing Integration
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Integrate desktop notification sender with existing device detection. When `DEVICE_TYPE=desktop`, use new desktop notification with reaction detection + mobile scheduler. When `DEVICE_TYPE=mobile` (SSH/mosh), skip desktop notification and send ntfy immediately (no 30s delay). Existing `detect_device_type()` already works; just wire it into new handlers.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Local sessions get desktop + delayed mobile; SSH sessions get ntfy immediately
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Modified `mark_claude_finished()` to use device-aware routing logic
+  - Modified `on_permission_request()` to use device-aware routing logic
+  - Desktop devices (no SSH_CONNECTION/MOSH_CONNECTION):
+    - Send desktop notification with reaction detection (immediate)
+    - Schedule mobile notification with 30s delay
+    - Existing behavior preserved
+  - Mobile devices (SSH_CONNECTION or MOSH_CONNECTION set):
+    - Skip desktop notification (osascript not available in SSH)
+    - Send ntfy notification immediately via `send_idle_notification()`
+    - No timer scheduled (no delay needed)
+  - Added comprehensive test command `test-device-routing` that validates:
+    - Device type detection for desktop, SSH, and Mosh environments (Test 1-3)
+    - Stop handler routing for both desktop and mobile (Test 4a-4b)
+    - PermissionRequest handler routing for both desktop and mobile (Test 5a-5b)
+    - Debug logging shows correct routing path taken
+  - All tests pass successfully
+  - Preserves all existing event lifecycle management (metadata, supersession, timer cleanup)
+  - Debug logging clearly indicates which routing path is taken
 
 ### 13. Legacy Cleanup and Migration
 - **Priority**: low
