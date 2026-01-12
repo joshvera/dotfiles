@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 # notification-handler.sh - Click-through handler for Claude Code notifications
 # Usage: notification-handler.sh <json_payload> OR NOTIFICATION_PAYLOAD=<json> notification-handler.sh
+#
+# Exit Codes:
+#   0 - Full success: Terminal focused, tmux navigated (if target provided), marker created
+#   1 - Partial success: Marker created but some operations failed (terminal focus or tmux navigation)
+#   2 - Complete failure: Critical error (malformed JSON, missing required fields, no marker created)
 
 set -euo pipefail
 
 DEBUG_LOG="/tmp/claude-hook-debug.log"
+
+# Track operation success for exit code determination
+MARKER_CREATED=false
+TERMINAL_FOCUSED=false
+TMUX_NAVIGATED=true  # Default to true (success if no tmux target provided)
 
 log_debug() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [notification-handler] $1" >> "$DEBUG_LOG"
@@ -14,7 +24,7 @@ log_debug() {
 PAYLOAD="${1:-${NOTIFICATION_PAYLOAD:-}}"
 if [[ -z "$PAYLOAD" ]]; then
     log_debug "ERROR: No payload provided"
-    exit 1
+    exit 2
 fi
 
 log_debug "Received payload: $PAYLOAD"
@@ -22,7 +32,7 @@ log_debug "Received payload: $PAYLOAD"
 # Parse JSON fields using jq
 if ! command -v jq &>/dev/null; then
     log_debug "ERROR: jq not found (required for JSON parsing)"
-    exit 1
+    exit 2
 fi
 
 # Validate JSON is well-formed using jq -e (exits non-zero on parse error)
@@ -30,7 +40,7 @@ if ! echo "$PAYLOAD" | jq -e . >/dev/null 2>&1; then
     # Log first 100 chars of payload for debugging
     PAYLOAD_SNIPPET="${PAYLOAD:0:100}"
     log_debug "ERROR: Malformed JSON payload (first 100 chars): $PAYLOAD_SNIPPET"
-    exit 1
+    exit 2
 fi
 
 # Extract fields from JSON payload using jq -e for strict parsing
@@ -46,7 +56,7 @@ log_debug "Parsed fields: event_id=$EVENT_ID, repo_path=$REPO_PATH, tmux_target=
 if [[ -z "$EVENT_ID" ]]; then
     PAYLOAD_SNIPPET="${PAYLOAD:0:100}"
     log_debug "ERROR: Required field 'event_id' is missing or empty (first 100 chars): $PAYLOAD_SNIPPET"
-    exit 1
+    exit 2
 fi
 
 # Source shared session library for get_session_id()
@@ -55,7 +65,7 @@ if [[ -f "$SESSION_LIB" ]]; then
     source "$SESSION_LIB"
 else
     log_debug "ERROR: Session library not found: $SESSION_LIB"
-    exit 1
+    exit 2
 fi
 
 SESSION_ID=$(get_session_id)
@@ -66,18 +76,21 @@ log_debug "Session ID: $SESSION_ID, State dir: $STATE_DIR"
 
 # Create cancel marker (idempotent - user activity may have already created it)
 if [[ -d "$STATE_DIR" ]]; then
-    touch "$CANCEL_MARKER" 2>/dev/null && {
+    if touch "$CANCEL_MARKER" 2>/dev/null; then
         log_debug "Created cancel marker: $CANCEL_MARKER"
-    } || {
+        MARKER_CREATED=true
+    else
         log_debug "WARNING: Failed to create cancel marker (state dir may not exist)"
-    }
+    fi
 else
     log_debug "WARNING: State directory does not exist: $STATE_DIR"
 fi
 
 # Focus Ghostty terminal via AppleScript
 log_debug "Focusing Ghostty terminal..."
-if ! osascript -e 'tell application "Ghostty" to activate' >> "$DEBUG_LOG" 2>&1; then
+if osascript -e 'tell application "Ghostty" to activate' >> "$DEBUG_LOG" 2>&1; then
+    TERMINAL_FOCUSED=true
+else
     log_debug "WARNING: Failed to focus Ghostty (may not be running or installed)"
     # Continue anyway - user might be using different terminal
 fi
@@ -85,6 +98,7 @@ fi
 # Navigate to tmux pane if target is specified
 if [[ -n "$TMUX_TARGET" ]]; then
     log_debug "Navigating to tmux pane: $TMUX_TARGET"
+    TMUX_NAVIGATED=false  # Reset to false since we have a target to navigate to
 
     # Parse TMUX_TARGET format: SESSION:WINDOW.PANE
     session=$(echo "$TMUX_TARGET" | cut -d: -f1)
@@ -104,6 +118,7 @@ if [[ -n "$TMUX_TARGET" ]]; then
             # Then select the pane
             if tmux select-pane -t "$TMUX_TARGET" >> "$DEBUG_LOG" 2>&1; then
                 log_debug "Selected pane: $TMUX_TARGET"
+                TMUX_NAVIGATED=true
             else
                 log_debug "WARNING: Failed to select pane: $TMUX_TARGET (may need to recover session)"
 
@@ -120,4 +135,22 @@ else
     log_debug "No tmux target specified, skipping tmux navigation"
 fi
 
-log_debug "Notification handler complete for event: $EVENT_ID"
+# Determine exit code based on operation results
+EXIT_CODE=0
+STATUS="success"
+
+if [[ "$MARKER_CREATED" == false ]]; then
+    # Critical failure: marker not created
+    EXIT_CODE=2
+    STATUS="complete failure (no marker created)"
+elif [[ "$TERMINAL_FOCUSED" == false ]] || [[ "$TMUX_NAVIGATED" == false ]]; then
+    # Partial success: marker created but some operations failed
+    EXIT_CODE=1
+    STATUS="partial success (marker created, terminal_focused=$TERMINAL_FOCUSED, tmux_navigated=$TMUX_NAVIGATED)"
+else
+    # Full success: all operations succeeded
+    STATUS="full success (terminal focused, tmux navigated, marker created)"
+fi
+
+log_debug "Notification handler complete for event: $EVENT_ID - Status: $STATUS (exit $EXIT_CODE)"
+exit $EXIT_CODE
