@@ -10,41 +10,13 @@ if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$HOME/.secrets/.secrets" ]]; then
     source "$HOME/.secrets/.secrets"
 fi
 
+# Source shared session library for get_session_id()
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/session.sh"
+
 IDLE_TIMEOUT=${CLAUDE_IDLE_TIMEOUT:-30} # Default 30 seconds (configurable)
 IDLE_STATE_FILE="/tmp/claude-idle-state-$(basename "$(pwd)")"
 IDLE_DETECTOR_PID_FILE="/tmp/claude-idle-detector-$(basename "$(pwd)").pid"
-
-# Generate unique session ID for notification state isolation
-# Format: hostname:session:pane_id
-# Returns: Session ID string for use in state directory naming
-get_session_id() {
-    local hostname
-    hostname=$(hostname -s)
-
-    # Tmux: use session name and pane ID for pane-level isolation
-    if [[ -n "${TMUX:-}" ]]; then
-        local session pane_id
-        session=$(tmux display-message -p '#S' 2>/dev/null || echo "tmux")
-        pane_id=$(tmux display-message -p '#D' 2>/dev/null || echo "0")
-        # Remove leading % from pane_id if present
-        pane_id="${pane_id#%}"
-        echo "${hostname}:${session}:${pane_id}"
-        return
-    fi
-
-    # Zellij: use session name (Zellij doesn't expose pane ID as easily)
-    if [[ -n "${ZELLIJ:-}" || -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
-        local session="${ZELLIJ_SESSION_NAME:-zellij}"
-        echo "${hostname}:${session}:0"
-        return
-    fi
-
-    # Fallback: hash of terminal device and PID for uniqueness
-    local term_device="${TTY:-notty}"
-    local hash
-    hash=$(echo "${hostname}:${term_device}:$$" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "$$")
-    echo "${hostname}:shell:${hash:0:8}"
-}
 
 # Clean up legacy state files from old notification system
 # Removes old file patterns from /tmp: idle-state-*, idle-detector-*.pid,
@@ -719,12 +691,18 @@ send_desktop_notification_with_click_handler() {
         }
 
         # Write payload to temp file for handler script
+        # Use restrictive permissions (owner-only) since payload contains private paths
         local payload_file="/tmp/claude-notification-payload-${event_id}.json"
+        local old_umask
+        old_umask=$(umask)
+        umask 0077
         if ! echo "$payload" > "$payload_file"; then
+            umask "$old_umask"
             echo "$(date): send_desktop_notification_with_click_handler: failed to write payload file" >> /tmp/claude-hook-debug.log
             rm -f "$payload_file"  # Clean up partial file if any
             return 1
         fi
+        umask "$old_umask"
 
         # Check if notification-handler.sh exists
         local handler_script="$HOME/.local/bin/notification-handler.sh"
