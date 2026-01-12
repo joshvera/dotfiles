@@ -352,7 +352,7 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 15. Osascript String Escaping (Critical Bug)
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Fix silent notification failures caused by unescaped quotes and backslashes in notification messages. Create `_escape_for_osascript()` helper function that escapes backslashes first, then quotes, then converts newlines to spaces. Apply to all osascript calls. Log errors instead of suppressing them with `2>/dev/null || true`.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**:
@@ -360,7 +360,20 @@ The existing `idle-detector.sh` has foundational infrastructure:
   - Backslashes in summaries display correctly: `C:\Users\name\file.txt`
   - Newlines handled without breaking command
   - Failures logged to debug log instead of silently suppressed
-- **Note**: Quick fix - ~10 lines for helper function, ~5 line changes per calling function
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `_escape_for_osascript()` helper function that properly escapes special characters
+  - Escapes backslashes first (\ -> \\), then quotes (" -> \"), then converts newlines to spaces
+  - Applied to both `send_desktop_notification()` and `send_desktop_notification_with_reaction()`
+  - Replaced `2>/dev/null || true` error suppression with proper error logging to debug log
+  - Added comprehensive test command `test-osascript-escape` with 4 test cases:
+    - Test 1: Double quotes - "hello" and "goodbye"
+    - Test 2: Backslashes - C:\Users\name\file.txt
+    - Test 3: Newlines - multiline text converted to spaces
+    - Test 4: Combined - quotes + backslashes + newlines all handled correctly
+  - All tests pass successfully with notifications displayed correctly
+  - No osascript errors logged, confirming proper escaping
+  - Script syntax validated successfully
 
 ### 16. Terminal-Notifier Click Handler (Optional Enhancement)
 - **Priority**: low
