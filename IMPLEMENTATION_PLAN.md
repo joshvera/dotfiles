@@ -325,29 +325,59 @@ The existing `idle-detector.sh` has foundational infrastructure:
   - All tests pass successfully
   - System now runs cleanly without file accumulation in /tmp
 
-### 14. Notification Click Handler (Optional Enhancement)
+### 14. Reaction Detection Fix (Critical Bug)
+- **Priority**: high
+- **Status**: pending
+- **Description**: Fix critical design flaw in `send_desktop_notification_with_reaction()` that unconditionally creates cancel markers after 2-second delay, defeating mobile backup when user is AFK. Remove the `(sleep 2; touch "$cancel_file") & disown` block. Let real user activity (UserPromptSubmit hook via `on_user_activity()`) handle cancel marker creation instead. This ensures mobile notifications fire correctly when user is away from keyboard.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**:
+  - Desktop notification sends without implicit cancellation
+  - Cancel markers only created on real user activity (keystrokes)
+  - Mobile notification fires at 30s if no user activity
+  - Mobile notification cancels if user types before 30s
+- **Note**: Quick fix - remove ~10 lines of incorrect logic, rely on already-implemented `on_user_activity()` infrastructure
+
+### 15. Osascript String Escaping (Critical Bug)
+- **Priority**: high
+- **Status**: pending
+- **Description**: Fix silent notification failures caused by unescaped quotes and backslashes in notification messages. Create `_escape_for_osascript()` helper function that escapes backslashes first, then quotes, then converts newlines to spaces. Apply to all osascript calls. Log errors instead of suppressing them with `2>/dev/null || true`.
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**:
+  - Quotes in summaries display correctly: `The user said "hello"`
+  - Backslashes in summaries display correctly: `C:\Users\name\file.txt`
+  - Newlines handled without breaking command
+  - Failures logged to debug log instead of silently suppressed
+- **Note**: Quick fix - ~10 lines for helper function, ~5 line changes per calling function
+
+### 16. Terminal-Notifier Click Handler (Optional Enhancement)
 - **Priority**: low
 - **Status**: pending
-- **Description**: Create `~/.local/bin/notification-handler.sh` that parses JSON payload, focuses Ghostty terminal via AppleScript (matching repo_path), and navigates to tmux pane. Recover session if missing. This enables click-through from desktop notifications. Requires terminal-notifier with -execute parameter (not osascript).
+- **Description**: Implement `send_desktop_notification_with_click_handler()` that uses terminal-notifier's `-execute` parameter for true click-based notification dismissal. Creates cancel marker when user clicks notification. Falls back gracefully to osascript if terminal-notifier not installed. Works alongside user activity cancellation (both paths create cancel markers, idempotent).
+- **Files**: `~/.claude/hooks/idle-detector.sh`
+- **Acceptance**:
+  - Clicking notification cancels mobile notification
+  - Works with or without terminal-notifier installed
+  - Graceful fallback to osascript
+- **Note**: Optional enhancement - terminal-notifier via `brew install terminal-notifier`
+
+### 17. Notification Click Handler Script (Optional Enhancement)
+- **Priority**: low
+- **Status**: pending
+- **Description**: Create `~/.local/bin/notification-handler.sh` that parses JSON payload, focuses Ghostty terminal via AppleScript (matching repo_path), and navigates to tmux pane. Recover session if missing. This enables click-through navigation from desktop notifications. Requires terminal-notifier with -execute parameter (not osascript).
 - **Files**: `~/.local/bin/notification-handler.sh`, `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Clicking notification focuses correct terminal and tmux pane
 - **Note**: Depends on Ghostty AppleScript support and terminal-notifier installation; can be skipped
 
-### 15. Terminal-Notifier Integration (Optional Enhancement)
-- **Priority**: low
-- **Status**: pending
-- **Description**: Upgrade desktop notification to use terminal-notifier (if available) instead of osascript. Pass JSON payload via -execute parameter to notification-handler.sh. Fall back to osascript if terminal-notifier not installed. Enables richer notification features (click actions, icons).
-- **Files**: `~/.claude/hooks/idle-detector.sh`
-- **Acceptance**: Clicking notification executes handler script; graceful fallback to osascript
-
 ## Notes
 
 ### Architectural Decisions
-- **Heuristic reaction detection**: Using 2-second delay after desktop notification to create cancel marker, rather than actual click detection. Simpler and reliable; assumes user at desktop sees notification quickly.
+- **Real user activity for reaction detection** (Spec 13 fix): Cancel markers are created only on real user activity (UserPromptSubmit hook), not via heuristic 2-second delay. This ensures mobile notifications fire correctly when user is AFK.
 - **Session isolation via tmux pane ID**: Each tmux pane gets independent notification state, preventing cross-talk between parallel Claude sessions.
 - **Supersession model**: New events mark old events as superseded rather than deleting, preserving audit trail while preventing duplicate notifications.
 - **Background timer detachment**: Timers use full process detachment (exec redirect, disown) to survive parent process exit.
 - **Mobile-first for SSH**: SSH sessions get immediate ntfy (no desktop notification available), not delayed.
+- **Proper string escaping** (Spec 15): All osascript notifications use `_escape_for_osascript()` to handle quotes, backslashes, and newlines safely.
+- **Optional click detection** (Spec 14): terminal-notifier integration provides click-based dismissal when available, with graceful fallback to osascript.
 
 ### Dependencies
 - `jq` required for JSON manipulation (already in use)
@@ -371,22 +401,24 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### Implementation Order
 Recommended order based on dependencies:
-1. Session State Infrastructure (foundation)
-2. Event ID and Metadata System (foundation)
-3. Permission Summary Function (quick refactor)
-4. Timer Cleanup Helper (needed for handlers)
-5. Desktop Notification with Reaction Detection (core feature)
-6. Mobile Notification Scheduler (core feature)
-7. Hook Orchestration - Stop Handler (integration)
-8. Hook Orchestration - PermissionRequest Handler (integration)
-9. User Activity Cancellation Refactor (integration)
-10. Device-Aware Routing Integration (polish)
-11. tmux Context Capture (enhancement)
-12. Notification Payload Builder (enhancement)
-13. Legacy Cleanup and Migration (cleanup)
-14-15. Optional enhancements (click handler, terminal-notifier)
+1. ✅ Session State Infrastructure (foundation)
+2. ✅ Event ID and Metadata System (foundation)
+3. ✅ Permission Summary Function (quick refactor)
+4. ✅ Timer Cleanup Helper (needed for handlers)
+5. ✅ Desktop Notification with Reaction Detection (core feature)
+6. ✅ Mobile Notification Scheduler (core feature)
+7. ✅ Hook Orchestration - Stop Handler (integration)
+8. ✅ Hook Orchestration - PermissionRequest Handler (integration)
+9. ✅ User Activity Cancellation Refactor (integration)
+10. ✅ Device-Aware Routing Integration (polish)
+11. ✅ tmux Context Capture (enhancement)
+12. ✅ Notification Payload Builder (enhancement)
+13. ✅ Legacy Cleanup and Migration (cleanup)
+14. ⏳ **Reaction Detection Fix** (critical bug - Spec 13)
+15. ⏳ **Osascript String Escaping** (critical bug - Spec 15)
+16-17. Optional enhancements (terminal-notifier click handler, navigation handler - Specs 04, 14)
 
 ## Generated
-- Date: 2026-01-11T16:30:00Z
+- Date: 2026-01-11T21:00:00Z
 - Mode: planning
-- Specs analyzed: 12 (01-12 in specs/)
+- Specs analyzed: 15 (01-15 in specs/)
