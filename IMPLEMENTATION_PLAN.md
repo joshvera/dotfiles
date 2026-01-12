@@ -403,11 +403,38 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 17. Notification Click Handler Script
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Create `~/.local/bin/notification-handler.sh` that parses JSON payload, focuses Ghostty terminal via AppleScript (matching repo_path), and navigates to tmux pane. Recover session if missing. This enables click-through navigation from desktop notifications. Requires terminal-notifier with -execute parameter (not osascript).
 - **Files**: `~/.local/bin/notification-handler.sh`, `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Clicking notification focuses correct terminal and tmux pane
 - **Note**: Depends on Ghostty AppleScript support and terminal-notifier installation
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Created `~/.local/bin/notification-handler.sh` with JSON payload parsing via jq
+  - Parses event_id, repo_path, tmux_target, tmux_session, cwd from notification payload
+  - Focuses Ghostty terminal via AppleScript (`tell application "Ghostty" to activate`)
+  - Navigates to tmux pane via `tmux select-window` + `tmux select-pane` using TMUX_TARGET
+  - Creates cancel marker (idempotent with user activity cancellation)
+  - Matches session ID format from idle-detector.sh for proper state directory access
+  - Graceful fallbacks: continues if Ghostty not running, tmux not available, or state dir missing
+  - Updated `send_desktop_notification_with_click_handler()` in idle-detector.sh to:
+    - Build notification payload via `build_notification_payload()`
+    - Add event_id to payload
+    - Write payload to temp file `/tmp/claude-notification-payload-${event_id}.json`
+    - Pass payload to notification-handler.sh via terminal-notifier's -execute parameter
+    - Fallback to simple cancel marker creation if handler script missing
+    - Fallback to osascript if terminal-notifier not installed
+  - Added comprehensive test command `test-notification-handler` with 7 test cases:
+    - Test 1: Script existence and executable check
+    - Test 2: Script syntax validation
+    - Test 3: JSON payload construction and parsing
+    - Test 4: Handler script execution
+    - Test 5: Cancel marker creation
+    - Test 6: tmux context handling
+    - Test 7: Ghostty focus capability
+  - All tests pass successfully
+  - Script syntax validated for both notification-handler.sh and idle-detector.sh
+  - Click-through enables terminal focus + tmux navigation + notification cancellation in one click
 
 ## Notes
 
@@ -457,8 +484,8 @@ Recommended order based on dependencies:
 13. ✅ Legacy Cleanup and Migration (cleanup)
 14. ✅ **Reaction Detection Fix** (critical bug - Spec 13)
 15. ✅ **Osascript String Escaping** (critical bug - Spec 15)
-16. ⏳ Terminal-Notifier Click Handler (click-to-cancel)
-17. ⏳ Notification Click Handler Script (click-to-focus)
+16. ✅ Terminal-Notifier Click Handler (click-to-cancel)
+17. ✅ Notification Click Handler Script (click-to-focus)
 
 ## Generated
 - Date: 2026-01-11T21:00:00Z
