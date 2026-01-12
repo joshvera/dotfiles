@@ -327,7 +327,7 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 14. Reaction Detection Fix (Critical Bug)
 - **Priority**: high
-- **Status**: pending
+- **Status**: complete
 - **Description**: Fix critical design flaw in `send_desktop_notification_with_reaction()` that unconditionally creates cancel markers after 2-second delay, defeating mobile backup when user is AFK. Remove the `(sleep 2; touch "$cancel_file") & disown` block. Let real user activity (UserPromptSubmit hook via `on_user_activity()`) handle cancel marker creation instead. This ensures mobile notifications fire correctly when user is away from keyboard.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**:
@@ -335,7 +335,20 @@ The existing `idle-detector.sh` has foundational infrastructure:
   - Cancel markers only created on real user activity (keystrokes)
   - Mobile notification fires at 30s if no user activity
   - Mobile notification cancels if user types before 30s
-- **Note**: Quick fix - remove ~10 lines of incorrect logic, rely on already-implemented `on_user_activity()` infrastructure
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Removed background process that created cancel markers after 2-second delay
+  - Removed automatic `desktop_reacted` flag update (now only set via user activity)
+  - Updated function comment to reflect new design: cancel via user activity only
+  - Desktop notification still sends immediately via osascript
+  - Updated three test functions to verify new behavior:
+    - `test-desktop-reaction`: Verifies cancel marker NOT auto-created
+    - `test-stop-handler` (Test 3): Verifies no auto-cancel after desktop notification
+    - `test-permission-handler` (Test 4): Verifies no auto-cancel after desktop notification
+  - All tests now expect cancel markers to NOT exist unless user activity occurs
+  - Script syntax validated successfully
+  - Mobile notifications will now correctly fire at 30s when user is AFK
+  - Mobile notifications will correctly cancel when user types (via UserPromptSubmit hook)
 
 ### 15. Osascript String Escaping (Critical Bug)
 - **Priority**: high
