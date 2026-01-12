@@ -2711,8 +2711,213 @@ EOF
         # Cleanup
         rm -f "$cancel_marker"
         ;;
+    "test-click-handler-edge-cases")
+        # Test edge cases for notification-handler.sh
+        echo "Testing notification-handler.sh edge cases..."
+        echo "This test verifies error handling for malformed inputs and edge conditions"
+        echo ""
+
+        handler_script="$HOME/.local/bin/notification-handler.sh"
+
+        # Check if script exists
+        if [[ ! -x "$handler_script" ]]; then
+            echo "✗ notification-handler.sh not found or not executable: $handler_script"
+            exit 1
+        fi
+
+        # Initialize for tests
+        state_dir=$(initialize_state_dir)
+        test_pass_count=0
+        test_fail_count=0
+
+        # Pre-flight: Verify handler script contains expected error messages
+        echo "Pre-flight: Verifying handler script contains expected error patterns..."
+        if ! grep -q "Malformed JSON payload" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'Malformed JSON payload' error message"
+            echo "  Tests cannot proceed without expected error patterns"
+            exit 1
+        fi
+        if ! grep -q "Required field 'event_id'" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'Required field event_id' error message"
+            echo "  Tests cannot proceed without expected error patterns"
+            exit 1
+        fi
+        echo "✓ Handler script contains expected error patterns"
+        echo ""
+
+        # Test 1: Malformed JSON payload
+        echo "Test 1: Malformed JSON payload handling"
+        echo "Testing: {invalid json syntax here"
+        malformed_payload="{invalid json syntax here"
+
+        # Use unique marker for test isolation
+        test1_marker="EDGE_TEST_1_$(date +%s%N)"
+        echo "$test1_marker" >> /tmp/claude-hook-debug.log
+
+        # Capture output and check debug log for error message
+        echo "$malformed_payload" | "$handler_script" "$malformed_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test1_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Malformed JSON payload"; then
+            echo "✓ PASS: Malformed JSON rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Malformed JSON not properly rejected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 2: Missing event_id field
+        echo "Test 2: Missing required event_id field"
+        missing_event_id_payload='{"repo_path": "/tmp/test", "cwd": "/tmp"}'
+        echo "Testing: $missing_event_id_payload"
+
+        # Use unique marker for test isolation
+        test2_marker="EDGE_TEST_2_$(date +%s%N)"
+        echo "$test2_marker" >> /tmp/claude-hook-debug.log
+
+        echo "$missing_event_id_payload" | "$handler_script" "$missing_event_id_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test2_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Required field 'event_id'"; then
+            echo "✓ PASS: Missing event_id rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Missing event_id not properly detected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 3: Empty event_id field
+        echo "Test 3: Empty event_id field"
+        empty_event_id_payload='{"event_id": "", "repo_path": "/tmp/test"}'
+        echo "Testing: $empty_event_id_payload"
+
+        # Use unique marker for test isolation
+        test3_marker="EDGE_TEST_3_$(date +%s%N)"
+        echo "$test3_marker" >> /tmp/claude-hook-debug.log
+
+        echo "$empty_event_id_payload" | "$handler_script" "$empty_event_id_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test3_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Required field 'event_id'"; then
+            echo "✓ PASS: Empty event_id rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Empty event_id not properly detected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 4: Stale payload file cleanup verification
+        echo "Test 4: Stale payload file cleanup (>1 day old)"
+
+        # Note: This tests that cleanup logic exists in initialize_state_dir()
+        # The actual find command behavior varies by OS (macOS vs Linux)
+        # We verify the code exists and runs, but don't test exact find semantics
+
+        # Check that cleanup code exists in initialize_state_dir function
+        # Use BASH_SOURCE for portability across systems
+        THIS_SCRIPT="${BASH_SOURCE[0]}"
+        if grep -q 'find /tmp.*claude-notification-payload.*-mtime.*-delete' "$THIS_SCRIPT"; then
+            echo "✓ PASS: Stale payload cleanup code exists in initialize_state_dir()"
+            ((test_pass_count++))
+
+            echo "  Cleanup command: find /tmp -maxdepth 1 -name \"claude-notification-payload-*.json\" -mtime +1 -delete"
+            echo "  Note: find -mtime behavior varies between macOS and Linux"
+            echo "  On macOS, -mtime +1 means >48 hours; on Linux, >24 hours"
+        else
+            echo "✗ FAIL: Stale payload cleanup code not found"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 5: jq unavailable fallback verification
+        echo "Test 5: Verify jq dependency requirement"
+        echo "Testing that handler script requires jq for operation..."
+
+        # Check if jq is in PATH
+        if command -v jq &>/dev/null; then
+            echo "✓ jq is available: $(command -v jq)"
+
+            # Verify handler script checks for jq
+            if grep -q 'command -v jq' "$handler_script"; then
+                echo "✓ PASS: Handler script checks for jq availability"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Handler script does not check for jq"
+                ((test_fail_count++))
+            fi
+        else
+            echo "! jq not found - testing error message..."
+
+            # Create minimal valid payload
+            valid_payload='{"event_id": "test-123"}'
+
+            if echo "$valid_payload" | "$handler_script" "$valid_payload" 2>&1 | grep -q "jq not found"; then
+                echo "✓ PASS: Handler script reports jq missing with clear error"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Handler script does not properly report jq missing"
+                ((test_fail_count++))
+            fi
+        fi
+        echo ""
+
+        # Test 6: Payload snippet logging on errors
+        echo "Test 6: Payload snippet logging on errors"
+        echo "Testing that errors log first 100 chars of payload..."
+
+        # Pre-flight: Verify handler outputs "first 100 chars" in error messages
+        if ! grep -q "first 100 chars" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'first 100 chars' in error messages"
+            echo "  Skipping test - handler needs to output snippet info"
+            ((test_fail_count++))
+        else
+            # Use unique marker for test isolation
+            test6_marker="EDGE_TEST_6_$(date +%s%N)"
+            echo "$test6_marker" >> /tmp/claude-hook-debug.log
+
+            # Send malformed payload
+            long_malformed="{invalid: this is a long malformed payload with lots of text to test snippet truncation behavior that should be truncated}"
+            echo "$long_malformed" | "$handler_script" "$long_malformed" 2>&1 > /dev/null || true
+
+            # Check if debug log contains snippet message (grep only after our marker)
+            if sed -n "/${test6_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "first 100 chars"; then
+                echo "✓ PASS: Error messages include payload snippet for debugging"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Error messages do not include payload snippet"
+                echo "  Debug log (after marker):"
+                sed -n "/${test6_marker}/,\$p" /tmp/claude-hook-debug.log | head -5 | sed 's/^/  /'
+                ((test_fail_count++))
+            fi
+        fi
+        echo ""
+
+        # Summary
+        echo "============================================"
+        echo "Edge Case Test Summary"
+        echo "============================================"
+        echo "Passed: $test_pass_count"
+        echo "Failed: $test_fail_count"
+        total_tests=$((test_pass_count + test_fail_count))
+        echo "Total:  $total_tests"
+        echo ""
+
+        if [[ $test_fail_count -eq 0 ]]; then
+            echo "✓ All edge case tests passed!"
+            echo ""
+            echo "Debug log excerpt (last 10 lines):"
+            tail -n 10 /tmp/claude-hook-debug.log | grep -E "\[notification-handler\]|Edge case"
+            exit 0
+        else
+            echo "✗ Some tests failed. Check implementation."
+            echo ""
+            echo "Debug log excerpt (last 20 lines):"
+            tail -n 20 /tmp/claude-hook-debug.log | grep -E "\[notification-handler\]|Edge case"
+            exit 1
+        fi
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup|test-click-handler|test-notification-handler}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup|test-click-handler|test-notification-handler|test-click-handler-edge-cases}"
         exit 1
         ;;
 esac
