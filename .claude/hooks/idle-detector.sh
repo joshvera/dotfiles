@@ -471,6 +471,26 @@ detect_device_type() {
     echo "desktop"
 }
 
+# Escape string for safe use in osascript commands
+# Usage: _escape_for_osascript STRING
+# Returns: Escaped string safe for osascript -e "..." commands
+# Escapes: backslashes (\), double quotes ("), newlines (converts to spaces)
+_escape_for_osascript() {
+    local input="$1"
+
+    # Escape backslashes first (\ -> \\)
+    local escaped="${input//\\/\\\\}"
+
+    # Then escape double quotes (" -> \")
+    escaped="${escaped//\"/\\\"}"
+
+    # Convert newlines to spaces
+    escaped="${escaped//$'\n'/ }"
+    escaped="${escaped//$'\r'/ }"
+
+    printf '%s\n' "$escaped"
+}
+
 # File to store transcript path for background worker
 TRANSCRIPT_PATH_FILE="/tmp/claude-transcript-path-$(basename "$(pwd)")"
 
@@ -601,14 +621,24 @@ send_desktop_notification() {
     local title="Claude Code: $(basename "$(pwd)")"
     local message="Response ready"
 
+    # Escape strings for osascript safety
+    local escaped_title
+    escaped_title=$(_escape_for_osascript "$title")
+    local escaped_message
+    escaped_message=$(_escape_for_osascript "$message")
+
     # No sound per user preference
-    osascript -e "display notification \"$message\" with title \"$title\"" 2>/dev/null || true
+    # Log errors instead of suppressing them
+    if ! osascript -e "display notification \"$escaped_message\" with title \"$escaped_title\"" >> /tmp/claude-hook-debug.log 2>&1; then
+        echo "$(date): send_desktop_notification: osascript failed for: $message" >> /tmp/claude-hook-debug.log
+    fi
 }
 
 # Function to send desktop notification with reaction detection
 # Usage: send_desktop_notification_with_reaction TITLE MESSAGE EVENT_ID
-# Sends immediate desktop notification, then spawns detached background process
-# that waits 2 seconds and creates cancel marker + updates metadata
+# Sends immediate desktop notification. Cancel markers are created only via real user activity
+# (UserPromptSubmit hook -> on_user_activity()), not via heuristic delay. This ensures mobile
+# notifications fire correctly when user is AFK (no premature cancellation).
 send_desktop_notification_with_reaction() {
     local title="$1"
     local message="$2"
@@ -619,25 +649,19 @@ send_desktop_notification_with_reaction() {
         return 1
     fi
 
+    # Escape strings for osascript safety
+    local escaped_title
+    escaped_title=$(_escape_for_osascript "$title")
+    local escaped_message
+    escaped_message=$(_escape_for_osascript "$message")
+
     # Send immediate desktop notification
-    osascript -e "display notification \"$message\" with title \"$title\"" 2>/dev/null || true
+    # Log errors instead of suppressing them
+    if ! osascript -e "display notification \"$escaped_message\" with title \"$escaped_title\"" >> /tmp/claude-hook-debug.log 2>&1; then
+        echo "$(date): send_desktop_notification_with_reaction: osascript failed for event: $event_id, message: $message" >> /tmp/claude-hook-debug.log
+    fi
 
-    # Get state directory for cancel marker
-    local state_dir
-    state_dir=$(initialize_state_dir) || return 1
-
-    # Spawn fully detached background process to detect reaction
-    # After 2 seconds, assume user saw notification and create cancel marker
-    (
-        sleep 2
-        # Create cancel marker
-        touch "${state_dir}/.cancel-${event_id}"
-        # Update metadata with desktop_reacted flag
-        update_event_field "${event_id}" "flags.desktop_reacted" "true"
-    ) &>/dev/null &
-    disown
-
-    echo "$(date): Desktop notification sent with reaction detection for event: $event_id" >> /tmp/claude-hook-debug.log
+    echo "$(date): Desktop notification sent for event: $event_id (cancel via user activity only)" >> /tmp/claude-hook-debug.log
 }
 
 # Schedule mobile notification timer (30 second delay)
@@ -1071,6 +1095,53 @@ case "${1:-start}" in
     "test-desktop")
         send_desktop_notification
         ;;
+    "test-osascript-escape")
+        # Test osascript string escaping with problematic characters
+        echo "Testing _escape_for_osascript function..."
+        echo ""
+
+        # Test 1: Quotes in message
+        echo "Test 1: Double quotes"
+        test_msg='The user said "hello" and "goodbye"'
+        escaped=$(_escape_for_osascript "$test_msg")
+        echo "  Input:   $test_msg"
+        echo "  Escaped: $escaped"
+        send_desktop_notification_with_reaction "Test: Quotes" "$test_msg" "test-quote-$(date +%s)"
+        echo ""
+
+        # Test 2: Backslashes in message
+        echo "Test 2: Backslashes"
+        test_msg='C:\Users\name\file.txt'
+        escaped=$(_escape_for_osascript "$test_msg")
+        echo "  Input:   $test_msg"
+        echo "  Escaped: $escaped"
+        send_desktop_notification_with_reaction "Test: Backslashes" "$test_msg" "test-backslash-$(date +%s)"
+        echo ""
+
+        # Test 3: Newlines in message
+        echo "Test 3: Newlines"
+        test_msg=$'Line 1\nLine 2\nLine 3'
+        escaped=$(_escape_for_osascript "$test_msg")
+        echo "  Input:   $test_msg"
+        echo "  Escaped: $escaped"
+        send_desktop_notification_with_reaction "Test: Newlines" "$test_msg" "test-newline-$(date +%s)"
+        echo ""
+
+        # Test 4: Combined problematic characters
+        echo "Test 4: Combined (quotes + backslashes + newlines)"
+        test_msg=$'The path is "C:\\Users\\vera\\file.txt"\nAnd it has "quotes"'
+        escaped=$(_escape_for_osascript "$test_msg")
+        echo "  Input:   $test_msg"
+        echo "  Escaped: $escaped"
+        send_desktop_notification_with_reaction "Test: Combined" "$test_msg" "test-combined-$(date +%s)"
+        echo ""
+
+        echo "Test complete. Check macOS notification center for results."
+        echo "All notifications should display the special characters correctly."
+        echo ""
+        echo "Debug log excerpt:"
+        tail -n 20 /tmp/claude-hook-debug.log | grep -E "(osascript|Desktop notification sent)"
+        ;;
     "test-summary")
         # Test summary generation with sample text
         test_text="${2:-Claude has finished implementing the notification feature and is waiting for you to test it.}"
@@ -1204,6 +1275,8 @@ case "${1:-start}" in
     "test-desktop-reaction")
         # Test desktop notification with reaction detection
         echo "Testing send_desktop_notification_with_reaction function..."
+        echo "Note: Cancel markers are now created only via user activity (on_user_activity),"
+        echo "not automatically after 2s delay. This test verifies notification sends correctly."
 
         # Initialize state
         state_dir=$(initialize_state_dir)
@@ -1224,26 +1297,30 @@ case "${1:-start}" in
         echo -e "\nSending desktop notification..."
         send_desktop_notification_with_reaction "Claude Code: Test" "Testing reaction detection" "$event_id"
 
-        # Wait 3 seconds for background process to complete
-        echo "Waiting 3 seconds for reaction detection..."
-        sleep 3
-
-        # Verify cancel marker exists
-        echo -e "\nChecking for cancel marker..."
-        cancel_marker="${state_dir}/.cancel-${event_id}"
-        if [[ -f "$cancel_marker" ]]; then
-            echo "✓ Cancel marker created: $cancel_marker"
+        # Verify notification was sent (check debug log)
+        echo -e "\nVerifying notification was sent..."
+        if grep -q "Desktop notification sent for event: $event_id" /tmp/claude-hook-debug.log; then
+            echo "✓ Desktop notification sent successfully"
         else
-            echo "✗ Cancel marker NOT found: $cancel_marker"
+            echo "✗ Desktop notification NOT logged"
         fi
 
-        # Verify metadata has desktop_reacted flag
-        echo -e "\nChecking metadata for desktop_reacted flag..."
-        desktop_reacted=$(cat "$metadata_file" | jq -r '.flags.desktop_reacted // empty')
-        if [[ "$desktop_reacted" == "true" ]]; then
-            echo "✓ Metadata updated with desktop_reacted: true"
+        # Verify cancel marker does NOT exist (no auto-cancel)
+        echo -e "\nChecking that cancel marker was NOT auto-created..."
+        cancel_marker="${state_dir}/.cancel-${event_id}"
+        if [[ ! -f "$cancel_marker" ]]; then
+            echo "✓ Cancel marker correctly NOT created (waits for user activity)"
         else
-            echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+            echo "✗ Cancel marker unexpectedly exists: $cancel_marker"
+        fi
+
+        # Verify metadata does NOT have desktop_reacted flag
+        echo -e "\nChecking that desktop_reacted flag was NOT auto-set..."
+        desktop_reacted=$(cat "$metadata_file" | jq -r '.flags.desktop_reacted // empty')
+        if [[ -z "$desktop_reacted" ]]; then
+            echo "✓ Metadata correctly has no desktop_reacted flag (waits for user activity)"
+        else
+            echo "✗ Metadata unexpectedly has desktop_reacted: $desktop_reacted"
         fi
 
         echo -e "\nFinal metadata:"
@@ -1629,25 +1706,25 @@ EOF
                 echo "✗ Second event was not created (same event_id)"
             fi
 
-            # Test 3: Verify desktop reaction detection
-            echo -e "\nTest 3: Verify desktop reaction detection (wait 3s)..."
-            sleep 3
+            # Test 3: Verify desktop notification sent (no auto-cancel)
+            echo -e "\nTest 3: Verify desktop notification sent (no auto-cancel)..."
+            echo "Note: Cancel markers now created only via user activity, not auto-delay"
 
-            # Check for cancel marker
+            # Check that cancel marker does NOT exist (no auto-cancel)
             cancel_marker="$state_dir/.cancel-${event_id2}"
-            if [[ -f "$cancel_marker" ]]; then
-                echo "✓ Cancel marker created after desktop notification: $cancel_marker"
+            if [[ ! -f "$cancel_marker" ]]; then
+                echo "✓ Cancel marker correctly NOT auto-created (waits for user activity)"
             else
-                echo "✗ Cancel marker NOT found: $cancel_marker"
+                echo "✗ Cancel marker unexpectedly exists: $cancel_marker"
             fi
 
-            # Check for desktop_reacted flag
+            # Check that desktop_reacted flag does NOT exist
             metadata_file2="$state_dir/${event_id2}.json"
             desktop_reacted=$(jq -r '.flags.desktop_reacted // empty' "$metadata_file2")
-            if [[ "$desktop_reacted" == "true" ]]; then
-                echo "✓ Metadata updated with desktop_reacted: true"
+            if [[ -z "$desktop_reacted" ]]; then
+                echo "✓ Metadata correctly has no desktop_reacted flag (waits for user activity)"
             else
-                echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+                echo "✗ Metadata unexpectedly has desktop_reacted: $desktop_reacted"
             fi
         fi
 
@@ -1810,24 +1887,24 @@ EOF
             echo "✗ Second event's timer still exists"
         fi
 
-        # Test 4: Verify desktop reaction detection
-        echo -e "\nTest 4: Verify desktop reaction detection (wait 3s)..."
-        sleep 3
+        # Test 4: Verify desktop notification sent (no auto-cancel)
+        echo -e "\nTest 4: Verify desktop notification sent (no auto-cancel)..."
+        echo "Note: Cancel markers now created only via user activity, not auto-delay"
 
-        # Check for cancel marker on latest event
+        # Check that cancel marker does NOT exist (no auto-cancel)
         cancel_marker="$state_dir/.cancel-${event_id3}"
-        if [[ -f "$cancel_marker" ]]; then
-            echo "✓ Cancel marker created after desktop notification: $cancel_marker"
+        if [[ ! -f "$cancel_marker" ]]; then
+            echo "✓ Cancel marker correctly NOT auto-created (waits for user activity)"
         else
-            echo "✗ Cancel marker NOT found: $cancel_marker"
+            echo "✗ Cancel marker unexpectedly exists: $cancel_marker"
         fi
 
-        # Check for desktop_reacted flag
+        # Check that desktop_reacted flag does NOT exist
         desktop_reacted=$(jq -r '.flags.desktop_reacted // empty' "$metadata_file3")
-        if [[ "$desktop_reacted" == "true" ]]; then
-            echo "✓ Metadata updated with desktop_reacted: true"
+        if [[ -z "$desktop_reacted" ]]; then
+            echo "✓ Metadata correctly has no desktop_reacted flag (waits for user activity)"
         else
-            echo "✗ Metadata NOT updated (desktop_reacted: $desktop_reacted)"
+            echo "✗ Metadata unexpectedly has desktop_reacted: $desktop_reacted"
         fi
 
         echo -e "\nFinal state directory contents:"
