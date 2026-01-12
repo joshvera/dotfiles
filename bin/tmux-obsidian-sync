@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: tmux-obsidian-sync [--vault PATH] [--dashboard PATH] [--today]
+
+Creates missing tmux sessions/windows from Obsidian project notes.
+Safe: never deletes/kills/renames by default.
+
+Defaults:
+  --vault     ~/github/aleph
+  --dashboard <vault>/00/Project Dashboard.md
+
+Modes:
+  --today   Sync projects listed under "## Today Focus" in the dashboard
+
+Examples:
+  tmux-obsidian-sync --today
+  tmux-obsidian-sync --vault ~/github/aleph --today
+EOF
+}
+
+vault="$HOME/github/aleph"
+dashboard=""
+mode_today=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --vault)
+      vault="$2"; shift 2;;
+    --dashboard)
+      dashboard="$2"; shift 2;;
+    --today)
+      mode_today=1; shift;;
+    -h|--help)
+      usage; exit 0;;
+    *)
+      echo "Unknown arg: $1" >&2
+      usage; exit 2;;
+  esac
+done
+
+if [[ -z "$dashboard" ]]; then
+  dashboard="$vault/00/Project Dashboard.md"
+fi
+
+expand_tilde() {
+  local value="$1"
+  if [[ "$value" == "~/"* ]]; then
+    # bash 3.2: avoid tilde expansion surprises in pattern removal
+    echo "$HOME/${value:2}"
+  else
+    echo "$value"
+  fi
+}
+
+extract_repo_path() {
+  local file="$1"
+  local raw
+  raw="$(rg -n "^[- ]*Repo/path:" "$file" | head -n 1 | sed -E 's/.*Repo\/path:[[:space:]]*`([^`]*)`.*/\1/' || true)"
+  if [[ -z "$raw" ]]; then
+    raw="$(rg -n "^[- ]*Repo/path:" "$file" | head -n 1 | sed -E 's/.*Repo\/path:[[:space:]]*//')"
+  fi
+  raw="${raw//$'\r'/}"
+  expand_tilde "$raw"
+}
+
+extract_tmux_session() {
+  local file="$1"
+  rg -n "^[- ]*Session:" "$file" \
+    | head -n 1 \
+    | sed -E "s/.*Session:[[:space:]]*//; s/\`//g; s/[[:space:]]+$//"
+}
+
+extract_tmux_windows() {
+  local file="$1"
+  # Extract window names under the tmux / Resume section.
+  # Supports either:
+  #   - `1: ai`
+  #   - `dev`
+  #   - `run` (gateway/dev server)
+  awk '
+    $0 ~ /^##[[:space:]]+tmux[[:space:]]*\/[[:space:]]*Resume/ { in_tmux=1; in_windows=0; next }
+    in_tmux && $0 ~ /^##[[:space:]]+/ { in_tmux=0; in_windows=0 }
+
+    in_tmux && $0 ~ /^[[:space:]]*-[[:space:]]*Windows:/ { in_windows=1; next }
+    in_tmux && $0 ~ /^[[:space:]]*-[[:space:]]*Resume commands:/ { in_windows=0 }
+
+    in_tmux && in_windows {
+      line=$0
+      if (match(line, /^[[:space:]]*-[[:space:]]*`[^`]+`/)) {
+        name=substr(line, RSTART, RLENGTH)
+        sub(/^[[:space:]]*-[[:space:]]*`/, "", name)
+        sub(/`[[:space:]]*$/, "", name)
+        if (name ~ /^[0-9]+:[[:space:]]*/) {
+          sub(/^[0-9]+:[[:space:]]*/, "", name)
+        }
+        gsub(/[[:space:]]+$/, "", name)
+        print name
+      }
+    }
+  ' "$file"
+}
+
+session_exists() {
+  local session="$1"
+  tmux has-session -t "$session" 2>/dev/null
+}
+
+window_exists_by_name() {
+  local session="$1"
+  local name="$2"
+  tmux list-windows -t "$session" -F '#W' 2>/dev/null | rg -qx "${name}" 2>/dev/null
+}
+
+ensure_session_and_windows() {
+  local note="$1"
+
+  if [[ ! -f "$note" ]]; then
+    echo "Skip (missing note): $note" >&2
+    return 0
+  fi
+
+  local session repo_path
+  session="$(extract_tmux_session "$note")"
+  repo_path="$(extract_repo_path "$note")"
+
+  if [[ -z "$session" ]]; then
+    echo "Skip (no tmux Session in note): $note" >&2
+    return 0
+  fi
+
+  if [[ -z "$repo_path" ]]; then
+    repo_path="$HOME"
+  fi
+
+  if [[ ! -d "$repo_path" ]]; then
+    echo "Warn (repo path missing, using HOME): $repo_path ($note)" >&2
+    repo_path="$HOME"
+  fi
+
+  local windows
+  windows=()
+  while IFS= read -r w; do
+    [[ -z "$w" ]] && continue
+    # Keep window names simple and predictable.
+    w="${w//$'\r'/}"
+    w="${w//$'\n'/}"
+    w="${w## }"; w="${w%% }"
+    [[ -z "$w" ]] && continue
+
+    # Guardrail: window names should be semantic labels, not commands.
+    # Reject anything with whitespace or obvious shell commands.
+    if rg -q "[[:space:]]" <<<"$w"; then
+      continue
+    fi
+    case "$w" in
+      cd|cd/*|tmux|tmux*)
+        continue;;
+    esac
+
+    # Deduplicate while preserving order.
+    if printf '%s\n' "${windows[@]:-}" | rg -qx --fixed-strings "$w" 2>/dev/null; then
+      continue
+    fi
+    windows+=("$w")
+  done < <(extract_tmux_windows "$note")
+
+  if [[ ${#windows[@]} -eq 0 ]]; then
+    echo "Skip (no tmux Windows in note): $note" >&2
+    return 0
+  fi
+
+  if ! session_exists "$session"; then
+    tmux new-session -d -s "$session" -c "$repo_path" -n "${windows[0]}"
+    echo "Created session: $session (${windows[0]})" >&2
+  fi
+
+  for w in "${windows[@]}"; do
+    if window_exists_by_name "$session" "$w"; then
+      continue
+    fi
+    tmux new-window -t "$session" -n "$w" -c "$repo_path"
+    echo "Created window: $session:$w" >&2
+  done
+}
+
+resolve_today_notes() {
+  local dash="$1"
+  # Pull wikilinks under Today Focus section.
+  # Example: - [[Software - bankroll/README]]
+  # macOS awk is pickier; avoid match(..., ..., array).
+  awk '
+    $0 ~ /^##[[:space:]]+Today Focus/ { in_today=1; next }
+    in_today && $0 ~ /^##[[:space:]]+/ { in_today=0 }
+    in_today {
+      line=$0
+      if (match(line, /\[\[[^\]]+\]\]/)) {
+        link=substr(line, RSTART+2, RLENGTH-4)
+        print link
+      }
+    }
+  ' "$dash"
+}
+
+link_to_note_path() {
+  local link="$1"
+  # Most of your links look like: Software - bankroll/README
+  # Map to: <vault>/Projects/Software - bankroll/README.md
+  if [[ "$link" == /* ]]; then
+    echo "$link"
+    return 0
+  fi
+
+  local candidate="$vault/Projects/$link"
+  if [[ "$candidate" != *.md ]]; then
+    candidate="$candidate.md"
+  fi
+  echo "$candidate"
+}
+
+if [[ $mode_today -eq 1 ]]; then
+  if ! command -v tmux >/dev/null 2>&1; then
+    echo "tmux not found in PATH" >&2
+    exit 1
+  fi
+
+  if [[ ! -f "$dashboard" ]]; then
+    echo "Dashboard not found: $dashboard" >&2
+    exit 1
+  fi
+
+  while IFS= read -r link; do
+    [[ -z "$link" ]] && continue
+    ensure_session_and_windows "$(link_to_note_path "$link")"
+  done < <(resolve_today_notes "$dashboard")
+
+  exit 0
+fi
+
+echo "No mode selected. Try: tmux-obsidian-sync --today" >&2
+usage
+exit 2
