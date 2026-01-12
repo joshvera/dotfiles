@@ -377,14 +377,29 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 16. Terminal-Notifier Click Handler
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Implement `send_desktop_notification_with_click_handler()` that uses terminal-notifier's `-execute` parameter for true click-based notification dismissal. Creates cancel marker when user clicks notification. Falls back gracefully to osascript if terminal-notifier not installed. Works alongside user activity cancellation (both paths create cancel markers, idempotent).
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**:
   - Clicking notification cancels mobile notification
   - Works with or without terminal-notifier installed
   - Graceful fallback to osascript
-- **Note**: Requires terminal-notifier via `brew install terminal-notifier`
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `send_desktop_notification_with_click_handler()` function that detects terminal-notifier availability
+  - Uses terminal-notifier's `-execute` parameter to run `touch` command creating cancel marker on click
+  - Falls back to osascript (via `_escape_for_osascript()`) when terminal-notifier not installed
+  - Cancel markers are idempotent - both click handler and user activity can create them safely
+  - Added comprehensive test command `test-click-handler` with 5 test cases:
+    - Test 1: Detection of notification method (terminal-notifier vs osascript)
+    - Test 2: Notification sending (visible in macOS notification center)
+    - Test 3: Cancel marker behavior (with 5-second wait for user to click)
+    - Test 4: Error handling for missing parameters
+    - Test 5: Special character handling (quotes, etc.)
+  - All tests pass successfully with osascript fallback path
+  - Script syntax validated successfully
+  - Function works alongside existing `send_desktop_notification_with_reaction()` for user activity cancellation
+  - Install terminal-notifier with: `brew install terminal-notifier` to enable click handler feature
 
 ### 17. Notification Click Handler Script
 - **Priority**: medium
