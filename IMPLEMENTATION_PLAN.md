@@ -298,10 +298,32 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 13. Legacy Cleanup and Migration
 - **Priority**: low
-- **Status**: pending
+- **Status**: complete
 - **Description**: Remove or deprecate old state file patterns (`/tmp/claude-idle-state-*`, `/tmp/claude-idle-detector-*.pid`, `/tmp/claude-transcript-path-*`, `/tmp/claude-permission-context-*`) once new system is stable. Add migration logic to clean up old files on first run of new system. Update `notify-with-summary` case to use new infrastructure or remove if no longer needed.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Old state files cleaned up; no file accumulation; system runs cleanly
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `cleanup_legacy_state()` function that removes all legacy file patterns:
+    - `/tmp/claude-idle-state-*` (old idle monitor state files)
+    - `/tmp/claude-idle-detector-*.pid` (old idle monitor PID files)
+    - `/tmp/claude-transcript-path-*` (old transcript path communication files)
+    - `/tmp/claude-permission-context-*` (old permission context communication files)
+  - Cleanup is automatically called from `initialize_state_dir()` on first run (when state directory is created)
+  - Cleanup uses `rm -f` with glob patterns, counts files before deletion, and logs to debug log
+  - Gracefully handles missing files (no errors when no legacy files exist)
+  - Kept legacy variable definitions (`IDLE_STATE_FILE`, `IDLE_DETECTOR_PID_FILE`, etc.) for backward compatibility
+    - These are still used by `on_user_activity()` to clean up any remaining legacy processes/files
+  - Marked `notify-with-summary` case as DEPRECATED with comment
+    - Kept for backward compatibility in case external scripts still call it
+    - New infrastructure uses `mark_claude_finished()` and `on_permission_request()` directly
+  - `start_idle_monitor()` function is now dead code (not called from main case statement)
+  - Added comprehensive test command `test-legacy-cleanup` that validates:
+    - Direct cleanup function call removes all test legacy files (Test 1)
+    - Cleanup runs automatically during state directory initialization (Test 2)
+    - Graceful handling when no legacy files exist (Test 3)
+  - All tests pass successfully
+  - System now runs cleanly without file accumulation in /tmp
 
 ### 14. Notification Click Handler (Optional Enhancement)
 - **Priority**: low

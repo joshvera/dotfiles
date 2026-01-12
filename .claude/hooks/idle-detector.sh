@@ -46,6 +46,28 @@ get_session_id() {
     echo "${hostname}:shell:${hash:0:8}"
 }
 
+# Clean up legacy state files from old notification system
+# Removes old file patterns from /tmp: idle-state-*, idle-detector-*.pid,
+# transcript-path-*, permission-context-*
+# Called once during state directory initialization
+cleanup_legacy_state() {
+    # Count files before deletion
+    local file_count=0
+    file_count=$(ls /tmp/claude-idle-state-* /tmp/claude-idle-detector-*.pid /tmp/claude-transcript-path-* /tmp/claude-permission-context-* 2>/dev/null | wc -l)
+    file_count=$(echo "$file_count" | tr -d ' ')  # Remove whitespace
+
+    # Remove old idle state files (using rm -f with glob patterns)
+    # The shell expands globs; if no match, rm -f succeeds with no-op
+    rm -f /tmp/claude-idle-state-* 2>/dev/null || true
+    rm -f /tmp/claude-idle-detector-*.pid 2>/dev/null || true
+    rm -f /tmp/claude-transcript-path-* 2>/dev/null || true
+    rm -f /tmp/claude-permission-context-* 2>/dev/null || true
+
+    if [[ $file_count -gt 0 ]]; then
+        echo "$(date): Cleaned up $file_count legacy state file(s)" >> /tmp/claude-hook-debug.log
+    fi
+}
+
 # Initialize state directory structure for notification system
 # Creates: /tmp/claude-notification-state-${SESSION_ID}/timers/
 # Returns: 0 on success
@@ -62,6 +84,9 @@ initialize_state_dir() {
             echo "$(date): Failed to create state directory: $state_dir" >> /tmp/claude-hook-debug.log
             return 1
         }
+
+        # Clean up legacy state files on first run (when directory is created)
+        cleanup_legacy_state
     fi
 
     # Create timers subdirectory
@@ -1008,6 +1033,9 @@ case "${1:-start}" in
         send_idle_notification
         ;;
     "notify-with-summary")
+        # DEPRECATED: Legacy notification case for old idle monitor system
+        # Kept for backward compatibility if external scripts still call it
+        # New infrastructure uses mark_claude_finished() and on_permission_request() directly
         # Read transcript, generate summary, send notification
         summary=""
         permission_context=""
@@ -2213,8 +2241,95 @@ EOF
         echo "--- Recent device routing entries ---"
         tail -n 30 /tmp/claude-hook-debug.log | grep -E "(device detected|Device type:|routing)"
         ;;
+    "test-legacy-cleanup")
+        # Test legacy state file cleanup
+        echo "Testing cleanup_legacy_state function..."
+
+        # Test 1: Create legacy state files and verify cleanup
+        echo -e "\nTest 1: Create legacy files and test cleanup"
+
+        # Create legacy state files in /tmp
+        touch "/tmp/claude-idle-state-test1"
+        touch "/tmp/claude-idle-state-test2"
+        echo "99999" > "/tmp/claude-idle-detector-test1.pid"
+        echo "99998" > "/tmp/claude-idle-detector-test2.pid"
+        touch "/tmp/claude-transcript-path-test1"
+        touch "/tmp/claude-permission-context-test1"
+
+        echo "Created legacy test files:"
+        ls -la /tmp/claude-idle-state-* /tmp/claude-idle-detector-*.pid /tmp/claude-transcript-path-* /tmp/claude-permission-context-* 2>/dev/null | grep test || echo "No files found"
+
+        # Run cleanup function
+        echo -e "\nRunning cleanup_legacy_state..."
+        cleanup_legacy_state
+
+        # Verify files were removed
+        echo -e "\nLegacy files after cleanup:"
+        remaining=$(ls /tmp/claude-idle-state-test* /tmp/claude-idle-detector-test*.pid /tmp/claude-transcript-path-test* /tmp/claude-permission-context-test* 2>/dev/null | wc -l || echo 0)
+        remaining=$(echo "$remaining" | tr -d ' \n')  # Remove whitespace and newlines
+
+        if [[ "$remaining" -eq 0 ]]; then
+            echo "✓ All legacy test files cleaned up successfully"
+        else
+            echo "✗ Some legacy test files still remain:"
+            ls -la /tmp/claude-idle-state-test* /tmp/claude-idle-detector-test*.pid /tmp/claude-transcript-path-test* /tmp/claude-permission-context-test* 2>/dev/null || true
+        fi
+
+        # Test 2: Verify cleanup is called during state directory initialization
+        echo -e "\nTest 2: Verify cleanup runs on first state directory initialization"
+
+        # Create more legacy files
+        touch "/tmp/claude-idle-state-test3"
+        touch "/tmp/claude-idle-detector-test3.pid"
+        echo "Created legacy files for initialization test"
+
+        # Get current session ID and remove its state directory to force re-initialization
+        session_id=$(get_session_id)
+        state_dir="/tmp/claude-notification-state-${session_id}"
+        rm -rf "$state_dir"
+        echo "Removed state directory: $state_dir"
+
+        # Initialize state directory (should trigger cleanup)
+        echo -e "\nInitializing state directory..."
+        new_state_dir=$(initialize_state_dir)
+
+        if [[ $? -eq 0 ]]; then
+            echo "✓ State directory initialized: $new_state_dir"
+
+            # Verify state directory exists
+            if [[ -d "$new_state_dir" ]]; then
+                echo "✓ State directory created successfully"
+                ls -la "$new_state_dir"
+            else
+                echo "✗ State directory not found"
+            fi
+
+            # Verify legacy files were cleaned up
+            remaining=$(ls /tmp/claude-idle-state-test* /tmp/claude-idle-detector-test*.pid /tmp/claude-transcript-path-test* /tmp/claude-permission-context-test* 2>/dev/null | wc -l || echo 0)
+            remaining=$(echo "$remaining" | tr -d ' \n')  # Remove whitespace and newlines
+            if [[ "$remaining" -eq 0 ]]; then
+                echo "✓ Legacy files cleaned up during initialization"
+            else
+                echo "✗ Legacy files still present after initialization:"
+                ls -la /tmp/claude-idle-state-test* /tmp/claude-idle-detector-test*.pid /tmp/claude-transcript-path-test* /tmp/claude-permission-context-test* 2>/dev/null || true
+            fi
+        else
+            echo "✗ Failed to initialize state directory"
+        fi
+
+        # Test 3: Verify graceful handling when no legacy files exist
+        echo -e "\nTest 3: Test graceful handling with no legacy files"
+        cleanup_legacy_state && {
+            echo "✓ cleanup_legacy_state handles missing files gracefully (no errors)"
+        } || {
+            echo "✗ cleanup_legacy_state failed with missing files"
+        }
+
+        echo -e "\nTest complete. Check debug log for cleanup messages:"
+        tail -n 10 /tmp/claude-hook-debug.log | grep -E "legacy|Cleaned up"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup}"
         exit 1
         ;;
 esac
