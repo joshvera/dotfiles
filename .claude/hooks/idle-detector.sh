@@ -87,6 +87,10 @@ initialize_state_dir() {
 
         # Clean up legacy state files on first run (when directory is created)
         cleanup_legacy_state
+
+        # Clean up stale notification payload files (older than 1 day)
+        # These can accumulate if user never clicks notifications
+        find /tmp -maxdepth 1 -name "claude-notification-payload-*.json" -mtime +1 -delete 2>/dev/null || true
     fi
 
     # Create timers subdirectory
@@ -674,6 +678,7 @@ send_desktop_notification_with_click_handler() {
     local message="$2"
     local event_id="$3"
     local event_type="${4:-stop}"
+    local _notification_sent=""
 
     if [[ -z "$title" || -z "$message" || -z "$event_id" ]]; then
         echo "$(date): send_desktop_notification_with_click_handler: missing required parameters" >> /tmp/claude-hook-debug.log
@@ -687,6 +692,11 @@ send_desktop_notification_with_click_handler() {
 
     # Check if terminal-notifier is installed
     if command -v terminal-notifier &>/dev/null; then
+        # Verify jq is available (required for payload manipulation)
+        if ! command -v jq &>/dev/null; then
+            echo "$(date): send_desktop_notification_with_click_handler: jq not found, falling back to osascript" >> /tmp/claude-hook-debug.log
+            # Fall through to osascript fallback below
+        else
         # Build notification payload for click-through handler
         local payload
         payload=$(build_notification_payload "$event_type" "$message") || {
@@ -710,10 +720,11 @@ send_desktop_notification_with_click_handler() {
 
         # Write payload to temp file for handler script
         local payload_file="/tmp/claude-notification-payload-${event_id}.json"
-        echo "$payload" > "$payload_file" || {
+        if ! echo "$payload" > "$payload_file"; then
             echo "$(date): send_desktop_notification_with_click_handler: failed to write payload file" >> /tmp/claude-hook-debug.log
+            rm -f "$payload_file"  # Clean up partial file if any
             return 1
-        }
+        fi
 
         # Check if notification-handler.sh exists
         local handler_script="$HOME/.local/bin/notification-handler.sh"
@@ -748,9 +759,15 @@ send_desktop_notification_with_click_handler() {
         fi
 
         echo "$(date): Desktop notification sent via terminal-notifier (click for focus + cancel) for event: $event_id" >> /tmp/claude-hook-debug.log
-    else
-        # Fall back to osascript (no click handler)
-        echo "$(date): terminal-notifier not found, falling back to osascript for event: $event_id" >> /tmp/claude-hook-debug.log
+        _notification_sent=1
+        fi  # end of jq available block
+    fi  # end of terminal-notifier available block
+
+    # Fall back to osascript (no click handler) - reached when:
+    # - terminal-notifier not installed, OR
+    # - jq not installed (can't build payload)
+    if [[ -z "$_notification_sent" ]]; then
+        echo "$(date): Falling back to osascript for event: $event_id" >> /tmp/claude-hook-debug.log
 
         # Escape strings for osascript safety
         local escaped_title
