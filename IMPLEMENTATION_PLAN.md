@@ -448,10 +448,20 @@ The existing `idle-detector.sh` has foundational infrastructure:
 - **Optional click detection** (Spec 14): terminal-notifier integration provides click-based dismissal when available, with graceful fallback to osascript.
 
 ### Dependencies
-- `jq` required for JSON manipulation (already in use)
-- `uuidgen` preferred for event IDs (fallback to timestamp+random)
-- `terminal-notifier` optional for enhanced click handling (osascript fallback)
-- Ghostty with AppleScript support optional for terminal focus on click (nice-to-have)
+
+**Required:**
+- `jq` - JSON manipulation (install: `brew install jq` or `apt install jq`)
+  - Used for payload building, metadata management, and event parsing
+  - Without jq, click-through handlers fall back to basic osascript notifications
+- `uuidgen` - Event ID generation (typically pre-installed on macOS/Linux)
+  - Falls back to timestamp+random if not available
+
+**Optional:**
+- `terminal-notifier` - Enhanced click handling (install: `brew install terminal-notifier`)
+  - Enables click-to-cancel and click-to-focus features
+  - Without it, falls back to basic osascript notifications
+- Ghostty with AppleScript support - Terminal focus on click (nice-to-have)
+  - Without it, click handler skips terminal focus step
 
 ### Migration Path
 - Existing ntfy integration preserved and reused

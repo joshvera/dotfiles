@@ -40,36 +40,14 @@ if [[ -z "$EVENT_ID" ]]; then
     exit 1
 fi
 
-# Get session ID for state directory (same logic as idle-detector.sh)
-# Must match the session ID format used by idle-detector.sh
-get_session_id() {
-    local hostname
-    hostname=$(hostname -s)
-
-    # Use current tmux session if in tmux (matching idle-detector.sh logic)
-    if [[ -n "${TMUX:-}" ]]; then
-        local session pane_id
-        session=$(tmux display-message -p '#S' 2>/dev/null || echo "tmux")
-        pane_id=$(tmux display-message -p '#D' 2>/dev/null || echo "0")
-        # Remove leading % from pane_id if present
-        pane_id="${pane_id#%}"
-        echo "${hostname}:${session}:${pane_id}"
-        return
-    fi
-
-    # Zellij: use session name (Zellij doesn't expose pane ID as easily)
-    if [[ -n "${ZELLIJ:-}" || -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
-        local session="${ZELLIJ_SESSION_NAME:-zellij}"
-        echo "${hostname}:${session}:0"
-        return
-    fi
-
-    # Final fallback: hash of terminal device and PID for uniqueness
-    local term_device="${TTY:-notty}"
-    local hash
-    hash=$(echo "${hostname}:${term_device}:$$" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "$$")
-    echo "${hostname}:shell:${hash:0:8}"
-}
+# Source shared session library for get_session_id()
+SESSION_LIB="$HOME/.claude/hooks/lib/session.sh"
+if [[ -f "$SESSION_LIB" ]]; then
+    source "$SESSION_LIB"
+else
+    log_debug "ERROR: Session library not found: $SESSION_LIB"
+    exit 1
+fi
 
 SESSION_ID=$(get_session_id)
 STATE_DIR="/tmp/claude-notification-state-${SESSION_ID}"
