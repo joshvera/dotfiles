@@ -592,7 +592,8 @@ send_idle_notification() {
     fi
 }
 
-# Function to send desktop notification (macOS - immediate)
+# DEPRECATED: Use send_desktop_notification_with_click_handler() instead
+# Function to send desktop notification (macOS - immediate, osascript only)
 send_desktop_notification() {
     local title="Claude Code: $(basename "$(pwd)")"
     local message="Response ready"
@@ -610,7 +611,8 @@ send_desktop_notification() {
     fi
 }
 
-# Function to send desktop notification with reaction detection
+# DEPRECATED: Use send_desktop_notification_with_click_handler() instead
+# Function to send desktop notification with reaction detection (osascript only)
 # Usage: send_desktop_notification_with_reaction TITLE MESSAGE EVENT_ID
 # Sends immediate desktop notification. Cancel markers are created only via real user activity
 # (UserPromptSubmit hook -> on_user_activity()), not via heuristic delay. This ensures mobile
@@ -643,17 +645,28 @@ send_desktop_notification_with_reaction() {
 # Function to send desktop notification with click handler
 # Usage: send_desktop_notification_with_click_handler TITLE MESSAGE EVENT_ID EVENT_TYPE
 # Uses terminal-notifier's -execute parameter to invoke notification-handler.sh for click-through navigation.
-# Falls back gracefully to osascript if terminal-notifier not installed.
+# Requires terminal-notifier and jq to be installed - no fallback to osascript.
 # Works alongside user activity cancellation (both paths create cancel markers, idempotent).
 send_desktop_notification_with_click_handler() {
     local title="$1"
     local message="$2"
     local event_id="$3"
     local event_type="${4:-stop}"
-    local _notification_sent=""
 
     if [[ -z "$title" || -z "$message" || -z "$event_id" ]]; then
         echo "$(date): send_desktop_notification_with_click_handler: missing required parameters" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Require terminal-notifier - no fallback
+    if ! command -v terminal-notifier &>/dev/null; then
+        echo "$(date): ERROR: terminal-notifier required but not found. Install with: brew install terminal-notifier" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Require jq for payload manipulation - no fallback
+    if ! command -v jq &>/dev/null; then
+        echo "$(date): ERROR: jq required but not found. Install with: brew install jq" >> /tmp/claude-hook-debug.log
         return 1
     fi
 
@@ -662,113 +675,85 @@ send_desktop_notification_with_click_handler() {
     state_dir=$(initialize_state_dir) || return 1
     local cancel_marker="${state_dir}/.cancel-${event_id}"
 
-    # Check if terminal-notifier is installed
-    if command -v terminal-notifier &>/dev/null; then
-        # Verify jq is available (required for payload manipulation)
-        if ! command -v jq &>/dev/null; then
-            echo "$(date): send_desktop_notification_with_click_handler: jq not found, falling back to osascript" >> /tmp/claude-hook-debug.log
-            # Fall through to osascript fallback below
-        else
-        # Build notification payload for click-through handler
-        local payload
-        payload=$(build_notification_payload "$event_type" "$message") || {
-            echo "$(date): send_desktop_notification_with_click_handler: failed to build payload, falling back to simple cancel marker" >> /tmp/claude-hook-debug.log
-            # Fallback to simple cancel marker creation
-            if ! terminal-notifier \
-                -title "$title" \
-                -message "$message" \
-                -execute "touch '$cancel_marker'" \
-                >> /tmp/claude-hook-debug.log 2>&1; then
-                echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
-            fi
-            return 1
-        }
-
-        # Add event_id to payload (build_notification_payload doesn't include it)
-        payload=$(echo "$payload" | jq --arg event_id "$event_id" '. + {event_id: $event_id}' 2>/dev/null) || {
-            echo "$(date): send_desktop_notification_with_click_handler: failed to add event_id to payload" >> /tmp/claude-hook-debug.log
-            return 1
-        }
-
-        # Write payload to temp file for handler script (atomic write pattern)
-        # Use restrictive permissions (owner-only) since payload contains private paths
-        local payload_file="/tmp/claude-notification-payload-${event_id}.json"
-        local temp_file="${payload_file}.tmp.$$"
-        local old_umask
-        old_umask=$(umask)
-        umask 0077
-        # Write to temp file first, then atomic mv to final location
-        if ! echo "$payload" > "$temp_file"; then
-            umask "$old_umask"
-            echo "$(date): send_desktop_notification_with_click_handler: failed to write temp payload file" >> /tmp/claude-hook-debug.log
-            rm -f "$temp_file"  # Clean up partial file if any
-            return 1
-        fi
-        # Atomic move to final location (prevents race condition with concurrent notifications)
-        if ! mv "$temp_file" "$payload_file"; then
-            umask "$old_umask"
-            echo "$(date): send_desktop_notification_with_click_handler: failed to move temp file to final location" >> /tmp/claude-hook-debug.log
-            rm -f "$temp_file"
-            return 1
-        fi
-        umask "$old_umask"
-
-        # Check if notification-handler.sh exists
-        local handler_script="$HOME/.local/bin/notification-handler.sh"
-        if [[ ! -x "$handler_script" ]]; then
-            echo "$(date): send_desktop_notification_with_click_handler: notification-handler.sh not found or not executable, falling back to simple cancel marker" >> /tmp/claude-hook-debug.log
-            # Fallback to simple cancel marker creation
-            if ! terminal-notifier \
-                -title "$title" \
-                -message "$message" \
-                -execute "touch '$cancel_marker'" \
-                >> /tmp/claude-hook-debug.log 2>&1; then
-                echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
-            fi
-            rm -f "$payload_file"
-            return 1
-        fi
-
-        # Use terminal-notifier with -execute parameter to invoke notification handler
-        # When user clicks notification, it will execute the handler script with payload
-        echo "$(date): Using terminal-notifier with click-through handler for event: $event_id" >> /tmp/claude-hook-debug.log
-
-        # Build execute command: pass payload file path to handler script
-        local execute_cmd="\"$handler_script\" \"\$(cat '$payload_file')\" && rm -f '$payload_file'"
-
+    # Build notification payload for click-through handler
+    local payload
+    payload=$(build_notification_payload "$event_type" "$message") || {
+        echo "$(date): send_desktop_notification_with_click_handler: failed to build payload, using simple cancel marker" >> /tmp/claude-hook-debug.log
+        # Use terminal-notifier with simple cancel marker creation
         if ! terminal-notifier \
             -title "$title" \
             -message "$message" \
-            -execute "$execute_cmd" \
+            -execute "touch '$cancel_marker'" \
             >> /tmp/claude-hook-debug.log 2>&1; then
             echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
-            rm -f "$payload_file"
+            return 1
         fi
+        return 0
+    }
 
-        echo "$(date): Desktop notification sent via terminal-notifier (click for focus + cancel) for event: $event_id" >> /tmp/claude-hook-debug.log
-        _notification_sent=1
-        fi  # end of jq available block
-    fi  # end of terminal-notifier available block
+    # Add event_id to payload (build_notification_payload doesn't include it)
+    payload=$(echo "$payload" | jq --arg event_id "$event_id" '. + {event_id: $event_id}' 2>/dev/null) || {
+        echo "$(date): send_desktop_notification_with_click_handler: failed to add event_id to payload" >> /tmp/claude-hook-debug.log
+        return 1
+    }
 
-    # Fall back to osascript (no click handler) - reached when:
-    # - terminal-notifier not installed, OR
-    # - jq not installed (can't build payload)
-    if [[ -z "$_notification_sent" ]]; then
-        echo "$(date): Falling back to osascript for event: $event_id" >> /tmp/claude-hook-debug.log
-
-        # Escape strings for osascript safety
-        local escaped_title
-        escaped_title=$(_escape_for_osascript "$title")
-        local escaped_message
-        escaped_message=$(_escape_for_osascript "$message")
-
-        # Send immediate desktop notification via osascript
-        if ! osascript -e "display notification \"$escaped_message\" with title \"$escaped_title\"" >> /tmp/claude-hook-debug.log 2>&1; then
-            echo "$(date): send_desktop_notification_with_click_handler: osascript fallback failed for event: $event_id, message: $message" >> /tmp/claude-hook-debug.log
-        fi
-
-        echo "$(date): Desktop notification sent via osascript fallback (cancel via user activity only) for event: $event_id" >> /tmp/claude-hook-debug.log
+    # Write payload to temp file for handler script (atomic write pattern)
+    # Use restrictive permissions (owner-only) since payload contains private paths
+    local payload_file="/tmp/claude-notification-payload-${event_id}.json"
+    local temp_file="${payload_file}.tmp.$$"
+    local old_umask
+    old_umask=$(umask)
+    umask 0077
+    # Write to temp file first, then atomic mv to final location
+    if ! echo "$payload" > "$temp_file"; then
+        umask "$old_umask"
+        echo "$(date): send_desktop_notification_with_click_handler: failed to write temp payload file" >> /tmp/claude-hook-debug.log
+        rm -f "$temp_file"  # Clean up partial file if any
+        return 1
     fi
+    # Atomic move to final location (prevents race condition with concurrent notifications)
+    if ! mv "$temp_file" "$payload_file"; then
+        umask "$old_umask"
+        echo "$(date): send_desktop_notification_with_click_handler: failed to move temp file to final location" >> /tmp/claude-hook-debug.log
+        rm -f "$temp_file"
+        return 1
+    fi
+    umask "$old_umask"
+
+    # Check if notification-handler.sh exists
+    local handler_script="$HOME/.local/bin/notification-handler.sh"
+    if [[ ! -x "$handler_script" ]]; then
+        echo "$(date): send_desktop_notification_with_click_handler: notification-handler.sh not found, using simple cancel marker" >> /tmp/claude-hook-debug.log
+        # Use terminal-notifier with simple cancel marker creation
+        if ! terminal-notifier \
+            -title "$title" \
+            -message "$message" \
+            -execute "touch '$cancel_marker'" \
+            >> /tmp/claude-hook-debug.log 2>&1; then
+            echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+        fi
+        rm -f "$payload_file"
+        return 0
+    fi
+
+    # Use terminal-notifier with -execute parameter to invoke notification handler
+    # When user clicks notification, it will execute the handler script with payload
+    echo "$(date): Using terminal-notifier with click-through handler for event: $event_id" >> /tmp/claude-hook-debug.log
+
+    # Build execute command: pass payload file path to handler script
+    local execute_cmd="\"$handler_script\" \"\$(cat '$payload_file')\" && rm -f '$payload_file'"
+
+    if ! terminal-notifier \
+        -title "$title" \
+        -message "$message" \
+        -execute "$execute_cmd" \
+        >> /tmp/claude-hook-debug.log 2>&1; then
+        echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+        rm -f "$payload_file"
+        return 1
+    fi
+
+    echo "$(date): Desktop notification sent via terminal-notifier (click for focus + cancel) for event: $event_id" >> /tmp/claude-hook-debug.log
 }
 
 # Schedule mobile notification timer (30 second delay)
@@ -1005,9 +990,9 @@ mark_claude_finished() {
         local cwd_basename
         cwd_basename=$(basename "$(pwd)")
         local title="Claude Code: $cwd_basename"
-        send_desktop_notification_with_reaction "$title" "$summary" "$event_id"
+        send_desktop_notification_with_click_handler "$title" "$summary" "$event_id" "stop"
         schedule_mobile_notification "$event_id" "$summary"
-        echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+        echo "$(date): Stop hook complete - event: $event_id, desktop notified (terminal-notifier), mobile scheduled" >> /tmp/claude-hook-debug.log
     fi
 }
 
@@ -1075,9 +1060,9 @@ on_permission_request() {
         local cwd_basename
         cwd_basename=$(basename "$(pwd)")
         local title="Claude Code: $cwd_basename"
-        send_desktop_notification_with_reaction "$title" "$message" "$event_id"
+        send_desktop_notification_with_click_handler "$title" "$message" "$event_id" "permission_request"
         schedule_mobile_notification "$event_id" "$message"
-        echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+        echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified (terminal-notifier), mobile scheduled" >> /tmp/claude-hook-debug.log
     fi
 }
 
