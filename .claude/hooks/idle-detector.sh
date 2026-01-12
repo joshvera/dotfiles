@@ -117,6 +117,76 @@ capture_tmux_context() {
     echo "$(date): Captured tmux context: session=$session, window=$window, pane=$pane, target=$TMUX_TARGET" >> /tmp/claude-hook-debug.log
 }
 
+# Build standardized JSON notification payload
+# Usage: build_notification_payload EVENT_TYPE MESSAGE [TOOL_NAME]
+# Returns: JSON payload string (validated)
+# Fields: event_type, repo_path, cwd, tmux_target, tmux_session, transcript_path, permission_context, message, timestamp
+build_notification_payload() {
+    local event_type="$1"
+    local message="$2"
+    local tool_name="${3:-}"
+
+    if [[ -z "$event_type" || -z "$message" ]]; then
+        echo "$(date): build_notification_payload: missing event_type or message" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Detect git repo root (empty if not in git repo)
+    local repo_path=""
+    if git rev-parse --show-toplevel &>/dev/null; then
+        repo_path=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+    fi
+
+    # Get current working directory
+    local cwd
+    cwd=$(pwd)
+
+    # Capture tmux context
+    capture_tmux_context
+
+    # Get transcript path from environment (if available)
+    local transcript_path="${CLAUDE_TRANSCRIPT_PATH:-}"
+
+    # Generate ISO 8601 timestamp
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Build JSON payload using jq for proper escaping and validation
+    local payload
+    payload=$(jq -n \
+        --arg event_type "$event_type" \
+        --arg repo_path "$repo_path" \
+        --arg cwd "$cwd" \
+        --arg tmux_target "$TMUX_TARGET" \
+        --arg tmux_session "$TMUX_SESSION" \
+        --arg transcript_path "$transcript_path" \
+        --arg permission_context "$tool_name" \
+        --arg message "$message" \
+        --arg timestamp "$timestamp" \
+        '{
+            event_type: $event_type,
+            repo_path: $repo_path,
+            cwd: $cwd,
+            tmux_target: $tmux_target,
+            tmux_session: $tmux_session,
+            transcript_path: $transcript_path,
+            permission_context: $permission_context,
+            message: $message,
+            timestamp: $timestamp
+        }' 2>/dev/null) || {
+        echo "$(date): build_notification_payload: jq failed to build payload" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    # Validate JSON is valid (jq already validated during construction)
+    if ! echo "$payload" | jq . &>/dev/null; then
+        echo "$(date): build_notification_payload: invalid JSON payload" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    echo "$payload"
+}
+
 # Generate unique event ID for notification lifecycle tracking
 # Uses uuidgen if available, otherwise falls back to timestamp+random
 # Returns: Event ID string (UUID4 or timestamp-based)
@@ -1833,8 +1903,164 @@ EOF
         echo -e "\nTest complete. Check debug log for details:"
         tail -n 5 /tmp/claude-hook-debug.log | grep -E "tmux context"
         ;;
+    "test-notification-payload")
+        # Test build_notification_payload function
+        echo "Testing build_notification_payload function..."
+
+        # Test 1: Basic payload construction
+        echo -e "\nTest 1: Basic payload construction (stop event)"
+
+        payload=$(build_notification_payload "stop" "Response ready")
+        if [[ $? -eq 0 ]]; then
+            echo "✓ Payload built successfully"
+            echo -e "\nPayload structure:"
+            echo "$payload" | jq .
+
+            # Validate JSON is valid
+            if echo "$payload" | jq . &>/dev/null; then
+                echo "✓ Payload is valid JSON"
+            else
+                echo "✗ Payload is NOT valid JSON"
+            fi
+
+            # Validate required fields are present
+            echo -e "\nValidating required fields:"
+
+            event_type=$(echo "$payload" | jq -r '.event_type')
+            if [[ "$event_type" == "stop" ]]; then
+                echo "✓ event_type present: $event_type"
+            else
+                echo "✗ event_type incorrect: $event_type"
+            fi
+
+            message=$(echo "$payload" | jq -r '.message')
+            if [[ "$message" == "Response ready" ]]; then
+                echo "✓ message present: $message"
+            else
+                echo "✗ message incorrect: $message"
+            fi
+
+            cwd=$(echo "$payload" | jq -r '.cwd')
+            if [[ -n "$cwd" && "$cwd" != "null" ]]; then
+                echo "✓ cwd present: $cwd"
+            else
+                echo "✗ cwd missing or null"
+            fi
+
+            timestamp=$(echo "$payload" | jq -r '.timestamp')
+            # Validate ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+            if [[ "$timestamp" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
+                echo "✓ timestamp in correct ISO 8601 format: $timestamp"
+            else
+                echo "✗ timestamp format incorrect: $timestamp"
+            fi
+
+            repo_path=$(echo "$payload" | jq -r '.repo_path')
+            # Repo path should be populated if in git repo, empty otherwise
+            if git rev-parse --show-toplevel &>/dev/null; then
+                expected_repo=$(git rev-parse --show-toplevel)
+                if [[ "$repo_path" == "$expected_repo" ]]; then
+                    echo "✓ repo_path correctly detected: $repo_path"
+                else
+                    echo "✗ repo_path incorrect (got: $repo_path, expected: $expected_repo)"
+                fi
+            else
+                if [[ "$repo_path" == "" ]]; then
+                    echo "✓ repo_path correctly empty (not in git repo)"
+                else
+                    echo "✗ repo_path should be empty outside git repo: $repo_path"
+                fi
+            fi
+
+            tmux_target=$(echo "$payload" | jq -r '.tmux_target')
+            tmux_session=$(echo "$payload" | jq -r '.tmux_session')
+            if [[ -n "${TMUX:-}" ]]; then
+                # In tmux - should have values
+                if [[ -n "$tmux_target" && "$tmux_target" != "null" ]]; then
+                    echo "✓ tmux_target present (in tmux): $tmux_target"
+                else
+                    echo "✗ tmux_target missing (in tmux)"
+                fi
+                if [[ -n "$tmux_session" && "$tmux_session" != "null" ]]; then
+                    echo "✓ tmux_session present (in tmux): $tmux_session"
+                else
+                    echo "✗ tmux_session missing (in tmux)"
+                fi
+            else
+                # Not in tmux - should be empty
+                if [[ "$tmux_target" == "" ]]; then
+                    echo "✓ tmux_target correctly empty (not in tmux)"
+                else
+                    echo "✗ tmux_target should be empty outside tmux: $tmux_target"
+                fi
+                if [[ "$tmux_session" == "" ]]; then
+                    echo "✓ tmux_session correctly empty (not in tmux)"
+                else
+                    echo "✗ tmux_session should be empty outside tmux: $tmux_session"
+                fi
+            fi
+
+            permission_context=$(echo "$payload" | jq -r '.permission_context')
+            if [[ "$permission_context" == "" ]]; then
+                echo "✓ permission_context correctly empty (no tool_name)"
+            else
+                echo "✗ permission_context should be empty: $permission_context"
+            fi
+
+            transcript_path=$(echo "$payload" | jq -r '.transcript_path')
+            echo "  transcript_path: '$transcript_path' (from env var, may be empty)"
+
+        else
+            echo "✗ Failed to build payload"
+        fi
+
+        # Test 2: Payload with permission context
+        echo -e "\nTest 2: Permission request payload with tool_name"
+
+        payload2=$(build_notification_payload "permission_request" "Waiting for permission: File edit" "Edit")
+        if [[ $? -eq 0 ]]; then
+            echo "✓ Payload built successfully"
+
+            event_type=$(echo "$payload2" | jq -r '.event_type')
+            if [[ "$event_type" == "permission_request" ]]; then
+                echo "✓ event_type is permission_request"
+            else
+                echo "✗ event_type incorrect: $event_type"
+            fi
+
+            permission_context=$(echo "$payload2" | jq -r '.permission_context')
+            if [[ "$permission_context" == "Edit" ]]; then
+                echo "✓ permission_context present: $permission_context"
+            else
+                echo "✗ permission_context incorrect: $permission_context"
+            fi
+
+            echo -e "\nPayload:"
+            echo "$payload2" | jq .
+        else
+            echo "✗ Failed to build payload"
+        fi
+
+        # Test 3: Error handling - missing parameters
+        echo -e "\nTest 3: Error handling - missing parameters"
+
+        if build_notification_payload "" "Test message" &>/dev/null; then
+            echo "✗ Should fail with empty event_type"
+        else
+            echo "✓ Correctly fails with empty event_type"
+        fi
+
+        if build_notification_payload "stop" "" &>/dev/null; then
+            echo "✗ Should fail with empty message"
+        else
+            echo "✓ Correctly fails with empty message"
+        fi
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 10 /tmp/claude-hook-debug.log | grep -E "build_notification_payload"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload}"
         exit 1
         ;;
 esac

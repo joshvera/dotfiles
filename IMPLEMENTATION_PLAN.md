@@ -87,10 +87,32 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 5. Notification Payload Builder
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Create `build_notification_payload()` function to build standardized JSON payload with: event_type, repo_path (git root detection), cwd, tmux_target, tmux_session, transcript_path, permission_context, timestamp (ISO 8601). Validate with jq before use.
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Valid JSON payload generated; repo_path correctly finds .git parent; all fields present
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `build_notification_payload()` function that takes event_type, message, and optional tool_name as parameters
+  - Detects git repo root via `git rev-parse --show-toplevel` (empty string if not in git repo)
+  - Captures current working directory via `pwd`
+  - Calls `capture_tmux_context()` to populate tmux_target and tmux_session variables
+  - Reads transcript_path from `CLAUDE_TRANSCRIPT_PATH` environment variable (empty if not set)
+  - Generates ISO 8601 timestamp using `date -u +"%Y-%m-%dT%H:%M:%SZ"`
+  - Builds JSON payload using jq with proper escaping for all fields
+  - Validates JSON is valid before returning (double validation for safety)
+  - Returns validated JSON payload to stdout
+  - Added comprehensive test command `test-notification-payload` that validates:
+    - Basic payload construction with all required fields (Test 1)
+    - Permission request payload with tool_name/permission_context (Test 2)
+    - Error handling for missing parameters (Test 3)
+    - JSON validity via jq
+    - ISO 8601 timestamp format validation
+    - Git repo detection (correct path inside repo, empty outside)
+    - tmux context integration (populated in tmux, empty outside)
+  - All tests pass successfully in tmux environment inside git repo
+  - Gracefully handles missing values (empty strings instead of null)
+  - Ready for integration into notification handlers (Tasks 14-15 for click-through)
 
 ### 6. Desktop Notification with Reaction Detection
 - **Priority**: high
