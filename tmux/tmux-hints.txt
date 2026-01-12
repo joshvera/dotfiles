@@ -31,14 +31,14 @@
   -               Split horizontal (stacked)
   |               Split vertical (side by side)
   r               Rename window
-  Ctrl-r          Rename session
+  R               Rename session
   x               Kill pane
   &               Kill window
   d               Detach session
   s               Session list
   w               Window list
   z               Zoom pane (fullscreen toggle)
-  R               Reload config
+  Alt-r           Reload config
   ?               Show this help
 
   COPY/SCROLL MODE (F6 or PageUp)
@@ -67,7 +67,7 @@
 
   SESSIONS
   --------
-  Ctrl-Space Ctrl-r  Rename session
+  Ctrl-Space R       Rename session
   Ctrl-Space (/)     Switch session prev/next
   Ctrl-Space L       Last session
   Ctrl-Space s       Session list

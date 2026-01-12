@@ -53,6 +53,16 @@
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/idle-detector.sh permission-request"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
