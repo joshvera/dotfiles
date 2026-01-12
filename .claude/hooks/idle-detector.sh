@@ -781,7 +781,7 @@ start_idle_monitor() {
 }
 
 # Function to mark activity (Claude finished responding)
-# Implements full event lifecycle with desktop notification and mobile scheduler
+# Implements full event lifecycle with device-aware routing
 mark_claude_finished() {
     local device_type
     device_type=$(detect_device_type)
@@ -837,20 +837,26 @@ mark_claude_finished() {
         return 1
     }
 
-    # Send desktop notification with reaction detection (immediate)
-    local cwd_basename
-    cwd_basename=$(basename "$(pwd)")
-    local title="Claude Code: $cwd_basename"
-    send_desktop_notification_with_reaction "$title" "$summary" "$event_id"
-
-    # Schedule mobile notification (30 second delay)
-    schedule_mobile_notification "$event_id" "$summary"
-
-    echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+    # Device-aware routing
+    if [[ "$device_type" == "mobile" ]]; then
+        # Mobile (SSH/mosh) - send ntfy immediately, skip desktop notification
+        echo "$(date): Mobile device detected - sending ntfy immediately" >> /tmp/claude-hook-debug.log
+        send_idle_notification "$summary"
+        echo "$(date): Stop hook complete - event: $event_id, mobile notified immediately" >> /tmp/claude-hook-debug.log
+    else
+        # Desktop - send desktop notification with reaction detection + schedule mobile
+        echo "$(date): Desktop device detected - sending desktop notification + scheduling mobile" >> /tmp/claude-hook-debug.log
+        local cwd_basename
+        cwd_basename=$(basename "$(pwd)")
+        local title="Claude Code: $cwd_basename"
+        send_desktop_notification_with_reaction "$title" "$summary" "$event_id"
+        schedule_mobile_notification "$event_id" "$summary"
+        echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+    fi
 }
 
 # Handle permission request from Claude
-# Implements full event lifecycle with permission-aware message
+# Implements full event lifecycle with device-aware routing
 on_permission_request() {
     local device_type
     device_type=$(detect_device_type)
@@ -901,16 +907,22 @@ on_permission_request() {
         return 1
     }
 
-    # Send desktop notification with reaction detection (immediate)
-    local cwd_basename
-    cwd_basename=$(basename "$(pwd)")
-    local title="Claude Code: $cwd_basename"
-    send_desktop_notification_with_reaction "$title" "$message" "$event_id"
-
-    # Schedule mobile notification (30 second delay)
-    schedule_mobile_notification "$event_id" "$message"
-
-    echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+    # Device-aware routing
+    if [[ "$device_type" == "mobile" ]]; then
+        # Mobile (SSH/mosh) - send ntfy immediately, skip desktop notification
+        echo "$(date): Mobile device detected - sending ntfy immediately" >> /tmp/claude-hook-debug.log
+        send_idle_notification "$message"
+        echo "$(date): PermissionRequest hook complete - event: $event_id, mobile notified immediately" >> /tmp/claude-hook-debug.log
+    else
+        # Desktop - send desktop notification with reaction detection + schedule mobile
+        echo "$(date): Desktop device detected - sending desktop notification + scheduling mobile" >> /tmp/claude-hook-debug.log
+        local cwd_basename
+        cwd_basename=$(basename "$(pwd)")
+        local title="Claude Code: $cwd_basename"
+        send_desktop_notification_with_reaction "$title" "$message" "$event_id"
+        schedule_mobile_notification "$event_id" "$message"
+        echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+    fi
 }
 
 # Handle user activity: cancel all pending notifications and clear state
@@ -2059,8 +2071,150 @@ EOF
         echo -e "\nTest complete. Check debug log for details:"
         tail -n 10 /tmp/claude-hook-debug.log | grep -E "build_notification_payload"
         ;;
+    "test-device-routing")
+        # Test device-aware routing logic
+        echo "Testing device-aware routing..."
+
+        # Test 1: Simulate desktop environment (no SSH vars)
+        echo -e "\nTest 1: Desktop environment (no SSH_CONNECTION)"
+        unset SSH_CONNECTION
+        unset MOSH_CONNECTION
+        unset CLAUDE_NOTIFY_MODE
+
+        device_type=$(detect_device_type)
+        echo "Detected device type: $device_type"
+
+        if [[ "$device_type" == "desktop" ]]; then
+            echo "✓ Correctly detected desktop environment"
+            echo "  Expected routing: Desktop notification + delayed mobile notification"
+        else
+            echo "✗ Failed to detect desktop environment (got: $device_type)"
+        fi
+
+        # Test 2: Simulate mobile environment (SSH_CONNECTION set)
+        echo -e "\nTest 2: Mobile environment (SSH_CONNECTION set)"
+        export SSH_CONNECTION="192.168.1.1 12345 192.168.1.2 22"
+
+        device_type=$(detect_device_type)
+        echo "Detected device type: $device_type"
+
+        if [[ "$device_type" == "mobile" ]]; then
+            echo "✓ Correctly detected mobile environment via SSH_CONNECTION"
+            echo "  Expected routing: Immediate ntfy notification (no desktop notification)"
+        else
+            echo "✗ Failed to detect mobile environment (got: $device_type)"
+        fi
+
+        # Clean up
+        unset SSH_CONNECTION
+
+        # Test 3: Simulate MOSH_CONNECTION (another mobile indicator)
+        echo -e "\nTest 3: Mobile environment (MOSH_CONNECTION set)"
+        export MOSH_CONNECTION="1"
+
+        device_type=$(detect_device_type)
+        echo "Detected device type: $device_type"
+
+        if [[ "$device_type" == "mobile" ]]; then
+            echo "✓ Correctly detected mobile environment via MOSH_CONNECTION"
+            echo "  Expected routing: Immediate ntfy notification"
+        else
+            echo "✗ Failed to detect mobile environment (got: $device_type)"
+        fi
+
+        # Clean up
+        unset MOSH_CONNECTION
+
+        # Test 4: Test actual routing logic with simulated events
+        echo -e "\nTest 4: Test routing logic with simulated stop handler"
+
+        # Override delay for faster testing
+        export TEST_MOBILE_DELAY=2
+
+        # Create mock transcript
+        mock_transcript="/tmp/test-transcript-routing-$$.jsonl"
+        cat > "$mock_transcript" <<'EOF'
+{"role":"assistant","message":{"content":[{"type":"text","text":"Testing device routing"}]}}
+EOF
+
+        # Test desktop routing
+        echo -e "\nTest 4a: Stop handler with desktop routing"
+        unset SSH_CONNECTION
+        unset MOSH_CONNECTION
+
+        mock_hook_input=$(jq -n --arg path "$mock_transcript" '{transcript_path: $path}')
+        echo "$mock_hook_input" | "$0" claude-finished
+
+        sleep 1
+
+        # Check debug log for correct routing
+        echo "Checking debug log for desktop routing..."
+        if tail -n 20 /tmp/claude-hook-debug.log | grep -q "Desktop device detected - sending desktop notification + scheduling mobile"; then
+            echo "✓ Desktop routing path taken correctly"
+        else
+            echo "✗ Desktop routing path not found in log"
+        fi
+
+        # Test mobile routing
+        echo -e "\nTest 4b: Stop handler with mobile routing"
+        export SSH_CONNECTION="192.168.1.1 12345 192.168.1.2 22"
+
+        echo "$mock_hook_input" | "$0" claude-finished
+
+        sleep 1
+
+        # Check debug log for correct routing
+        echo "Checking debug log for mobile routing..."
+        if tail -n 20 /tmp/claude-hook-debug.log | grep -q "Mobile device detected - sending ntfy immediately"; then
+            echo "✓ Mobile routing path taken correctly"
+        else
+            echo "✗ Mobile routing path not found in log"
+        fi
+
+        # Test 5: Test permission handler routing
+        echo -e "\nTest 5: PermissionRequest handler with device routing"
+
+        # Test desktop
+        echo -e "\nTest 5a: PermissionRequest with desktop routing"
+        unset SSH_CONNECTION
+
+        mock_hook_input=$(jq -n --arg tool "AskUserQuestion" '{tool_name: $tool}')
+        echo "$mock_hook_input" | "$0" permission-request
+
+        sleep 1
+
+        if tail -n 20 /tmp/claude-hook-debug.log | grep -q "Desktop device detected - sending desktop notification + scheduling mobile"; then
+            echo "✓ PermissionRequest desktop routing correct"
+        else
+            echo "✗ PermissionRequest desktop routing not found"
+        fi
+
+        # Test mobile
+        echo -e "\nTest 5b: PermissionRequest with mobile routing"
+        export SSH_CONNECTION="192.168.1.1 12345 192.168.1.2 22"
+
+        echo "$mock_hook_input" | "$0" permission-request
+
+        sleep 1
+
+        if tail -n 20 /tmp/claude-hook-debug.log | grep -q "Mobile device detected - sending ntfy immediately"; then
+            echo "✓ PermissionRequest mobile routing correct"
+        else
+            echo "✗ PermissionRequest mobile routing not found"
+        fi
+
+        # Cleanup
+        rm -f "$mock_transcript"
+        unset SSH_CONNECTION
+        unset MOSH_CONNECTION
+        unset TEST_MOBILE_DELAY
+
+        echo -e "\nTest complete. Debug log excerpt:"
+        echo "--- Recent device routing entries ---"
+        tail -n 30 /tmp/claude-hook-debug.log | grep -E "(device detected|Device type:|routing)"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing}"
         exit 1
         ;;
 esac
