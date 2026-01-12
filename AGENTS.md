@@ -19,8 +19,11 @@
 
 ## Hooks
 
-# Review plan with Codex before starting build
-on_plan_complete: hooks/review-plan.sh mode=warn timeout=300
+# Review plan with Codex before starting build (blocks on rejection)
+on_plan_complete: hooks/review-plan.sh mode=block timeout=300
+
+# Review task implementation with Codex (blocks on rejection)
+on_task_complete: hooks/review-task.sh mode=block timeout=120
 
 # Send notification after each task
 on_task_complete: hooks/notify.sh mode=warn timeout=60

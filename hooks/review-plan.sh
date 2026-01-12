@@ -10,8 +10,8 @@
 #   WIGGUM_PLAN_FILE - Path to the implementation plan file
 #
 # Exit Codes:
-#   0 - Success (or Claude CLI not available, or review failed - non-blocking)
-#   1 - Plan file missing (WIGGUM_PLAN_FILE not set or file doesn't exist)
+#   0 - Review passed (or Claude CLI not available)
+#   1 - Review rejected the plan, or plan file missing
 #
 
 set -euo pipefail
@@ -41,14 +41,33 @@ plan_content=$(cat "$WIGGUM_PLAN_FILE")
 # Invoke Codex review via claude CLI
 echo "Invoking Codex review on implementation plan..." >&2
 
-# Pass review request to claude CLI
-# The command structure asks Codex to review the plan at medium reasoning effort
-if ! claude "/codex-review medium - Review this implementation plan:
+# Pass review request to claude CLI, capture output
+REVIEW_OUTPUT=$(mktemp)
+trap "rm -f '$REVIEW_OUTPUT'" EXIT
 
-$plan_content"; then
-  echo "WARNING: Codex review failed (exit code $?) - continuing anyway" >&2
-  # Don't block on review failure - reviews are informational
-  exit 0
+claude "/codex-review medium - Review this implementation plan:
+
+$plan_content
+
+If the plan is acceptable, exit 0. If there are issues that need fixing, exit 1." 2>&1 | tee "$REVIEW_OUTPUT"
+
+REVIEW_EXIT_CODE=${PIPESTATUS[0]}
+
+# If review rejected, append feedback to the plan so next iteration sees it
+if [ $REVIEW_EXIT_CODE -ne 0 ]; then
+  echo "" >> "$WIGGUM_PLAN_FILE"
+  echo "## Review Feedback" >> "$WIGGUM_PLAN_FILE"
+  echo "" >> "$WIGGUM_PLAN_FILE"
+  echo "**Status**: Plan rejected by codex-review" >> "$WIGGUM_PLAN_FILE"
+  echo "" >> "$WIGGUM_PLAN_FILE"
+  cat "$REVIEW_OUTPUT" >> "$WIGGUM_PLAN_FILE"
+  echo "" >> "$WIGGUM_PLAN_FILE"
+
+  # Commit the feedback so next iteration sees it
+  git add "$WIGGUM_PLAN_FILE" 2>/dev/null || true
+  git commit -m "docs: add codex-review feedback for plan" 2>/dev/null || true
+
+  echo "Review feedback appended to $WIGGUM_PLAN_FILE" >&2
 fi
 
-exit 0
+exit $REVIEW_EXIT_CODE
