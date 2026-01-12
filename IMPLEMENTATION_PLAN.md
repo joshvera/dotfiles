@@ -63,10 +63,27 @@ The existing `idle-detector.sh` has foundational infrastructure:
 
 ### 4. tmux Context Capture
 - **Priority**: medium
-- **Status**: pending
+- **Status**: complete
 - **Description**: Capture tmux session, window, and pane identifiers at notification time for optional click-through functionality. Set `TMUX_SESSION`, `TMUX_WINDOW`, `TMUX_PANE`, `TMUX_TARGET` variables. Handle non-tmux environments gracefully (set to empty).
 - **Files**: `~/.claude/hooks/idle-detector.sh`
 - **Acceptance**: Variables populated correctly in tmux; empty outside tmux; format `SESSION:WINDOW.PANE`
+- **Completed**: 2026-01-11
+- **Notes**:
+  - Implemented `capture_tmux_context()` function that captures tmux session, window, and pane identifiers
+  - Checks for `$TMUX` environment variable to detect tmux environment
+  - In tmux: captures session name (#S), window index (#I), and pane index (#P) using `tmux display-message -p`
+  - Builds combined `TMUX_TARGET` in format `SESSION:WINDOW.PANE` (e.g., "clawd:1.1")
+  - Outside tmux: gracefully sets all variables to empty strings
+  - All variables exported for use by other functions
+  - Added comprehensive test command `test-tmux-context` that validates:
+    - Variable capture inside tmux (session, window, pane, target format)
+    - Format validation using regex pattern (SESSION:WINDOW.PANE)
+    - Component consistency (TMUX_TARGET matches individual components)
+    - Graceful handling outside tmux (all variables empty)
+    - Export verification (variables visible in subshells)
+  - All tests pass successfully in both tmux and non-tmux environments
+  - Debug logging shows captured context for troubleshooting
+  - Function ready for integration into notification payload builder (Task 5)
 
 ### 5. Notification Payload Builder
 - **Priority**: medium

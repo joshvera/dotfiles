@@ -75,6 +75,48 @@ initialize_state_dir() {
     echo "$state_dir"
 }
 
+# Capture tmux context for notification click-through functionality
+# Sets: TMUX_SESSION, TMUX_WINDOW, TMUX_PANE, TMUX_TARGET (exported)
+# Format: TMUX_TARGET is "SESSION:WINDOW.PANE"
+# Gracefully handles non-tmux environments (sets all to empty strings)
+capture_tmux_context() {
+    # Check if running inside tmux
+    if [[ -z "${TMUX:-}" ]]; then
+        # Not in tmux - set all to empty
+        export TMUX_SESSION=""
+        export TMUX_WINDOW=""
+        export TMUX_PANE=""
+        export TMUX_TARGET=""
+        return 0
+    fi
+
+    # In tmux - capture session, window, and pane identifiers
+    local session window pane
+
+    # Capture session name (#S)
+    session=$(tmux display-message -p '#S' 2>/dev/null || echo "")
+
+    # Capture window index (#I)
+    window=$(tmux display-message -p '#I' 2>/dev/null || echo "")
+
+    # Capture pane index (#P)
+    pane=$(tmux display-message -p '#P' 2>/dev/null || echo "")
+
+    # Export individual components
+    export TMUX_SESSION="$session"
+    export TMUX_WINDOW="$window"
+    export TMUX_PANE="$pane"
+
+    # Build combined target format: SESSION:WINDOW.PANE
+    if [[ -n "$session" && -n "$window" && -n "$pane" ]]; then
+        export TMUX_TARGET="${session}:${window}.${pane}"
+    else
+        export TMUX_TARGET=""
+    fi
+
+    echo "$(date): Captured tmux context: session=$session, window=$window, pane=$pane, target=$TMUX_TARGET" >> /tmp/claude-hook-debug.log
+}
+
 # Generate unique event ID for notification lifecycle tracking
 # Uses uuidgen if available, otherwise falls back to timestamp+random
 # Returns: Event ID string (UUID4 or timestamp-based)
@@ -1686,8 +1728,113 @@ EOF
 
         unset TEST_MOBILE_DELAY
         ;;
+    "test-tmux-context")
+        # Test capture_tmux_context function
+        echo "Testing capture_tmux_context function..."
+
+        # Test 1: Capture tmux context (if in tmux)
+        echo -e "\nTest 1: Capture tmux context"
+
+        # Clear any existing variables
+        unset TMUX_SESSION TMUX_WINDOW TMUX_PANE TMUX_TARGET
+
+        # Capture context
+        capture_tmux_context
+
+        # Display captured values
+        echo "TMUX environment variable: ${TMUX:-<not set>}"
+        echo "Captured values:"
+        echo "  TMUX_SESSION='$TMUX_SESSION'"
+        echo "  TMUX_WINDOW='$TMUX_WINDOW'"
+        echo "  TMUX_PANE='$TMUX_PANE'"
+        echo "  TMUX_TARGET='$TMUX_TARGET'"
+
+        # Validate based on environment
+        if [[ -n "${TMUX:-}" ]]; then
+            echo -e "\nRunning inside tmux - validating values..."
+
+            # Verify session name
+            if [[ -n "$TMUX_SESSION" ]]; then
+                echo "✓ TMUX_SESSION is populated: $TMUX_SESSION"
+            else
+                echo "✗ TMUX_SESSION is empty (expected session name)"
+            fi
+
+            # Verify window index
+            if [[ -n "$TMUX_WINDOW" ]]; then
+                echo "✓ TMUX_WINDOW is populated: $TMUX_WINDOW"
+            else
+                echo "✗ TMUX_WINDOW is empty (expected window index)"
+            fi
+
+            # Verify pane index
+            if [[ -n "$TMUX_PANE" ]]; then
+                echo "✓ TMUX_PANE is populated: $TMUX_PANE"
+            else
+                echo "✗ TMUX_PANE is empty (expected pane index)"
+            fi
+
+            # Verify target format
+            if [[ -n "$TMUX_TARGET" ]]; then
+                # Check format: SESSION:WINDOW.PANE
+                if [[ "$TMUX_TARGET" =~ ^[^:]+:[^.]+\.[0-9]+$ ]]; then
+                    echo "✓ TMUX_TARGET format correct: $TMUX_TARGET"
+                else
+                    echo "✗ TMUX_TARGET format incorrect: $TMUX_TARGET (expected SESSION:WINDOW.PANE)"
+                fi
+            else
+                echo "✗ TMUX_TARGET is empty (expected SESSION:WINDOW.PANE)"
+            fi
+
+            # Verify consistency
+            expected_target="${TMUX_SESSION}:${TMUX_WINDOW}.${TMUX_PANE}"
+            if [[ "$TMUX_TARGET" == "$expected_target" ]]; then
+                echo "✓ TMUX_TARGET matches components: $TMUX_TARGET"
+            else
+                echo "✗ TMUX_TARGET doesn't match components (got: $TMUX_TARGET, expected: $expected_target)"
+            fi
+        else
+            echo -e "\nRunning outside tmux - validating graceful handling..."
+
+            # Verify all variables are empty
+            if [[ -z "$TMUX_SESSION" && -z "$TMUX_WINDOW" && -z "$TMUX_PANE" && -z "$TMUX_TARGET" ]]; then
+                echo "✓ All tmux variables are empty (graceful handling)"
+            else
+                echo "✗ Some tmux variables are non-empty outside tmux:"
+                [[ -n "$TMUX_SESSION" ]] && echo "  TMUX_SESSION='$TMUX_SESSION'"
+                [[ -n "$TMUX_WINDOW" ]] && echo "  TMUX_WINDOW='$TMUX_WINDOW'"
+                [[ -n "$TMUX_PANE" ]] && echo "  TMUX_PANE='$TMUX_PANE'"
+                [[ -n "$TMUX_TARGET" ]] && echo "  TMUX_TARGET='$TMUX_TARGET'"
+            fi
+        fi
+
+        # Test 2: Verify variables are exported
+        echo -e "\nTest 2: Verify variables are exported"
+
+        # Run in subshell to test export
+        (
+            if [[ -n "${TMUX:-}" ]]; then
+                # In tmux - verify variables visible in subshell
+                if [[ -n "$TMUX_SESSION" && -n "$TMUX_WINDOW" && -n "$TMUX_PANE" && -n "$TMUX_TARGET" ]]; then
+                    echo "✓ Variables exported (visible in subshell)"
+                else
+                    echo "✗ Variables not exported (not visible in subshell)"
+                fi
+            else
+                # Outside tmux - verify empty variables visible in subshell
+                if [[ -z "$TMUX_SESSION" && -z "$TMUX_WINDOW" && -z "$TMUX_PANE" && -z "$TMUX_TARGET" ]]; then
+                    echo "✓ Empty variables exported (visible in subshell)"
+                else
+                    echo "✗ Variables not properly exported"
+                fi
+            fi
+        )
+
+        echo -e "\nTest complete. Check debug log for details:"
+        tail -n 5 /tmp/claude-hook-debug.log | grep -E "tmux context"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context}"
         exit 1
         ;;
 esac
