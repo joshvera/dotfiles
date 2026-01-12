@@ -664,6 +664,60 @@ send_desktop_notification_with_reaction() {
     echo "$(date): Desktop notification sent for event: $event_id (cancel via user activity only)" >> /tmp/claude-hook-debug.log
 }
 
+# Function to send desktop notification with click handler
+# Usage: send_desktop_notification_with_click_handler TITLE MESSAGE EVENT_ID
+# Uses terminal-notifier's -execute parameter to create cancel marker on click.
+# Falls back gracefully to osascript if terminal-notifier not installed.
+# Works alongside user activity cancellation (both paths create cancel markers, idempotent).
+send_desktop_notification_with_click_handler() {
+    local title="$1"
+    local message="$2"
+    local event_id="$3"
+
+    if [[ -z "$title" || -z "$message" || -z "$event_id" ]]; then
+        echo "$(date): send_desktop_notification_with_click_handler: missing required parameters" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Get state directory for cancel marker
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+    local cancel_marker="${state_dir}/.cancel-${event_id}"
+
+    # Check if terminal-notifier is installed
+    if command -v terminal-notifier &>/dev/null; then
+        # Use terminal-notifier with -execute parameter
+        # When user clicks notification, it will execute the touch command to create cancel marker
+        echo "$(date): Using terminal-notifier with click handler for event: $event_id" >> /tmp/claude-hook-debug.log
+
+        if ! terminal-notifier \
+            -title "$title" \
+            -message "$message" \
+            -execute "touch '$cancel_marker'" \
+            >> /tmp/claude-hook-debug.log 2>&1; then
+            echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+        fi
+
+        echo "$(date): Desktop notification sent via terminal-notifier (click to cancel) for event: $event_id" >> /tmp/claude-hook-debug.log
+    else
+        # Fall back to osascript (no click handler)
+        echo "$(date): terminal-notifier not found, falling back to osascript for event: $event_id" >> /tmp/claude-hook-debug.log
+
+        # Escape strings for osascript safety
+        local escaped_title
+        escaped_title=$(_escape_for_osascript "$title")
+        local escaped_message
+        escaped_message=$(_escape_for_osascript "$message")
+
+        # Send immediate desktop notification via osascript
+        if ! osascript -e "display notification \"$escaped_message\" with title \"$escaped_title\"" >> /tmp/claude-hook-debug.log 2>&1; then
+            echo "$(date): send_desktop_notification_with_click_handler: osascript fallback failed for event: $event_id, message: $message" >> /tmp/claude-hook-debug.log
+        fi
+
+        echo "$(date): Desktop notification sent via osascript fallback (cancel via user activity only) for event: $event_id" >> /tmp/claude-hook-debug.log
+    fi
+}
+
 # Schedule mobile notification timer (30 second delay)
 # Usage: schedule_mobile_notification EVENT_ID MESSAGE
 # Creates detached background process that sleeps 30s, checks for cancel marker,
@@ -2405,8 +2459,98 @@ EOF
         echo -e "\nTest complete. Check debug log for cleanup messages:"
         tail -n 10 /tmp/claude-hook-debug.log | grep -E "legacy|Cleaned up"
         ;;
+    "test-click-handler")
+        # Test terminal-notifier click handler with fallback to osascript
+        echo "Testing send_desktop_notification_with_click_handler function..."
+        echo "This function uses terminal-notifier if available, otherwise falls back to osascript"
+        echo ""
+
+        # Initialize state directory
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+
+        # Generate event ID
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+        echo ""
+
+        # Test 1: Check which notification method will be used
+        echo "Test 1: Checking notification method availability"
+        if command -v terminal-notifier &>/dev/null; then
+            echo "✓ terminal-notifier is installed - will use click handler"
+            terminal_notifier_path=$(command -v terminal-notifier)
+            echo "  Path: $terminal_notifier_path"
+        else
+            echo "! terminal-notifier not found - will use osascript fallback"
+            echo "  Install with: brew install terminal-notifier"
+        fi
+        echo ""
+
+        # Test 2: Send notification
+        echo "Test 2: Sending notification with click handler"
+        title="Claude Code Test"
+        message="Click this notification to test cancellation"
+
+        send_desktop_notification_with_click_handler "$title" "$message" "$event_id"
+        echo "✓ Notification sent (check your macOS notification center)"
+        echo ""
+
+        # Test 3: Check cancel marker behavior
+        echo "Test 3: Checking cancel marker behavior"
+        cancel_marker="${state_dir}/.cancel-${event_id}"
+
+        if command -v terminal-notifier &>/dev/null; then
+            echo "With terminal-notifier:"
+            echo "  - If you click the notification, cancel marker will be created at:"
+            echo "    $cancel_marker"
+            echo "  - This will prevent mobile notification from being sent"
+            echo ""
+            echo "Waiting 5 seconds to check if you clicked the notification..."
+            sleep 5
+
+            if [[ -f "$cancel_marker" ]]; then
+                echo "✓ Cancel marker found! You clicked the notification."
+                echo "  Mobile notification would be cancelled."
+            else
+                echo "! Cancel marker not found. Either:"
+                echo "  - You didn't click the notification (expected)"
+                echo "  - terminal-notifier -execute didn't work (unexpected)"
+            fi
+        else
+            echo "With osascript fallback:"
+            echo "  - Clicking notification has no effect (osascript doesn't support click handlers)"
+            echo "  - Cancel marker only created via user activity (typing in shell)"
+            echo "  - Cancel marker would be at: $cancel_marker"
+        fi
+        echo ""
+
+        # Test 4: Verify function handles missing parameters gracefully
+        echo "Test 4: Testing error handling"
+        if send_desktop_notification_with_click_handler "" "" "" 2>/dev/null; then
+            echo "✗ Function should fail with empty parameters"
+        else
+            echo "✓ Function correctly rejects empty parameters"
+        fi
+        echo ""
+
+        # Test 5: Test with special characters (using escaping for osascript fallback)
+        echo "Test 5: Testing special characters handling"
+        special_message='Test message with "quotes" and special chars'
+        test_event_id=$(generate_event_id)
+
+        send_desktop_notification_with_click_handler "Test: Special Chars" "$special_message" "$test_event_id"
+        echo "✓ Sent notification with special characters"
+        echo "  (Check notification center - quotes should display correctly)"
+        echo ""
+
+        echo "Test complete. Check debug log for details:"
+        tail -n 20 /tmp/claude-hook-debug.log | grep -E "click_handler|terminal-notifier|osascript"
+
+        # Cleanup test markers
+        rm -f "${state_dir}/.cancel-${event_id}" "${state_dir}/.cancel-${test_event_id}"
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup|test-click-handler}"
         exit 1
         ;;
 esac
