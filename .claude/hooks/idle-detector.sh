@@ -741,7 +741,9 @@ send_desktop_notification_with_click_handler() {
     echo "$(date): Using terminal-notifier with click-through handler for event: $event_id" >> /tmp/claude-hook-debug.log
 
     # Build execute command: pass payload file path to handler script
-    local execute_cmd="\"$handler_script\" \"\$(cat '$payload_file')\" && rm -f '$payload_file'"
+    # Wrap with /bin/bash -c because terminal-notifier doesn't run commands through a shell
+    # The complex quoting ('\'') escapes single quotes inside the bash -c string
+    local execute_cmd="/bin/bash -c '\"$handler_script\" \"\$(cat '\''$payload_file'\'')\" && rm -f '\''$payload_file'\'''"
 
     if ! terminal-notifier \
         -title "$title" \
