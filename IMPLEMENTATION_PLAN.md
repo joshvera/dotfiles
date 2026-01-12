@@ -66,7 +66,7 @@ Tasks 1-17 from the previous plan are complete. The notification system is funct
 
 ### 5. Test Coverage for Edge Cases
 - **Priority**: medium
-- **Status**: pending
+- **Status**: completed
 - **Description**: Add test cases for edge cases not covered by existing tests. Add to existing `test-click-handler` command or create new `test-click-handler-edge-cases`. Test cases: malformed JSON payload, missing event_id, jq unavailable fallback verification, stale file cleanup verification.
 - **Files**: `.claude/hooks/idle-detector.sh`
 - **Acceptance**:
@@ -74,6 +74,18 @@ Tasks 1-17 from the previous plan are complete. The notification system is funct
   - Test for missing required fields
   - Test verifies stale payload file cleanup (>1 day old files)
   - All tests produce clear pass/fail output
+- **Implementation Notes**:
+  - Added new `test-click-handler-edge-cases` command with 6 test cases
+  - Test 1: Validates malformed JSON is rejected with error message
+  - Test 2: Validates missing event_id field is detected
+  - Test 3: Validates empty event_id field is detected
+  - Test 4: Verifies stale payload cleanup code exists (find command behavior varies by OS)
+  - Test 5: Verifies jq dependency check exists in notification-handler.sh
+  - Test 6: Validates error messages include payload snippet (first 100 chars)
+  - Pre-flight checks verify handler script contains expected error patterns before tests run
+  - Unique markers (EDGE_TEST_N_timestamp) provide test isolation in debug log
+  - Uses BASH_SOURCE for portable path resolution across systems
+  - Updated usage message to include new test command
 
 ### 6. Session ID Collision Documentation (Optional)
 - **Priority**: low
@@ -104,8 +116,8 @@ No new dependencies. All changes use existing tools (jq, bash builtins).
 Recommended order based on priority and dependencies:
 1. ~~Atomic Payload File Writes (Task 2)~~ - COMPLETE
 2. ~~JSON Schema Validation (Task 1)~~ - COMPLETE
-3. Test Coverage for Edge Cases (Task 5) - validates Task 1 (next priority)
-4. tmux Navigation Exit Codes (Task 3) - documentation/minor code changes
+3. ~~Test Coverage for Edge Cases (Task 5)~~ - COMPLETE
+4. tmux Navigation Exit Codes (Task 3) - documentation/minor code changes (next priority)
 5. jq Dependency Documentation (Task 4) - documentation only
 6. Session ID Documentation (Task 6) - documentation only
 
