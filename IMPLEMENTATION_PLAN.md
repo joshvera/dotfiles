@@ -63,13 +63,19 @@ Tasks 1-17 from the previous plan are complete. The notification system is funct
 
 ### 4. Clarify jq Dependency Documentation
 - **Priority**: low
-- **Status**: pending
+- **Status**: completed
 - **Description**: Update documentation to clarify jq dependency behavior. Make behavior consistent: jq is required for click-through features, osascript fallback works without jq for basic notifications. Add clear message when jq is missing explaining what works and what doesn't.
 - **Files**: `IMPLEMENTATION_PLAN.md` (documentation only)
 - **Acceptance**:
   - Documentation clearly states: "jq required for click-through, basic notifications work without"
   - Current fallback behavior in idle-detector.sh already correct (logs and falls back)
   - notification-handler.sh correctly requires jq (no fallback possible for JSON parsing)
+- **Implementation Notes**:
+  - Verified existing "jq Dependency Behavior" section (lines 131-140) accurately documents the behavior
+  - Confirmed idle-detector.sh has correct fallback: logs "jq not found, falling back to osascript" (line 669) and falls through to osascript notification (no click-through)
+  - Confirmed notification-handler.sh requires jq: exits with code 2 and message "ERROR: jq not found (required for JSON parsing)" (line 34)
+  - Documentation table clearly shows: jq available = full click-through functionality, jq missing = osascript fallback (basic notifications only)
+  - No code changes needed, documentation already complete and accurate
 
 ### 5. Test Coverage for Edge Cases
 - **Priority**: medium
@@ -124,9 +130,9 @@ Recommended order based on priority and dependencies:
 1. ~~Atomic Payload File Writes (Task 2)~~ - COMPLETE
 2. ~~JSON Schema Validation (Task 1)~~ - COMPLETE
 3. ~~Test Coverage for Edge Cases (Task 5)~~ - COMPLETE
-4. tmux Navigation Exit Codes (Task 3) - documentation/minor code changes (next priority)
-5. jq Dependency Documentation (Task 4) - documentation only
-6. Session ID Documentation (Task 6) - documentation only
+4. ~~tmux Navigation Exit Codes (Task 3)~~ - COMPLETE
+5. ~~jq Dependency Documentation (Task 4)~~ - COMPLETE
+6. Session ID Documentation (Task 6) - documentation only (final task)
 
 ### jq Dependency Behavior
 
