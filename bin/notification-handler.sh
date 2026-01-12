@@ -86,13 +86,53 @@ else
     log_debug "WARNING: State directory does not exist: $STATE_DIR"
 fi
 
-# Focus Ghostty terminal via AppleScript
-log_debug "Focusing Ghostty terminal..."
-if osascript -e 'tell application "Ghostty" to activate' >> "$DEBUG_LOG" 2>&1; then
-    TERMINAL_FOCUSED=true
+# Focus the correct Ghostty terminal (tab) containing the target tmux session
+log_debug "Focusing Ghostty terminal for session: $TMUX_SESSION"
+
+if [[ -n "$TMUX_SESSION" ]]; then
+    # Find terminal by checking contents for session name in tmux status line
+    # Status line format: " SESSION_NAME  1:window  2:window ..."
+    # Note: Requires Ghostty with AppleScript support (custom build)
+    FOCUS_SCRIPT='
+on run argv
+    set targetSession to item 1 of argv
+    tell application "Ghostty"
+        activate
+        -- Iterate through terminals checking contents for session name
+        repeat with i from 1 to 10
+            try
+                set termContents to contents of terminal i
+                -- Check if status line contains session name (with space prefix to avoid partial matches)
+                if termContents contains (" " & targetSession & " ") then
+                    focus in terminal i
+                    return "focused terminal " & i
+                end if
+            on error
+                -- Terminal does not exist, stop iterating
+                exit repeat
+            end try
+        end repeat
+        return "no matching terminal found"
+    end tell
+end run
+'
+
+    FOCUS_RESULT=$(osascript -e "$FOCUS_SCRIPT" "$TMUX_SESSION" 2>&1)
+    log_debug "Ghostty focus result: $FOCUS_RESULT"
+
+    if [[ "$FOCUS_RESULT" == focused* ]]; then
+        TERMINAL_FOCUSED=true
+    else
+        log_debug "WARNING: Could not find terminal for session '$TMUX_SESSION', activating Ghostty only"
+        osascript -e 'tell application "Ghostty" to activate' >> "$DEBUG_LOG" 2>&1 || true
+    fi
 else
-    log_debug "WARNING: Failed to focus Ghostty (may not be running or installed)"
-    # Continue anyway - user might be using different terminal
+    # No tmux session specified, just activate Ghostty
+    if osascript -e 'tell application "Ghostty" to activate' >> "$DEBUG_LOG" 2>&1; then
+        TERMINAL_FOCUSED=true
+    else
+        log_debug "WARNING: Failed to focus Ghostty (may not be running or installed)"
+    fi
 fi
 
 # Navigate to tmux pane if target is specified
