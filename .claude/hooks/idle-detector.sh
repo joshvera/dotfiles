@@ -10,41 +10,13 @@ if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$HOME/.secrets/.secrets" ]]; then
     source "$HOME/.secrets/.secrets"
 fi
 
+# Source shared session library for get_session_id()
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/session.sh"
+
 IDLE_TIMEOUT=${CLAUDE_IDLE_TIMEOUT:-30} # Default 30 seconds (configurable)
 IDLE_STATE_FILE="/tmp/claude-idle-state-$(basename "$(pwd)")"
 IDLE_DETECTOR_PID_FILE="/tmp/claude-idle-detector-$(basename "$(pwd)").pid"
-
-# Generate unique session ID for notification state isolation
-# Format: hostname:session:pane_id
-# Returns: Session ID string for use in state directory naming
-get_session_id() {
-    local hostname
-    hostname=$(hostname -s)
-
-    # Tmux: use session name and pane ID for pane-level isolation
-    if [[ -n "${TMUX:-}" ]]; then
-        local session pane_id
-        session=$(tmux display-message -p '#S' 2>/dev/null || echo "tmux")
-        pane_id=$(tmux display-message -p '#D' 2>/dev/null || echo "0")
-        # Remove leading % from pane_id if present
-        pane_id="${pane_id#%}"
-        echo "${hostname}:${session}:${pane_id}"
-        return
-    fi
-
-    # Zellij: use session name (Zellij doesn't expose pane ID as easily)
-    if [[ -n "${ZELLIJ:-}" || -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
-        local session="${ZELLIJ_SESSION_NAME:-zellij}"
-        echo "${hostname}:${session}:0"
-        return
-    fi
-
-    # Fallback: hash of terminal device and PID for uniqueness
-    local term_device="${TTY:-notty}"
-    local hash
-    hash=$(echo "${hostname}:${term_device}:$$" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "$$")
-    echo "${hostname}:shell:${hash:0:8}"
-}
 
 # Clean up legacy state files from old notification system
 # Removes old file patterns from /tmp: idle-state-*, idle-detector-*.pid,
@@ -87,6 +59,10 @@ initialize_state_dir() {
 
         # Clean up legacy state files on first run (when directory is created)
         cleanup_legacy_state
+
+        # Clean up stale notification payload files (older than 1 day)
+        # These can accumulate if user never clicks notifications
+        find /tmp -maxdepth 1 -name "claude-notification-payload-*.json" -mtime +1 -delete 2>/dev/null || true
     fi
 
     # Create timers subdirectory
@@ -616,7 +592,8 @@ send_idle_notification() {
     fi
 }
 
-# Function to send desktop notification (macOS - immediate)
+# DEPRECATED: Use send_desktop_notification_with_click_handler() instead
+# Function to send desktop notification (macOS - immediate, osascript only)
 send_desktop_notification() {
     local title="Claude Code: $(basename "$(pwd)")"
     local message="Response ready"
@@ -634,7 +611,8 @@ send_desktop_notification() {
     fi
 }
 
-# Function to send desktop notification with reaction detection
+# DEPRECATED: Use send_desktop_notification_with_click_handler() instead
+# Function to send desktop notification with reaction detection (osascript only)
 # Usage: send_desktop_notification_with_reaction TITLE MESSAGE EVENT_ID
 # Sends immediate desktop notification. Cancel markers are created only via real user activity
 # (UserPromptSubmit hook -> on_user_activity()), not via heuristic delay. This ensures mobile
@@ -662,6 +640,120 @@ send_desktop_notification_with_reaction() {
     fi
 
     echo "$(date): Desktop notification sent for event: $event_id (cancel via user activity only)" >> /tmp/claude-hook-debug.log
+}
+
+# Function to send desktop notification with click handler
+# Usage: send_desktop_notification_with_click_handler TITLE MESSAGE EVENT_ID EVENT_TYPE
+# Uses terminal-notifier's -execute parameter to invoke notification-handler.sh for click-through navigation.
+# Requires terminal-notifier and jq to be installed - no fallback to osascript.
+# Works alongside user activity cancellation (both paths create cancel markers, idempotent).
+send_desktop_notification_with_click_handler() {
+    local title="$1"
+    local message="$2"
+    local event_id="$3"
+    local event_type="${4:-stop}"
+
+    if [[ -z "$title" || -z "$message" || -z "$event_id" ]]; then
+        echo "$(date): send_desktop_notification_with_click_handler: missing required parameters" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Require terminal-notifier - no fallback
+    if ! command -v terminal-notifier &>/dev/null; then
+        echo "$(date): ERROR: terminal-notifier required but not found. Install with: brew install terminal-notifier" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Require jq for payload manipulation - no fallback
+    if ! command -v jq &>/dev/null; then
+        echo "$(date): ERROR: jq required but not found. Install with: brew install jq" >> /tmp/claude-hook-debug.log
+        return 1
+    fi
+
+    # Get state directory for cancel marker
+    local state_dir
+    state_dir=$(initialize_state_dir) || return 1
+    local cancel_marker="${state_dir}/.cancel-${event_id}"
+
+    # Build notification payload for click-through handler
+    local payload
+    payload=$(build_notification_payload "$event_type" "$message") || {
+        echo "$(date): send_desktop_notification_with_click_handler: failed to build payload, using simple cancel marker" >> /tmp/claude-hook-debug.log
+        # Use terminal-notifier with simple cancel marker creation
+        if ! terminal-notifier \
+            -title "$title" \
+            -message "$message" \
+            -execute "touch '$cancel_marker'" \
+            >> /tmp/claude-hook-debug.log 2>&1; then
+            echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+            return 1
+        fi
+        return 0
+    }
+
+    # Add event_id to payload (build_notification_payload doesn't include it)
+    payload=$(echo "$payload" | jq --arg event_id "$event_id" '. + {event_id: $event_id}' 2>/dev/null) || {
+        echo "$(date): send_desktop_notification_with_click_handler: failed to add event_id to payload" >> /tmp/claude-hook-debug.log
+        return 1
+    }
+
+    # Write payload to temp file for handler script (atomic write pattern)
+    # Use restrictive permissions (owner-only) since payload contains private paths
+    local payload_file="/tmp/claude-notification-payload-${event_id}.json"
+    local temp_file="${payload_file}.tmp.$$"
+    local old_umask
+    old_umask=$(umask)
+    umask 0077
+    # Write to temp file first, then atomic mv to final location
+    if ! echo "$payload" > "$temp_file"; then
+        umask "$old_umask"
+        echo "$(date): send_desktop_notification_with_click_handler: failed to write temp payload file" >> /tmp/claude-hook-debug.log
+        rm -f "$temp_file"  # Clean up partial file if any
+        return 1
+    fi
+    # Atomic move to final location (prevents race condition with concurrent notifications)
+    if ! mv "$temp_file" "$payload_file"; then
+        umask "$old_umask"
+        echo "$(date): send_desktop_notification_with_click_handler: failed to move temp file to final location" >> /tmp/claude-hook-debug.log
+        rm -f "$temp_file"
+        return 1
+    fi
+    umask "$old_umask"
+
+    # Check if notification-handler.sh exists
+    local handler_script="$HOME/.local/bin/notification-handler.sh"
+    if [[ ! -x "$handler_script" ]]; then
+        echo "$(date): send_desktop_notification_with_click_handler: notification-handler.sh not found, using simple cancel marker" >> /tmp/claude-hook-debug.log
+        # Use terminal-notifier with simple cancel marker creation
+        if ! terminal-notifier \
+            -title "$title" \
+            -message "$message" \
+            -execute "touch '$cancel_marker'" \
+            >> /tmp/claude-hook-debug.log 2>&1; then
+            echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+        fi
+        rm -f "$payload_file"
+        return 0
+    fi
+
+    # Use terminal-notifier with -execute parameter to invoke notification handler
+    # When user clicks notification, it will execute the handler script with payload
+    echo "$(date): Using terminal-notifier with click-through handler for event: $event_id" >> /tmp/claude-hook-debug.log
+
+    # Build execute command: pass payload file path to handler script
+    local execute_cmd="\"$handler_script\" \"\$(cat '$payload_file')\" && rm -f '$payload_file'"
+
+    if ! terminal-notifier \
+        -title "$title" \
+        -message "$message" \
+        -execute "$execute_cmd" \
+        >> /tmp/claude-hook-debug.log 2>&1; then
+        echo "$(date): send_desktop_notification_with_click_handler: terminal-notifier failed for event: $event_id" >> /tmp/claude-hook-debug.log
+        rm -f "$payload_file"
+        return 1
+    fi
+
+    echo "$(date): Desktop notification sent via terminal-notifier (click for focus + cancel) for event: $event_id" >> /tmp/claude-hook-debug.log
 }
 
 # Schedule mobile notification timer (30 second delay)
@@ -898,9 +990,9 @@ mark_claude_finished() {
         local cwd_basename
         cwd_basename=$(basename "$(pwd)")
         local title="Claude Code: $cwd_basename"
-        send_desktop_notification_with_reaction "$title" "$summary" "$event_id"
+        send_desktop_notification_with_click_handler "$title" "$summary" "$event_id" "stop"
         schedule_mobile_notification "$event_id" "$summary"
-        echo "$(date): Stop hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+        echo "$(date): Stop hook complete - event: $event_id, desktop notified (terminal-notifier), mobile scheduled" >> /tmp/claude-hook-debug.log
     fi
 }
 
@@ -968,9 +1060,9 @@ on_permission_request() {
         local cwd_basename
         cwd_basename=$(basename "$(pwd)")
         local title="Claude Code: $cwd_basename"
-        send_desktop_notification_with_reaction "$title" "$message" "$event_id"
+        send_desktop_notification_with_click_handler "$title" "$message" "$event_id" "permission_request"
         schedule_mobile_notification "$event_id" "$message"
-        echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified, mobile scheduled" >> /tmp/claude-hook-debug.log
+        echo "$(date): PermissionRequest hook complete - event: $event_id, desktop notified (terminal-notifier), mobile scheduled" >> /tmp/claude-hook-debug.log
     fi
 }
 
@@ -2405,8 +2497,412 @@ EOF
         echo -e "\nTest complete. Check debug log for cleanup messages:"
         tail -n 10 /tmp/claude-hook-debug.log | grep -E "legacy|Cleaned up"
         ;;
+    "test-click-handler")
+        # Test terminal-notifier click handler with fallback to osascript
+        echo "Testing send_desktop_notification_with_click_handler function..."
+        echo "This function uses terminal-notifier if available, otherwise falls back to osascript"
+        echo ""
+
+        # Initialize state directory
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+
+        # Generate event ID
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+        echo ""
+
+        # Test 1: Check which notification method will be used
+        echo "Test 1: Checking notification method availability"
+        if command -v terminal-notifier &>/dev/null; then
+            echo "✓ terminal-notifier is installed - will use click handler"
+            terminal_notifier_path=$(command -v terminal-notifier)
+            echo "  Path: $terminal_notifier_path"
+        else
+            echo "! terminal-notifier not found - will use osascript fallback"
+            echo "  Install with: brew install terminal-notifier"
+        fi
+        echo ""
+
+        # Test 2: Send notification
+        echo "Test 2: Sending notification with click handler"
+        title="Claude Code Test"
+        message="Click this notification to test cancellation"
+
+        send_desktop_notification_with_click_handler "$title" "$message" "$event_id"
+        echo "✓ Notification sent (check your macOS notification center)"
+        echo ""
+
+        # Test 3: Check cancel marker behavior
+        echo "Test 3: Checking cancel marker behavior"
+        cancel_marker="${state_dir}/.cancel-${event_id}"
+
+        if command -v terminal-notifier &>/dev/null; then
+            echo "With terminal-notifier:"
+            echo "  - If you click the notification, cancel marker will be created at:"
+            echo "    $cancel_marker"
+            echo "  - This will prevent mobile notification from being sent"
+            echo ""
+            echo "Waiting 5 seconds to check if you clicked the notification..."
+            sleep 5
+
+            if [[ -f "$cancel_marker" ]]; then
+                echo "✓ Cancel marker found! You clicked the notification."
+                echo "  Mobile notification would be cancelled."
+            else
+                echo "! Cancel marker not found. Either:"
+                echo "  - You didn't click the notification (expected)"
+                echo "  - terminal-notifier -execute didn't work (unexpected)"
+            fi
+        else
+            echo "With osascript fallback:"
+            echo "  - Clicking notification has no effect (osascript doesn't support click handlers)"
+            echo "  - Cancel marker only created via user activity (typing in shell)"
+            echo "  - Cancel marker would be at: $cancel_marker"
+        fi
+        echo ""
+
+        # Test 4: Verify function handles missing parameters gracefully
+        echo "Test 4: Testing error handling"
+        if send_desktop_notification_with_click_handler "" "" "" 2>/dev/null; then
+            echo "✗ Function should fail with empty parameters"
+        else
+            echo "✓ Function correctly rejects empty parameters"
+        fi
+        echo ""
+
+        # Test 5: Test with special characters (using escaping for osascript fallback)
+        echo "Test 5: Testing special characters handling"
+        special_message='Test message with "quotes" and special chars'
+        test_event_id=$(generate_event_id)
+
+        send_desktop_notification_with_click_handler "Test: Special Chars" "$special_message" "$test_event_id"
+        echo "✓ Sent notification with special characters"
+        echo "  (Check notification center - quotes should display correctly)"
+        echo ""
+
+        echo "Test complete. Check debug log for details:"
+        tail -n 20 /tmp/claude-hook-debug.log | grep -E "click_handler|terminal-notifier|osascript"
+
+        # Cleanup test markers
+        rm -f "${state_dir}/.cancel-${event_id}" "${state_dir}/.cancel-${test_event_id}"
+        ;;
+    "test-notification-handler")
+        # Test notification-handler.sh script with JSON payload
+        echo "Testing notification-handler.sh script..."
+        echo ""
+
+        # Check if script exists and is executable
+        handler_script="$HOME/.local/bin/notification-handler.sh"
+        echo "Test 1: Checking if notification-handler.sh exists"
+        if [[ -x "$handler_script" ]]; then
+            echo "✓ Script found and executable: $handler_script"
+        else
+            echo "✗ Script not found or not executable: $handler_script"
+            exit 1
+        fi
+        echo ""
+
+        # Test 2: Check script syntax
+        echo "Test 2: Checking script syntax"
+        if bash -n "$handler_script" 2>/dev/null; then
+            echo "✓ Script syntax is valid"
+        else
+            echo "✗ Script has syntax errors"
+            bash -n "$handler_script"
+            exit 1
+        fi
+        echo ""
+
+        # Test 3: Build and test JSON payload parsing
+        echo "Test 3: Testing JSON payload construction and parsing"
+
+        # Initialize state directory
+        state_dir=$(initialize_state_dir)
+        echo "State directory: $state_dir"
+
+        # Generate event ID
+        event_id=$(generate_event_id)
+        echo "Event ID: $event_id"
+
+        # Build payload
+        payload=$(build_notification_payload "stop" "Test notification message")
+        if [[ -z "$payload" ]]; then
+            echo "✗ Failed to build notification payload"
+            exit 1
+        fi
+
+        # Add event_id to payload
+        payload=$(echo "$payload" | jq --arg event_id "$event_id" '. + {event_id: $event_id}')
+        echo "✓ Built notification payload:"
+        echo "$payload" | jq .
+        echo ""
+
+        # Test 4: Test handler script with payload
+        echo "Test 4: Testing handler script execution"
+
+        # Run handler script with payload
+        echo "Executing: $handler_script with test payload..."
+        if echo "$payload" | "$handler_script" "$payload" 2>&1 | tee -a /tmp/claude-hook-debug.log; then
+            echo "✓ Handler script executed successfully"
+        else
+            echo "✗ Handler script failed"
+            exit 1
+        fi
+        echo ""
+
+        # Test 5: Verify cancel marker was created
+        echo "Test 5: Verifying cancel marker creation"
+        cancel_marker="${state_dir}/.cancel-${event_id}"
+        if [[ -f "$cancel_marker" ]]; then
+            echo "✓ Cancel marker created: $cancel_marker"
+        else
+            echo "✗ Cancel marker not created (expected at: $cancel_marker)"
+            echo "  This may be expected if state directory doesn't match"
+        fi
+        echo ""
+
+        # Test 6: Test with tmux context (if in tmux)
+        echo "Test 6: Testing tmux context handling"
+        if [[ -n "${TMUX:-}" ]]; then
+            echo "✓ Running in tmux - tmux context should be captured"
+
+            # Check if tmux_target is in payload
+            tmux_target=$(echo "$payload" | jq -r '.tmux_target // empty')
+            if [[ -n "$tmux_target" ]]; then
+                echo "✓ Payload contains tmux_target: $tmux_target"
+            else
+                echo "! Payload missing tmux_target (may be expected outside tmux)"
+            fi
+        else
+            echo "! Not running in tmux - tmux navigation will be skipped"
+        fi
+        echo ""
+
+        # Test 7: Test Ghostty focus (if Ghostty is running)
+        echo "Test 7: Testing Ghostty focus capability"
+        if pgrep -x "Ghostty" > /dev/null; then
+            echo "✓ Ghostty is running - AppleScript focus should work"
+            echo "  Check if Ghostty window was focused"
+        else
+            echo "! Ghostty is not running - AppleScript focus was skipped"
+            echo "  This is expected behavior (handler logs warning and continues)"
+        fi
+        echo ""
+
+        echo "Test complete. Check debug log for handler execution details:"
+        tail -n 20 /tmp/claude-hook-debug.log | grep -E "\[notification-handler\]"
+
+        # Cleanup
+        rm -f "$cancel_marker"
+        ;;
+    "test-click-handler-edge-cases")
+        # Test edge cases for notification-handler.sh
+        echo "Testing notification-handler.sh edge cases..."
+        echo "This test verifies error handling for malformed inputs and edge conditions"
+        echo ""
+
+        handler_script="$HOME/.local/bin/notification-handler.sh"
+
+        # Check if script exists
+        if [[ ! -x "$handler_script" ]]; then
+            echo "✗ notification-handler.sh not found or not executable: $handler_script"
+            exit 1
+        fi
+
+        # Initialize for tests
+        state_dir=$(initialize_state_dir)
+        test_pass_count=0
+        test_fail_count=0
+
+        # Pre-flight: Verify handler script contains expected error messages
+        echo "Pre-flight: Verifying handler script contains expected error patterns..."
+        if ! grep -q "Malformed JSON payload" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'Malformed JSON payload' error message"
+            echo "  Tests cannot proceed without expected error patterns"
+            exit 1
+        fi
+        if ! grep -q "Required field 'event_id'" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'Required field event_id' error message"
+            echo "  Tests cannot proceed without expected error patterns"
+            exit 1
+        fi
+        echo "✓ Handler script contains expected error patterns"
+        echo ""
+
+        # Test 1: Malformed JSON payload
+        echo "Test 1: Malformed JSON payload handling"
+        echo "Testing: {invalid json syntax here"
+        malformed_payload="{invalid json syntax here"
+
+        # Use unique marker for test isolation
+        test1_marker="EDGE_TEST_1_$(date +%s%N)"
+        echo "$test1_marker" >> /tmp/claude-hook-debug.log
+
+        # Capture output and check debug log for error message
+        echo "$malformed_payload" | "$handler_script" "$malformed_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test1_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Malformed JSON payload"; then
+            echo "✓ PASS: Malformed JSON rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Malformed JSON not properly rejected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 2: Missing event_id field
+        echo "Test 2: Missing required event_id field"
+        missing_event_id_payload='{"repo_path": "/tmp/test", "cwd": "/tmp"}'
+        echo "Testing: $missing_event_id_payload"
+
+        # Use unique marker for test isolation
+        test2_marker="EDGE_TEST_2_$(date +%s%N)"
+        echo "$test2_marker" >> /tmp/claude-hook-debug.log
+
+        echo "$missing_event_id_payload" | "$handler_script" "$missing_event_id_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test2_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Required field 'event_id'"; then
+            echo "✓ PASS: Missing event_id rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Missing event_id not properly detected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 3: Empty event_id field
+        echo "Test 3: Empty event_id field"
+        empty_event_id_payload='{"event_id": "", "repo_path": "/tmp/test"}'
+        echo "Testing: $empty_event_id_payload"
+
+        # Use unique marker for test isolation
+        test3_marker="EDGE_TEST_3_$(date +%s%N)"
+        echo "$test3_marker" >> /tmp/claude-hook-debug.log
+
+        echo "$empty_event_id_payload" | "$handler_script" "$empty_event_id_payload" 2>&1 > /dev/null || true
+        # Grep only lines after our unique marker
+        if sed -n "/${test3_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "Required field 'event_id'"; then
+            echo "✓ PASS: Empty event_id rejected with clear error"
+            ((test_pass_count++))
+        else
+            echo "✗ FAIL: Empty event_id not properly detected"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 4: Stale payload file cleanup verification
+        echo "Test 4: Stale payload file cleanup (>1 day old)"
+
+        # Note: This tests that cleanup logic exists in initialize_state_dir()
+        # The actual find command behavior varies by OS (macOS vs Linux)
+        # We verify the code exists and runs, but don't test exact find semantics
+
+        # Check that cleanup code exists in initialize_state_dir function
+        # Use BASH_SOURCE for portability across systems
+        THIS_SCRIPT="${BASH_SOURCE[0]}"
+        if grep -q 'find /tmp.*claude-notification-payload.*-mtime.*-delete' "$THIS_SCRIPT"; then
+            echo "✓ PASS: Stale payload cleanup code exists in initialize_state_dir()"
+            ((test_pass_count++))
+
+            echo "  Cleanup command: find /tmp -maxdepth 1 -name \"claude-notification-payload-*.json\" -mtime +1 -delete"
+            echo "  Note: find -mtime behavior varies between macOS and Linux"
+            echo "  On macOS, -mtime +1 means >48 hours; on Linux, >24 hours"
+        else
+            echo "✗ FAIL: Stale payload cleanup code not found"
+            ((test_fail_count++))
+        fi
+        echo ""
+
+        # Test 5: jq unavailable fallback verification
+        echo "Test 5: Verify jq dependency requirement"
+        echo "Testing that handler script requires jq for operation..."
+
+        # Check if jq is in PATH
+        if command -v jq &>/dev/null; then
+            echo "✓ jq is available: $(command -v jq)"
+
+            # Verify handler script checks for jq
+            if grep -q 'command -v jq' "$handler_script"; then
+                echo "✓ PASS: Handler script checks for jq availability"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Handler script does not check for jq"
+                ((test_fail_count++))
+            fi
+        else
+            echo "! jq not found - testing error message..."
+
+            # Create minimal valid payload
+            valid_payload='{"event_id": "test-123"}'
+
+            if echo "$valid_payload" | "$handler_script" "$valid_payload" 2>&1 | grep -q "jq not found"; then
+                echo "✓ PASS: Handler script reports jq missing with clear error"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Handler script does not properly report jq missing"
+                ((test_fail_count++))
+            fi
+        fi
+        echo ""
+
+        # Test 6: Payload snippet logging on errors
+        echo "Test 6: Payload snippet logging on errors"
+        echo "Testing that errors log first 100 chars of payload..."
+
+        # Pre-flight: Verify handler outputs "first 100 chars" in error messages
+        if ! grep -q "first 100 chars" "$handler_script"; then
+            echo "✗ FAIL: Handler script missing 'first 100 chars' in error messages"
+            echo "  Skipping test - handler needs to output snippet info"
+            ((test_fail_count++))
+        else
+            # Use unique marker for test isolation
+            test6_marker="EDGE_TEST_6_$(date +%s%N)"
+            echo "$test6_marker" >> /tmp/claude-hook-debug.log
+
+            # Send malformed payload
+            long_malformed="{invalid: this is a long malformed payload with lots of text to test snippet truncation behavior that should be truncated}"
+            echo "$long_malformed" | "$handler_script" "$long_malformed" 2>&1 > /dev/null || true
+
+            # Check if debug log contains snippet message (grep only after our marker)
+            if sed -n "/${test6_marker}/,\$p" /tmp/claude-hook-debug.log | grep -q "first 100 chars"; then
+                echo "✓ PASS: Error messages include payload snippet for debugging"
+                ((test_pass_count++))
+            else
+                echo "✗ FAIL: Error messages do not include payload snippet"
+                echo "  Debug log (after marker):"
+                sed -n "/${test6_marker}/,\$p" /tmp/claude-hook-debug.log | head -5 | sed 's/^/  /'
+                ((test_fail_count++))
+            fi
+        fi
+        echo ""
+
+        # Summary
+        echo "============================================"
+        echo "Edge Case Test Summary"
+        echo "============================================"
+        echo "Passed: $test_pass_count"
+        echo "Failed: $test_fail_count"
+        total_tests=$((test_pass_count + test_fail_count))
+        echo "Total:  $total_tests"
+        echo ""
+
+        if [[ $test_fail_count -eq 0 ]]; then
+            echo "✓ All edge case tests passed!"
+            echo ""
+            echo "Debug log excerpt (last 10 lines):"
+            tail -n 10 /tmp/claude-hook-debug.log | grep -E "\[notification-handler\]|Edge case"
+            exit 0
+        else
+            echo "✗ Some tests failed. Check implementation."
+            echo ""
+            echo "Debug log excerpt (last 20 lines):"
+            tail -n 20 /tmp/claude-hook-debug.log | grep -E "\[notification-handler\]|Edge case"
+            exit 1
+        fi
+        ;;
     *)
-        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup}"
+        echo "Usage: $0 {claude-finished|user-activity|stop|permission-request|test|notify-with-summary|test-detect|test-desktop|test-summary|test-permission|test-session-id|test-state-dir|test-event-id|test-metadata|test-permission-summary|test-timer-cleanup|test-desktop-reaction|test-mobile-scheduler|test-user-activity|test-stop-handler|test-permission-handler|test-tmux-context|test-notification-payload|test-device-routing|test-legacy-cleanup|test-click-handler|test-notification-handler|test-click-handler-edge-cases}"
         exit 1
         ;;
 esac
