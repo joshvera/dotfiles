@@ -535,7 +535,7 @@ send_idle_notification() {
     local ntfy_url="${NTFY_URL:-}"
     local ntfy_topic="${NTFY_TOPIC:-}"
 
-    if [[ -z "$ntfy_url" ]]; then
+    if [[ -z "$ntfy_url" || -z "$ntfy_topic" ]]; then
         return 0  # No ntfy configured
     fi
 

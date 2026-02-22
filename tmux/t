@@ -43,8 +43,8 @@ detect_device_type() {
     fi
 
     # Method 3: Hostname-based detection (for local sessions only)
-    if [[ "$hostname" == "wintermute" ]]; then
-        # wintermute locally is desktop
+    if [[ -n "$DESKTOP_HOSTNAME" && "$hostname" == "$DESKTOP_HOSTNAME" ]]; then
+        # Known desktop hostname
         echo "desktop"
         return
     fi
@@ -100,7 +100,7 @@ EXAMPLES:
   t attach -t main           # Auto-detect + attach to 'main'
 
 DEVICE DETECTION:
-  - wintermute hostname: Always desktop
+  - DESKTOP_HOSTNAME match: Always desktop
   - Termux (Android): Always mobile
   - iSH (iOS): Always mobile
   - mosh connections: Mobile (phone usage)

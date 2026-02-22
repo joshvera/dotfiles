@@ -7,7 +7,7 @@ notify() {
   local title="${2:-Notification}"
   local priority="${3:-default}"
   local click="${4:-}"
-  local topic="${NTFY_TOPIC:-}"
+  local topic="${NTFY_TOPIC:?NTFY_TOPIC not set - add to ~/.secrets/.secrets}"
   local url="${NTFY_URL:?NTFY_URL not set - add to ~/.secrets/.secrets}"
 
   if [[ -n "$click" ]]; then
