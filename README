@@ -5,7 +5,7 @@ Personal configuration files for macOS development environment.
 ## Contents
 
 - **Brewfile** - Homebrew package management
-- **zsh/** - Shell configuration and aliases
+- **zsh/** - Shell configuration, aliases, and plugins (including `fzf-tab` submodule)
 - **git_template/** - Git hooks and configuration
 - **vscode/** - Visual Studio Code settings and keybindings
 - **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
@@ -38,7 +38,16 @@ Personal configuration files for macOS development environment.
    brew bundle --file Brewfile.desktop
    ```
 
-5. Optional extra symlinks:
+5. Strict bootstrap (opinionated, fail-fast):
+   ```bash
+   ./scripts/bootstrap-strict.sh
+   ```
+   This enforces required shell deps, including:
+   - Java 21 (`temurin@21`)
+   - `fzf-tab` plugin submodule under `zsh/plugins/fzf-tab`
+   - clean interactive zsh startup
+
+6. Optional extra symlinks:
    ```bash
    # Zellij config
    mkdir -p ~/.config/zellij

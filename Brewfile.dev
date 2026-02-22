@@ -13,3 +13,6 @@ brew 'rbenv'
 brew 'sqlite'
 brew 'ssh-copy-id'
 brew 'the_silver_searcher'
+
+# Strict bootstrap runtime deps
+cask 'temurin@21'
