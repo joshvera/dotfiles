@@ -42,3 +42,5 @@ alias gcm='git commit -m'
 alias gs='git status'
 
 # z command now provided by smart zellij wrapper in ~/.local/bin/z
+# Tmux + Obsidian session sync (Today Focus)
+alias tmsync='~/github/dotfiles/bin/tmux-obsidian-sync --today'
