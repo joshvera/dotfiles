@@ -1,5 +1,3 @@
-tap 'homebrew/services'
-
 # Core command-center baseline (safe on fresh hosts)
 brew 'tmux'
 brew 'rg'
