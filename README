@@ -30,8 +30,6 @@ Personal configuration files for macOS development environment.
 3. Link core dotfiles safely (backs up non-symlink files first):
    ```bash
    ./scripts/bootstrap-core.sh
-   # optional
-   ./scripts/bootstrap-core.sh --with-gitconfig
    ```
 
 4. Optional profiles:
@@ -72,3 +70,4 @@ Personal configuration files for macOS development environment.
 - Zellij is aliased to `z` for quick access
 - The repository includes a comprehensive `.gitignore` for security
 - `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
+- `bootstrap-core.sh` treats `.gitconfig` and `.fzf.zsh` as dotfiles-managed (when present in repo)

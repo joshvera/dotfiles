@@ -41,19 +41,24 @@ else
   echo "skip ~/.tmux.conf: no tmux config found in $DOTFILES_DIR" >&2
 fi
 
-# Optional gitconfig
-if [[ "${1:-}" == "--with-gitconfig" ]]; then
-  if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
-    link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
-  else
-    echo "skip ~/.gitconfig: $DOTFILES_DIR/.gitconfig not found"
-  fi
+# Git config (canonical in dotfiles when present)
+if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
+  link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
+else
+  echo "skip ~/.gitconfig: $DOTFILES_DIR/.gitconfig not found"
 fi
 
-# fzf shell integration (if installed)
+# fzf shell setup tracked in dotfiles
+if [[ -f "$DOTFILES_DIR/.fzf.zsh" ]]; then
+  link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
+fi
+
+# Ensure fzf itself is installed and generate baseline if missing
 if command -v fzf >/dev/null 2>&1; then
-  if [[ -x "$(brew --prefix)/opt/fzf/install" ]]; then
+  if [[ ! -f "$DOTFILES_DIR/.fzf.zsh" ]] && [[ -x "$(brew --prefix)/opt/fzf/install" ]]; then
     "$(brew --prefix)/opt/fzf/install" --key-bindings --completion --no-update-rc --no-bash --no-fish
+    cp "$HOME/.fzf.zsh" "$DOTFILES_DIR/.fzf.zsh" || true
+    link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
   fi
 fi
 
