@@ -3,10 +3,10 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: tmux-obsidian-sync [--vault PATH] [--dashboard PATH] [--today]
+Usage: tmux-obsidian-sync [--vault PATH] [--dashboard PATH] [--today] [--note PATH] [--cleanup]
 
 Creates missing tmux sessions/windows from Obsidian project notes.
-Safe: never deletes/kills/renames by default.
+Safe by default: never deletes/kills/renames.
 
 Defaults:
   --vault     ~/github/aleph
@@ -14,16 +14,25 @@ Defaults:
 
 Modes:
   --today   Sync projects listed under "## Today Focus" in the dashboard
+  --note    Sync a single project note file
+
+Options:
+  --cleanup  Remove "suspicious" windows not listed in the note's Windows list
+            (e.g. windows named like resume commands: "cd ...", "tmux a ...").
+            Only kills windows that appear idle (shell-only panes).
 
 Examples:
   tmux-obsidian-sync --today
   tmux-obsidian-sync --vault ~/github/aleph --today
+  tmux-obsidian-sync --note "~/github/aleph/Projects/Software - bankroll/README.md" --cleanup
 EOF
 }
 
 vault="$HOME/github/aleph"
 dashboard=""
 mode_today=0
+mode_note=""
+cleanup=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -33,6 +42,10 @@ while [[ $# -gt 0 ]]; do
       dashboard="$2"; shift 2;;
     --today)
       mode_today=1; shift;;
+    --note)
+      mode_note="$2"; shift 2;;
+    --cleanup)
+      cleanup=1; shift;;
     -h|--help)
       usage; exit 0;;
     *)
@@ -114,6 +127,73 @@ window_exists_by_name() {
   tmux list-windows -t "$session" -F '#W' 2>/dev/null | rg -qx "${name}" 2>/dev/null
 }
 
+is_suspicious_window_name() {
+  local name="$1"
+  case "$name" in
+    cd\ *|tmux\ *|ssh\ *|mosh\ *|screen\ *|zellij\ *)
+      return 0;;
+  esac
+  return 1
+}
+
+window_is_shell_only() {
+  local session="$1"
+  local window_id="$2"
+
+  local pane_count
+  pane_count="$(tmux list-panes -t "$window_id" -F '#{pane_id}' 2>/dev/null | wc -l | tr -d ' ')"
+  [[ -z "$pane_count" ]] && return 1
+
+  local cmds
+  cmds="$(tmux list-panes -t "$window_id" -F '#{pane_current_command}' 2>/dev/null || true)"
+  [[ -z "$cmds" ]] && return 1
+
+  # Only consider it safe to kill if ALL panes are shells.
+  # (Conservative: if any pane is running something else, keep the window.)
+  while IFS= read -r cmd; do
+    case "$cmd" in
+      zsh|bash|fish)
+        ;;
+      *)
+        return 1;;
+    esac
+  done <<<"$cmds"
+
+  return 0
+}
+
+cleanup_suspicious_windows() {
+  local session="$1"
+  shift
+  local desired_windows=()
+  desired_windows=("$@")
+
+  local rows
+  rows="$(tmux list-windows -t "$session" -F '#{window_id}|#W' 2>/dev/null || true)"
+  [[ -z "$rows" ]] && return 0
+
+  while IFS='|' read -r window_id window_name; do
+    [[ -z "$window_id" || -z "$window_name" ]] && continue
+
+    # Never touch explicitly desired windows.
+    if printf '%s\n' "${desired_windows[@]:-}" | rg -qx --fixed-strings "$window_name" 2>/dev/null; then
+      continue
+    fi
+
+    if ! is_suspicious_window_name "$window_name"; then
+      continue
+    fi
+
+    if ! window_is_shell_only "$session" "$window_id"; then
+      echo "Skip cleanup (not shell-only): $session:$window_name" >&2
+      continue
+    fi
+
+    tmux kill-window -t "$window_id"
+    echo "Cleaned window: $session:$window_name" >&2
+  done <<<"$rows"
+}
+
 ensure_session_and_windows() {
   local note="$1"
 
@@ -184,6 +264,10 @@ ensure_session_and_windows() {
     tmux new-window -t "$session" -n "$w" -c "$repo_path"
     echo "Created window: $session:$w" >&2
   done
+
+  if [[ $cleanup -eq 1 ]]; then
+    cleanup_suspicious_windows "$session" "${windows[@]}"
+  fi
 }
 
 resolve_today_notes() {
@@ -220,12 +304,12 @@ link_to_note_path() {
   echo "$candidate"
 }
 
-if [[ $mode_today -eq 1 ]]; then
-  if ! command -v tmux >/dev/null 2>&1; then
-    echo "tmux not found in PATH" >&2
-    exit 1
-  fi
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "tmux not found in PATH" >&2
+  exit 1
+fi
 
+if [[ $mode_today -eq 1 ]]; then
   if [[ ! -f "$dashboard" ]]; then
     echo "Dashboard not found: $dashboard" >&2
     exit 1
@@ -236,6 +320,11 @@ if [[ $mode_today -eq 1 ]]; then
     ensure_session_and_windows "$(link_to_note_path "$link")"
   done < <(resolve_today_notes "$dashboard")
 
+  exit 0
+fi
+
+if [[ -n "$mode_note" ]]; then
+  ensure_session_and_windows "$(expand_tilde "$mode_note")"
   exit 0
 fi
 
