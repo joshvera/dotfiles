@@ -1,0 +1,11 @@
+# GUI apps (desktop/workstation profile)
+cask '1password'
+cask 'atom'
+cask 'daisydisk'
+cask 'dash'
+cask 'divvy'
+cask 'docker'
+cask 'firefox'
+cask 'flux'
+cask 'github'
+cask 'vmware-fusion'

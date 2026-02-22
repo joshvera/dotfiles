@@ -19,22 +19,33 @@ Personal configuration files for macOS development environment.
 1. Clone this repository:
    ```bash
    git clone https://github.com/yourusername/dotfiles.git ~/github/dotfiles
+   cd ~/github/dotfiles
    ```
 
-2. Install Homebrew packages:
+2. Install core command-center packages:
    ```bash
-   brew bundle
+   brew bundle --file Brewfile
    ```
 
-3. Create symlinks manually (installation script coming soon):
+3. Link core dotfiles safely (backs up non-symlink files first):
    ```bash
-   # ZSH aliases
-   ln -s ~/github/dotfiles/zsh/aliases ~/.aliases
-   
+   ./scripts/bootstrap-core.sh
+   # optional
+   ./scripts/bootstrap-core.sh --with-gitconfig
+   ```
+
+4. Optional profiles:
+   ```bash
+   brew bundle --file Brewfile.dev
+   brew bundle --file Brewfile.desktop
+   ```
+
+5. Optional extra symlinks:
+   ```bash
    # Zellij config
    mkdir -p ~/.config/zellij
    ln -s ~/github/dotfiles/zellij/config.kdl ~/.config/zellij/config.kdl
-   
+
    # VS Code (macOS)
    ln -s ~/github/dotfiles/vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
    ln -s ~/github/dotfiles/vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
@@ -60,3 +71,4 @@ Personal configuration files for macOS development environment.
 - Network sniffing functions (`sniff`, `httpdump`) now accept interface names as arguments
 - Zellij is aliased to `z` for quick access
 - The repository includes a comprehensive `.gitignore` for security
+- `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
