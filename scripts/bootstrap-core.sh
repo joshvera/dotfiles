@@ -53,6 +53,10 @@ if [[ -f "$DOTFILES_DIR/.fzf.zsh" ]]; then
   link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
 fi
 
+# Claude Code hooks
+mkdir -p "$HOME/.claude"
+link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
+
 # Ensure fzf itself is installed and generate baseline if missing
 if command -v fzf >/dev/null 2>&1; then
   if [[ ! -f "$DOTFILES_DIR/.fzf.zsh" ]] && [[ -x "$(brew --prefix)/opt/fzf/install" ]]; then
