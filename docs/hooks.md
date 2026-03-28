@@ -46,14 +46,6 @@ Set `CLAUDE_HOOKS_NTFY_ENABLED=false` to disable notifications globally.
 - **Swift**: Looks for `XCTFail("TDD: ...")` markers via custom reporter
 - **Rust**: Looks for `panic!("TDD: ...")` markers via custom reporter
 
-### Subagent Logging
-
-**subagent-start-logger.sh** - Logs Task tool (subagent) invocations in OpenTelemetry-style JSONL format to `~/.config/claudetainer/logs/subagent.jsonl`. Captures session ID, task description, prompt preview, and memory usage.
-
-**subagent-stop-logger.sh** - Logs subagent completions. Correlates with start events via task ID stored in `/tmp/claude-task-{session}-current`. Auto-rotates logs at 1000 entries.
-
-**view-subagent-logs.sh** - CLI viewer for subagent logs. Commands: `tail` (default), `stats`, `search <pattern>`, `session <id>`, `clear`.
-
 ### Utilities
 
 **hello.sh** - Test hook that prints a message. Useful for verifying hook execution works.
