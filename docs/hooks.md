@@ -20,12 +20,6 @@ Configured in `.claude/settings.json`:
 
 **notifier.sh** - Full-featured ntfy notification sender. Detects terminal context (tmux window name, iTerm/Terminal title, X11/Wayland window title) and includes it in notifications. Supports rate limiting (one per 2s), retry logic (2 attempts), and priority escalation for error keywords. Events: `notification`, `stop`, `idle-notification`.
 
-**notifier-simple.sh** - Lightweight alternative to notifier.sh. Same ntfy integration without retries, rate limiting, or terminal detection. Good for environments where the full notifier is overkill.
-
-**manual-notifier.sh** - Manual test script for verifying ntfy connectivity. Run directly to confirm your topic and server config work.
-
-**response-complete.sh** - Thin wrapper that calls `idle-detector.sh claude-finished`. Used as an alternative entry point for the Stop event.
-
 ### Configuration
 
 Notification scripts read ntfy config from (checked in order):
@@ -47,8 +41,6 @@ Set `CLAUDE_HOOKS_NTFY_ENABLED=false` to disable notifications globally.
 - **Rust**: Looks for `panic!("TDD: ...")` markers via custom reporter
 
 ### Utilities
-
-**hello.sh** - Test hook that prints a message. Useful for verifying hook execution works.
 
 **lib/session.sh** - Shared library providing `get_session_id()` for consistent session identification across hooks.
 
