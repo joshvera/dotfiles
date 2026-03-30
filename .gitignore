@@ -71,3 +71,5 @@ secrets.sh
 *.pem
 *.key
 .worktrees/
+.claude/backups/
+.claude/mcp-needs-auth-cache.json

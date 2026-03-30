@@ -72,6 +72,13 @@ Verification is the single biggest factor in output quality.
 - Always use `worktrunk` instead of `git worktree` for managing worktrees
 - Run `/worktrunk` skill for guidance on configuration and usage
 
+### Semantic Diff And Analysis
+- `git diff` is configured globally to use `sem` via an external diff wrapper. Treat plain `git diff` as the default semantic diff view.
+- Use `/sem` or `sem impact <entity>` before non-trivial refactors, interface changes, or deletions to estimate blast radius.
+- Use `/sem` or `sem blame <file>` when ownership or history matters at the function, method, or class level; prefer it over `git blame` for supported languages.
+- Use `/sem` or `sem graph` when mapping dependencies between entities or validating impact-analysis results.
+- Use `git diff --no-ext-diff ...` when you need exact line hunks, raw patch context, or behavior on files where semantic parsing is not useful.
+
 ## Communication Style
 
 - Be concise and direct

@@ -20,6 +20,8 @@
       "Bash(git checkout:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
+      "Bash(sem:*)",
+      "mcp__inspect__*",
       "Bash(gh:*)",
       "Bash(wt:*)",
       "WebSearch",
@@ -72,6 +74,15 @@
   "enabledPlugins": {
     "wiggum@wiggum-local": true,
     "claude-hud@claude-hud": false,
-    "worktrunk@worktrunk": true
+    "worktrunk@worktrunk": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
+      }
+    }
   }
 }
