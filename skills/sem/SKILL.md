@@ -1,11 +1,8 @@
 ---
 name: sem
 description: Use sem for semantic impact analysis, entity-level blame, and dependency graph exploration when line-level git output is too low-level.
-allowed-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
+metadata:
+  short-description: Semantic impact, blame, and dependency analysis
 ---
 
 # sem
@@ -28,7 +25,7 @@ Use this skill when you need entity-level answers instead of line-level patch ou
 - `sem impact <entity> --files <path>`
   Narrow the analysis when you already know the relevant file set.
 - `sem blame <file>`
-  Use this instead of `git blame` when you want ownership or history by function, method, class, or other parsed entity.
+  Use this instead of `git blame` when you want ownership/history by function, method, class, or other parsed entity.
 - `sem graph`
   Use this to inspect repo-wide dependency structure.
 - `sem diff --format json`

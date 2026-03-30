@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qodo Resolver"
+  short_description: "Review live Qodo pull request findings"
+  default_prompt: "Use $qodo-pr-resolver to list the live Qodo findings on the open GitHub pull request, identify which ones are still actionable, and help me fix or defer them."
