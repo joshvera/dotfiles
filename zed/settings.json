@@ -7,26 +7,20 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "buffer_font_fallbacks": [
-    "Menlo",
-    "Monaco",
-    "Courier New",
-    "monospace"
-  ],
+  "terminal": {
+    "option_as_meta": true,
+  },
+  "buffer_font_fallbacks": ["Menlo", "Monaco", "Courier New", "monospace"],
   "buffer_font_family": "Inconsolata",
   "tab_size": 2,
   "telemetry": {
     "diagnostics": true,
-    "metrics": false
+    "metrics": false,
   },
   "vim_mode": true,
   "base_keymap": "VSCode",
   "icon_theme": "Zed (Default)",
   "ui_font_size": 16,
   "buffer_font_size": 18.0,
-  "theme": {
-    "mode": "system",
-    "light": "Solarized Light",
-    "dark": "Solarized Dark",
-  },
+  "theme": "Solarized Dark",
 }

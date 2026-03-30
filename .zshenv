@@ -85,6 +85,7 @@ export PATH="/opt/homebrew/opt/mysql@5.7/bin:$PATH"          # MySQL 5.7
 
 # User local paths
 export PATH="$HOME/.local/bin:$PATH"                         # User local binaries
+export PATH="$HOME/.local/share/mise/shims:$PATH"            # mise shims for non-interactive shells/hooks
 export PATH="$HOME/.cargo/bin:$PATH"                         # Rust cargo
 export PATH="$HOME/.npm/bin:$PATH"                           # npm global packages
 export PATH="$HOME/.nodenv/shims:$PATH"                      # Node version manager

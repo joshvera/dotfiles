@@ -205,8 +205,6 @@ esac
 export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
-export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh 
-
 # Docker CLI completions (fpath only - compinit handled by Oh-My-Zsh)
 fpath=($HOME/.docker/completions $fpath)
 
