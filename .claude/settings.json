@@ -84,5 +84,6 @@
         "repo": "anthropics/claude-code"
       }
     }
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }
