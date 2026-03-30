@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "Usage: weave-preview-safe <target>" >&2
+  exit 2
+fi
+
+target="$1"
+shift
+
+# Preview only. Never run weave setup from a skill.
+exec weave preview "$target" "$@"

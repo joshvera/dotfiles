@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -lt 2 ]; then
+  echo "Usage: inspect-review-target <file|diff|pr> <target> [--format json|markdown|terminal]" >&2
+  exit 2
+fi
+
+mode="$1"
+target="$2"
+shift 2
+
+format="json"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --format)
+      shift
+      format="${1:-json}"
+      shift
+      ;;
+    --format=*)
+      format="${1#--format=}"
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+case "$mode" in
+  file)
+    exec inspect file "$target" --format "$format" "$@"
+    ;;
+  diff)
+    exec inspect diff "$target" --format "$format" "$@"
+    ;;
+  pr)
+    if ! command -v gh >/dev/null 2>&1; then
+      echo "inspect pr requires gh; gh not found" >&2
+      exit 2
+    fi
+    exec inspect pr "$target" --format "$format" "$@"
+    ;;
+  *)
+    echo "Unknown mode: $mode" >&2
+    echo "Usage: inspect-review-target <file|diff|pr> <target> [--format json|markdown|terminal]" >&2
+    exit 2
+    ;;
+esac

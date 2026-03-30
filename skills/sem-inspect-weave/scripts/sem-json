@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "Usage: sem-json <diff|impact|graph|blame> [args...]" >&2
+  exit 2
+fi
+
+sub="$1"
+shift
+
+has_format_flag() {
+  for a in "$@"; do
+    if [ "$a" = "--format" ]; then
+      return 0
+    fi
+    case "$a" in
+      --format=*)
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
+
+case "$sub" in
+  diff)
+    if has_format_flag "$@"; then
+      exec sem diff "$@"
+    fi
+    exec sem diff --format json "$@"
+    ;;
+  impact)
+    exec sem impact "$@"
+    ;;
+  graph)
+    exec sem graph "$@"
+    ;;
+  blame)
+    exec sem blame "$@"
+    ;;
+  *)
+    echo "Unknown subcommand: $sub" >&2
+    echo "Usage: sem-json <diff|impact|graph|blame> [args...]" >&2
+    exit 2
+    ;;
+esac

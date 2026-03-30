@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+json=0
+require=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --json)
+      json=1
+      shift
+      ;;
+    --require)
+      shift
+      while [ $# -gt 0 ]; do
+        case "$1" in
+          --*)
+            break
+            ;;
+          *)
+            require+=("$1")
+            shift
+            ;;
+        esac
+      done
+      ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: skill-preflight [--json] [--require sem inspect weave gh]
+
+Checks availability of sem/inspect/weave (and optionally gh).
+
+Exit codes:
+  0: ok (or nothing required)
+  1: one or more required tools missing
+EOF
+      exit 0
+      ;;
+    *)
+      echo "Unknown arg: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+tool_path() {
+  command -v "$1" 2>/dev/null || true
+}
+
+json_array() {
+  if [ $# -eq 0 ]; then
+    printf '[]'
+    return 0
+  fi
+
+  printf '['
+  local first=1
+  local v
+  for v in "$@"; do
+    if [ $first -eq 1 ]; then
+      first=0
+    else
+      printf ','
+    fi
+    printf '"%s"' "${v//\"/}"
+  done
+  printf ']'
+}
+
+SEM_PATH="$(tool_path sem)"
+INSPECT_PATH="$(tool_path inspect)"
+WEAVE_PATH="$(tool_path weave)"
+GH_PATH="$(tool_path gh)"
+
+sem_ok=0; [ -n "$SEM_PATH" ] && sem_ok=1
+inspect_ok=0; [ -n "$INSPECT_PATH" ] && inspect_ok=1
+weave_ok=0; [ -n "$WEAVE_PATH" ] && weave_ok=1
+gh_ok=0; [ -n "$GH_PATH" ] && gh_ok=1
+
+missing_required=()
+for t in "${require[@]}"; do
+  case "$t" in
+    sem) [ $sem_ok -eq 1 ] || missing_required+=("sem") ;;
+    inspect) [ $inspect_ok -eq 1 ] || missing_required+=("inspect") ;;
+    weave) [ $weave_ok -eq 1 ] || missing_required+=("weave") ;;
+    gh) [ $gh_ok -eq 1 ] || missing_required+=("gh") ;;
+    *)
+      echo "Unknown tool in --require: $t" >&2
+      exit 2
+      ;;
+  esac
+done
+
+overall_ok=1
+if [ ${#missing_required[@]} -gt 0 ]; then
+  overall_ok=0
+fi
+
+if [ $json -eq 1 ]; then
+  # Minimal JSON; values are shell-escaped by design (paths contain no quotes).
+  printf '{'
+  printf '"ok":%s,' "$( [ $overall_ok -eq 1 ] && echo true || echo false )"
+  printf '"sem":{"ok":%s,"path":"%s"},' "$( [ $sem_ok -eq 1 ] && echo true || echo false )" "${SEM_PATH//\"/}"
+  printf '"inspect":{"ok":%s,"path":"%s"},' "$( [ $inspect_ok -eq 1 ] && echo true || echo false )" "${INSPECT_PATH//\"/}"
+  printf '"weave":{"ok":%s,"path":"%s"},' "$( [ $weave_ok -eq 1 ] && echo true || echo false )" "${WEAVE_PATH//\"/}"
+  printf '"gh":{"ok":%s,"path":"%s"},' "$( [ $gh_ok -eq 1 ] && echo true || echo false )" "${GH_PATH//\"/}"
+  printf '"required":%s,' "$(json_array "${require[@]}")"
+  printf '"missing":%s' "$(json_array "${missing_required[@]}")"
+  printf '}'
+  printf '\n'
+else
+  echo "sem:    $( [ $sem_ok -eq 1 ] && echo "ok ($SEM_PATH)" || echo "missing" )"
+  echo "inspect:$( [ $inspect_ok -eq 1 ] && echo " ok ($INSPECT_PATH)" || echo " missing" )"
+  echo "weave:  $( [ $weave_ok -eq 1 ] && echo "ok ($WEAVE_PATH)" || echo "missing" )"
+  echo "gh:     $( [ $gh_ok -eq 1 ] && echo "ok ($GH_PATH)" || echo "missing" )"
+  if [ ${#require[@]} -gt 0 ]; then
+    if [ $overall_ok -eq 1 ]; then
+      echo "required: ok"
+    else
+      echo "required: missing: ${missing_required[*]}" >&2
+    fi
+  fi
+fi
+
+if [ ${#require[@]} -gt 0 ] && [ $overall_ok -ne 1 ]; then
+  exit 1
+fi

@@ -15,6 +15,7 @@
 	preloadindex = true
 	whitespace = blank-at-eol,space-before-tab,-blank-at-eof,tabwidth=4
 	pager = less -x4
+	attributesFile = ~/.config/git/attributes
 [alias]
 	annihilate = reset --hard origin/master
 	bg = branch
@@ -45,9 +46,7 @@
 	whitespace = trailing-space,space-before-tab,strip
 [diff]
 	renames = copies
-    tool = default-difftool
-[difftool "default-difftool"]
-    cmd = code --wait --diff $LOCAL $REMOTE
+	external = sem-diff-wrapper
 [status]
 	submodulesummary = true
 [branch]
@@ -82,3 +81,12 @@
 	enabled = 1
 [gc]
 	auto = 0
+[credential "https://github.com"]
+	helper = 
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !gh auth git-credential
+[merge "weave"]
+	name = Entity-level semantic merge
+	driver = weave-driver %O %A %B %L %P
