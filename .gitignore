@@ -74,3 +74,4 @@ secrets.sh
 .claude/backups/
 .claude/mcp-needs-auth-cache.json
 .claude/sessions/
+.dmux/
