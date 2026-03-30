@@ -25,15 +25,6 @@ link_file() {
   echo "linked $dst -> $src"
 }
 
-sync_repo_ai_skills() {
-  if [[ ! -x "$DOTFILES_DIR/scripts/sync-ai-skills.sh" ]]; then
-    echo "skip AI skill sync: $DOTFILES_DIR/scripts/sync-ai-skills.sh not executable" >&2
-    return
-  fi
-
-  "$DOTFILES_DIR/scripts/sync-ai-skills.sh"
-}
-
 # Core shell files
 link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 link_file "$DOTFILES_DIR/.zprofile" "$HOME/.zprofile"
@@ -65,6 +56,11 @@ fi
 # Claude Code hooks
 mkdir -p "$HOME/.claude"
 link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
+link_file "$DOTFILES_DIR/.claude/skills" "$HOME/.claude/skills"
+
+# Codex skills
+mkdir -p "$HOME/.codex"
+link_file "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
 
 # Ensure fzf itself is installed and generate baseline if missing
 if command -v fzf >/dev/null 2>&1; then
@@ -74,13 +70,5 @@ if command -v fzf >/dev/null 2>&1; then
     link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
   fi
 fi
-
-# Claude hooks tracked in dotfiles, while runtime state stays in ~/.claude
-if [[ -d "$DOTFILES_DIR/.claude/hooks" ]]; then
-  mkdir -p "$HOME/.claude"
-  link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
-fi
-
-sync_repo_ai_skills
 
 echo "done"

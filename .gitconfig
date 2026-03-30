@@ -17,7 +17,7 @@
 	pager = less -x4
 	attributesFile = ~/.config/git/attributes
 [alias]
-	annihilate = reset --hard origin/master
+	annihilate = reset --hard @{upstream}
 	bg = branch
 	br = branch
 	ci = commit

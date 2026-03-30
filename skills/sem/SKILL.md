@@ -16,7 +16,7 @@ Use this skill when you need entity-level answers instead of line-level patch ou
 - Exploring dependency structure before a refactor or review.
 - Getting a structured semantic diff for tooling or machine-readable analysis.
 
-`git diff` is already configured globally to use `sem` through Git's external diff hook. Use plain `git diff` for the default semantic diff view. Use `git diff --no-ext-diff ...` when you need raw hunks, patch context, or exact line-by-line output.
+If `diff.external = sem-diff-wrapper` is configured, plain `git diff` gives the default semantic diff view. If you need the same semantic view without relying on global git config, run `git -c diff.external=sem-diff-wrapper diff ...`. Use `git diff --no-ext-diff ...` when you need raw hunks, patch context, or exact line-by-line output.
 
 ## Commands
 
@@ -30,10 +30,12 @@ Use this skill when you need entity-level answers instead of line-level patch ou
   Use this to inspect repo-wide dependency structure.
 - `sem diff --format json`
   Use this when you need semantic diffs as structured output for automation or further analysis.
+- `git -c diff.external=sem-diff-wrapper diff <ref>..<ref>`
+  Use this when you want the semantic diff wrapper explicitly, even if git config is unset.
 
 ## Suggested Workflow
 
-1. Start with `git diff` for the semantic overview of the current change.
+1. Start with `git diff` for the semantic overview of the current change when `diff.external` is configured, or run `git -c diff.external=sem-diff-wrapper diff ...` explicitly.
 2. If one entity is central to the task, run `sem impact <entity>`.
 3. If you need ownership or historical context, run `sem blame <file>`.
 4. If dependency structure is still unclear, run `sem graph`.

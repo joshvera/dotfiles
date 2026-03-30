@@ -9,7 +9,8 @@ Personal configuration files for macOS development environment.
 - **git_template/** - Git hooks and configuration
 - **vscode/** - Visual Studio Code settings and keybindings
 - **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
-- **.claude/** - Claude Code configuration (commands, hooks, agents)
+- **.claude/** - Claude Code configuration (commands, hooks, agents, repo-backed skills)
+- **.codex/** - Codex skills tracked in-repo
 - **skills/** - Shared Claude/Codex skills
 - **emacs** - Emacs configuration
 - **DefaultKeyBinding.dict** - macOS key bindings
@@ -27,7 +28,7 @@ Personal configuration files for macOS development environment.
    brew bundle --file Brewfile
    ```
 
-3. Link core dotfiles safely (backs up non-symlink files first, links Claude hooks, and syncs repo skills into Claude/Codex):
+3. Link core dotfiles safely (backs up non-symlink files first, links Claude hooks, and installs repo-backed Claude/Codex skill directories):
    ```bash
    ./scripts/bootstrap-core.sh
    ```
@@ -65,11 +66,6 @@ Personal configuration files for macOS development environment.
    cp -r ~/.claude.bak/{todos,plans,plugins,cache,statsig} ~/.claude/
    ```
 
-7. Resync shared AI skills after pulling new ones:
-   ```bash
-   ./scripts/sync-ai-skills.sh
-   ```
-
 ## Key Features
 
 - Minimal, keyboard-driven Zellij configuration with vim-style navigation
@@ -85,3 +81,4 @@ Personal configuration files for macOS development environment.
 - The repository includes a comprehensive `.gitignore` for security
 - `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
 - `bootstrap-core.sh` treats `.gitconfig` and `.fzf.zsh` as dotfiles-managed (when present in repo)
+- `bootstrap-core.sh` links `~/.claude/skills` and `~/.codex/skills` to the repo-managed skill directories
