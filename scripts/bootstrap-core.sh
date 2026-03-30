@@ -61,10 +61,21 @@ fi
 mkdir -p "$HOME/.agents"
 link_file "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
 
-# Claude Code hooks and shared skills mirror
-mkdir -p "$HOME/.claude"
-link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
-link_file "$HOME/.agents/skills" "$HOME/.claude/skills"
+# Claude Code config
+# If ~/.claude already points into the dotfiles repo, skip individual links
+# (hooks live directly in .claude/hooks/, skills symlink is committed to the repo)
+if [[ "$(readlink "$HOME/.claude" 2>/dev/null)" == "$DOTFILES_DIR/.claude" ]]; then
+  echo "~/.claude already linked to $DOTFILES_DIR/.claude"
+  # Ensure the skills symlink inside the repo points to .agents/skills
+  if [[ ! -L "$DOTFILES_DIR/.claude/skills" ]]; then
+    ln -sfn "$HOME/.agents/skills" "$DOTFILES_DIR/.claude/skills"
+    echo "linked $DOTFILES_DIR/.claude/skills -> $HOME/.agents/skills"
+  fi
+else
+  mkdir -p "$HOME/.claude"
+  link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
+  link_file "$HOME/.agents/skills" "$HOME/.claude/skills"
+fi
 
 # Codex-specific/system skills
 mkdir -p "$HOME/.codex"

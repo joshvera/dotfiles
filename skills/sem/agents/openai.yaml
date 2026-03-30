@@ -1,4 +1,4 @@
 interface:
   display_name: "Sem / Inspect / Weave"
   short_description: "Semantic diff -> risk triage -> merge/coordination semantics"
-  default_prompt: "Use $sem-inspect-weave to analyze changes semantically (sem -> inspect -> weave) and report entity-level findings."
+  default_prompt: "Use $sem to analyze changes semantically (sem -> inspect -> weave) and report entity-level findings."
