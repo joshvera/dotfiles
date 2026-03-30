@@ -4,7 +4,9 @@
 - Shell configurations: `.zshrc`, `.zshenv`, `.zprofile`, `zsh/`
 - Editor configs: `nvim/`, `vscode/`, `zed/`
 - Terminal configs: `tmux/`, `zellij/`
-- Claude Code: `.claude/` (hooks, settings, skills)
+- Shared agent skills: `.agents/skills/`
+- Claude Code: `.claude/` (hooks, settings, agents; `~/.claude/skills` mirrors `~/.agents/skills`)
+- Codex: `.codex/` (Codex-specific and system skills)
 - Shared hooks: `hooks/` (for wiggum-enabled projects)
 - Skills: `skills/` (slash command definitions)
 

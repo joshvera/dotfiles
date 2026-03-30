@@ -1,11 +1,11 @@
 ---
 name: skill-creator
-description: Guide for creating or updating Codex skills. Use when users want to create a new skill, update an existing skill, or need guidance on skill structure and best practices.
+description: Guide for creating or updating agent skills. Use when users want to create a new skill, update an existing skill, or need guidance on SKILL.md structure and best practices across Claude Code, Codex, and other compatible agents.
 ---
 
 # Skill Creator
 
-Create effective Codex skills: modular extensions that provide specialized knowledge, workflows, and tool integrations.
+Create effective agent skills: modular extensions that provide specialized knowledge, workflows, and tool integrations.
 
 ## Skill Structure
 
@@ -19,8 +19,9 @@ skill-name/
 
 ### Installation Locations
 
-- **Global skills**: `~/.Codex/skills/<skill-name>/SKILL.md`
-- **Project skills**: `.Codex/skills/<skill-name>/SKILL.md`
+- **Shared global skills**: `~/.agents/skills/<skill-name>/SKILL.md`
+- **Shared project skills**: `.agents/skills/<skill-name>/SKILL.md` when the runtime supports repo-local agent skills
+- **Product-specific mirrors**: point `~/.claude/skills` or similar runtime-specific paths at `~/.agents/skills` when a tool does not read `.agents` directly
 
 Global skills are available in all projects. Project skills are scoped to the repo.
 
@@ -50,7 +51,7 @@ Optional:
 
 #### Body
 
-Write in imperative form. Include only information Codex cannot infer. Challenge each paragraph: "Does this justify its token cost?"
+Write in imperative form. Include only information the agent cannot infer. Challenge each paragraph: "Does this justify its token cost?"
 
 Prefer concise examples over verbose explanations.
 
@@ -60,7 +61,7 @@ Prefer concise examples over verbose explanations.
 
 The context window is shared. Skills metadata is always loaded; body is loaded on trigger. Every token counts.
 
-- Default assumption: Codex is already smart. Only add what it doesn't know.
+- Default assumption: the agent is already smart. Only add what it doesn't know.
 - Keep SKILL.md under 500 lines.
 - Move detailed reference material to `references/` files.
 
@@ -78,7 +79,7 @@ Three-level loading keeps context lean:
 
 1. **Metadata** (name + description) - Always in context (~100 words)
 2. **SKILL.md body** - Loaded when skill triggers (<5k words)
-3. **Bundled resources** - Loaded as needed by Codex (unlimited)
+3. **Bundled resources** - Loaded as needed by the agent (unlimited)
 
 When a skill supports multiple variants or domains, keep core workflow in SKILL.md and move variant-specific details to reference files.
 
@@ -91,7 +92,7 @@ cloud-deploy/
     ├── gcp.md
     └── azure.md
 ```
-Codex loads only the relevant reference file.
+The agent loads only the relevant reference file.
 
 **Pattern: Conditional details**
 ```markdown
@@ -127,15 +128,15 @@ Clarify concrete examples of how the skill will be used. Ask:
 
 For each concrete example, identify:
 - Code that gets rewritten repeatedly -> `scripts/`
-- Documentation Codex needs while working -> `references/`
+- Documentation the agent needs while working -> `references/`
 - Templates or files used in output -> `assets/`
 
 ### 3. Create the Skill
 
 ```bash
-mkdir -p ~/.Codex/skills/<skill-name>   # global
+mkdir -p ~/.agents/skills/<skill-name>   # global
 # or
-mkdir -p .Codex/skills/<skill-name>     # project-scoped
+mkdir -p .agents/skills/<skill-name>     # project-scoped
 ```
 
 ### 4. Write SKILL.md
@@ -161,7 +162,7 @@ Use the skill on real tasks, notice struggles, update accordingly.
 
 - README.md, CHANGELOG.md, or auxiliary docs
 - "When to use" sections in the body (put this in `description`)
-- Information Codex can already infer
+- Information the agent can already infer
 - Setup/testing/installation procedures
 
 ## Naming

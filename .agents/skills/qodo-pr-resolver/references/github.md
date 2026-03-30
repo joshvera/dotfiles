@@ -11,7 +11,7 @@ gh pr list --head "$branch" --state open --json number,title,url,headRefName
 
 ## Review Thread State Query
 
-Use this to decide whether a Qodo issue has a live inline reply target. Do not use it alone to decide whether the underlying finding is fixed.
+Use this to decide whether a Qodo issue has a live inline discussion anchor. Do not use it alone to decide whether the underlying finding is fixed.
 
 ```bash
 gh api graphql -f query='
@@ -56,7 +56,7 @@ Use summary comments to build the persistent-review audit trail and to enrich in
 - agent prompt
 
 Use inline review comments to get:
-- exact reply target
+- exact discussion anchor
 - file path and line location
 - current thread state via GraphQL
 - whether a finding is `live` or `outdated`
@@ -74,7 +74,7 @@ Treat these as Qodo identities:
 ## Source Precedence
 
 - The persistent review summary is the canonical unresolved finding list.
-- GitHub review-thread state decides whether a finding has a live inline reply target.
+- GitHub review-thread state decides whether a finding has a live inline discussion anchor.
 - Current code/tests decide whether the finding is actually fixed.
 - The refreshed persistent review decides whether Qodo has acknowledged the fix on the current PR head.
 
@@ -87,7 +87,7 @@ A finding is `live-inline` only if all of the following are true:
 - `isResolved` is `false`
 - `isOutdated` is `false`
 
-These are the only findings with exact inline reply targets.
+These are the only findings with exact inline discussion anchors.
 
 ### `outdated-inline`
 
@@ -103,7 +103,7 @@ Do not drop `outdated-inline` or `summary-only` items without code/test evidence
 
 1. Match summary and inline entries by exact Qodo title.
 2. If multiple inline threads share the title, prefer a live thread over an outdated one.
-3. Prefer inline data for file path, line range, reply ID, URL, and thread state.
+3. Prefer inline data for file path, line range, anchor ID, URL, and thread state.
 4. Prefer summary data for severity, evidence, and the agent prompt.
 5. If the title is missing in one source, use file path plus line range as the fallback key.
 
@@ -128,9 +128,11 @@ Recommended action mapping:
 - `evidence_state=fixed` + `qodo_state=acknowledged` -> `Verified fixed`
 - `evidence_state=ambiguous` -> `Ask Qodo`
 
-## Reply Commands
+## Inline Reply Commands
 
 Prefer GitHub MCP `github_reply_to_review_comment`.
+
+Use these only when the user explicitly wants a reviewer-facing breadcrumb. Do not treat inline replies as a documented Qodo control surface.
 
 Fallback:
 

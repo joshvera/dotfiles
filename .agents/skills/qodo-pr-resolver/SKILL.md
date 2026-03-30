@@ -1,8 +1,6 @@
 ---
 name: qodo-pr-resolver
-description: Review Qodo findings on the open GitHub pull request for the current branch using the persistent review as the canonical finding list and GitHub inline threads as reply targets, then fix, verify, refresh, or defer them with evidence and Qodo acknowledgment state.
-metadata:
-  short-description: Resolve Qodo PR findings with evidence
+description: Review Qodo findings on the open GitHub pull request for the current branch using the persistent review as the canonical finding list and GitHub inline threads as discussion anchors, then fix, verify, refresh, or escalate with `/ask` using evidence and Qodo acknowledgment state.
 ---
 
 # Qodo PR Resolver
@@ -21,7 +19,7 @@ Do not use `qodoDocs` as the source of live PR state.
 
 ## Source Precedence
 
-- GitHub review-thread state decides whether a finding has a live inline reply target.
+- GitHub review-thread state decides whether a finding has a live inline discussion anchor.
 - Current code, tests, and targeted verification decide whether a finding is actually fixed.
 - The current persistent review decides whether Qodo still carries the finding on the current PR head.
 - Qodo persistent review provides the full audit trail: titles, ordering, severity, evidence, prompts, and findings that may be hidden, collapsed, outdated, or summary-only.
@@ -31,9 +29,10 @@ Do not use `qodoDocs` as the source of live PR state.
 
 - Treat the persistent review as the canonical unresolved finding list for the current PR head.
 - Treat GitHub inline review threads as attachment metadata:
-  - a live inline thread gives you an exact reply target
+  - a live inline thread gives you an exact discussion anchor
   - an outdated inline thread tells you prior placement, not current resolution
 - `isOutdated=true` is not enough to call a finding fixed. It only means the original inline attachment no longer maps cleanly to the current diff.
+- Do not assume that plain `Fixed - ...` replies on normal Qodo review threads change Qodo's review state. Use `/agentic_review` and `/ask` for machine-facing Qodo interaction.
 - Do not call a finding `stale` or `historical` until current code/test evidence and refreshed Qodo state both support that disposition.
 
 ## Status Axes
@@ -112,7 +111,7 @@ then stop and tell the user to wait for the review to finish.
   - evidence
   - agent prompt
   - `source_state`: `live-inline`, `outdated-inline`, or `summary-only`
-  - `reply_target`: inline comment database ID and URL only when a live inline thread exists
+  - `discussion_anchor`: inline comment database ID and URL only when a live inline thread exists
 
 Do not assume collapsed or hidden findings are irrelevant; Qodo can hide additional findings in the summary UI without discarding them.
 
@@ -140,17 +139,17 @@ The important rule is: verification is required before dismissal, but it does no
 - If you have not refreshed Qodo yet, do not upgrade `needs_refresh` to `acknowledged`.
 
 Recommended action mapping:
-- `reply_target` present + `evidence_state=unresolved` -> `Fix` or `Defer`
-- no `reply_target` + `evidence_state=unresolved` -> `Fix`
+- `evidence_state=unresolved` -> `Fix`
 - `evidence_state=fixed` + `qodo_state=needs_refresh` -> `Refresh Qodo`
 - `evidence_state=fixed` + `qodo_state=persisted_after_refresh` -> `Ask Qodo`
 - `evidence_state=fixed` + `qodo_state=acknowledged` -> `Verified fixed`
 - `evidence_state=ambiguous` -> `Ask Qodo`
+- `Defer` only when the user explicitly chooses not to fix the finding yet
 - `Ignore as historical` only when current code, repo history, and refreshed Qodo state all support that disposition and the user wants it
 
 ### 8. Evidence-fixed but not yet acknowledged
 
-- If a live inline reply target exists, reply there with the evidence-backed fix summary.
+- Do not auto-reply on the inline review thread just because local evidence says the finding is fixed.
 - Do not call the finding stale yet just because the inline thread is outdated or the code now looks correct.
 - If the branch is fully pushed and Qodo is idle, request `/agentic_review`.
 - Re-fetch the persistent review after the refresh finishes.
@@ -158,6 +157,9 @@ Recommended action mapping:
   - the exact Qodo title
   - the current file and line reference
   - the specific code or test evidence that now appears to address it
+  - a direct question about whether the finding still applies on the current head
+- If the evidence is ambiguous before refresh, skip the inline reply and go straight to `/ask` after summarizing the ambiguity.
+- Only leave an inline human-facing status reply if the user explicitly asks for reviewer breadcrumbs.
 - Only downgrade the finding to historical/stale after the refreshed review or `/ask` response makes that clear.
 
 ### 9. Present one table
@@ -173,11 +175,11 @@ Display one compact table with:
 - severity
 - type
 - location
-- reply target (`inline` or `none`)
+- discussion anchor (`inline` or `none`)
 - action (`Fix`, `Refresh Qodo`, `Ask Qodo`, `Verified fixed`, `Ignore as historical`)
 
 If helpful, add a one-line summary above the table:
-- how many items have live inline reply targets
+- how many items have live inline discussion anchors
 - how many remain summary-only or outdated
 
 ### 10. Fix or defer using the Qodo prompt
@@ -188,14 +190,14 @@ When the user wants to address an item:
 - If the prompt is stale, say exactly what is stale before proposing the updated fix.
 - After the user approves the change, implement it and run targeted verification.
 
-For findings without a live reply target:
+For findings without a live inline discussion anchor:
 - keep the evidence in your response
 - do not pretend there is an inline thread to reply to
 - optionally post a PR-level summary comment only if the user asks for it
 
-### 11. Reply on the exact inline comment
+### 11. Inline replies are opt-in, not the default Qodo path
 
-Reply only to preserved live inline review comments, not just the summary comment.
+Reply on the exact inline comment only when the user explicitly asks for a reviewer-facing acknowledgment.
 
 Prefer GitHub MCP `github_reply_to_review_comment`. Fallback `gh api` reply commands are in [references/github.md](./references/github.md).
 
@@ -203,6 +205,7 @@ Reply format:
 - Fixed: `Fixed - <brief description of the change>`
 - Deferred: `Deferred - <brief reason>`
 
+Do not present inline replies as a Qodo control surface. They are for human readers unless repo-specific evidence proves otherwise.
 Do not reply inline to summary-only findings unless a matching live inline comment exists.
 
 ### 12. Ask Qodo when the evidence is ambiguous or Qodo still disagrees
@@ -216,6 +219,15 @@ If code and tests do prove a finding is fixed, but it still persists after `/age
 - set `qodo_state=persisted_after_refresh`
 - use `/ask` with the exact title and current evidence
 
+Recommended `/ask` shape:
+
+```text
+/ask Qodo previously reported "<exact title>" at <file:line> on this PR.
+On current head <sha>, I changed <brief code change> and verified with <tests/checks>.
+Does this finding still apply? If yes, what specific behavior or code path remains unaddressed?
+```
+
+Prefer a PR-level `/ask` by default. Use a diff-line `/ask` only when the line-local context materially helps the question.
 `/ask` is additional context, not a replacement for code and test verification or for refreshing the persistent review first.
 
 ### 13. Request a fresh Qodo review when needed
@@ -232,7 +244,8 @@ Use `/agentic_review` by default when a finding is `evidence_state=fixed` but `q
 ## Notes
 
 - Qodo's persistent review is an audit trail across commits, not just a convenience summary.
-- GitHub review-thread state is the authority for live reply targets, not for whether the underlying concern was actually fixed.
+- GitHub review-thread state is the authority for live discussion anchors, not for whether the underlying concern was actually fixed.
 - Findings can remain relevant even when the original inline thread is outdated or collapsed in the summary UI.
 - A finding is only fully clear when both local evidence and refreshed Qodo state agree.
+- Plain `Fixed - ...` replies on normal Qodo review threads are not a documented review control channel; use `/agentic_review` and `/ask` for machine-facing Qodo interaction.
 - When Qodo product behavior is unclear, use the `qodoDocs` MCP server to check the official docs before guessing.

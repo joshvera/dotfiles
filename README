@@ -9,9 +9,10 @@ Personal configuration files for macOS development environment.
 - **git_template/** - Git hooks and configuration
 - **vscode/** - Visual Studio Code settings and keybindings
 - **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
-- **.claude/** - Claude Code configuration (commands, hooks, agents, repo-backed skills)
-- **.codex/** - Codex skills tracked in-repo
-- **skills/** - Shared Claude/Codex skills
+- **.agents/** - Shared agent skills (canonical repo-backed source for model-agnostic skills)
+- **.claude/** - Claude Code configuration (commands, hooks, agents)
+- **.codex/** - Codex-specific and system skills tracked in-repo
+- **skills/** - Shared slash-command definitions
 - **emacs** - Emacs configuration
 - **DefaultKeyBinding.dict** - macOS key bindings
 
@@ -28,7 +29,7 @@ Personal configuration files for macOS development environment.
    brew bundle --file Brewfile
    ```
 
-3. Link core dotfiles safely (backs up non-symlink files first, links Claude hooks, and installs repo-backed Claude/Codex skill directories):
+3. Link core dotfiles safely (backs up non-symlink files first, links Claude hooks, installs shared `~/.agents/skills`, mirrors `~/.claude/skills` to it, and installs Codex-specific skills):
    ```bash
    ./scripts/bootstrap-core.sh
    ```
@@ -81,4 +82,6 @@ Personal configuration files for macOS development environment.
 - The repository includes a comprehensive `.gitignore` for security
 - `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
 - `bootstrap-core.sh` treats `.gitconfig` and `.fzf.zsh` as dotfiles-managed (when present in repo)
-- `bootstrap-core.sh` links `~/.claude/skills` and `~/.codex/skills` to the repo-managed skill directories
+- `bootstrap-core.sh` links `~/.agents/skills` to the repo-managed shared skills directory
+- `bootstrap-core.sh` mirrors `~/.claude/skills` to `~/.agents/skills`
+- `bootstrap-core.sh` links `~/.codex/skills` to the repo-managed Codex-specific skill directory

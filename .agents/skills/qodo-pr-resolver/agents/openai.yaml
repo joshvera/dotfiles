@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qodo Resolver"
+  short_description: "Review Qodo findings with evidence, refresh, and /ask"
+  default_prompt: "Use $qodo-pr-resolver to build one evidence-backed list of unresolved Qodo findings on the open GitHub pull request, distinguish locally fixed items from Qodo-acknowledged ones, treat inline threads as discussion anchors, and tell me which findings need fixes, /agentic_review, or /ask."

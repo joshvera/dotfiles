@@ -20,7 +20,11 @@ backup_if_needed() {
 link_file() {
   local src="$1"
   local dst="$2"
+  mkdir -p "$(dirname "$dst")"
   backup_if_needed "$dst"
+  if [[ -L "$dst" ]]; then
+    rm -f "$dst"
+  fi
   ln -sfn "$src" "$dst"
   echo "linked $dst -> $src"
 }
@@ -53,12 +57,16 @@ if [[ -f "$DOTFILES_DIR/.fzf.zsh" ]]; then
   link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
 fi
 
-# Claude Code hooks
+# Shared agent skills
+mkdir -p "$HOME/.agents"
+link_file "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
+
+# Claude Code hooks and shared skills mirror
 mkdir -p "$HOME/.claude"
 link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
-link_file "$DOTFILES_DIR/.claude/skills" "$HOME/.claude/skills"
+link_file "$HOME/.agents/skills" "$HOME/.claude/skills"
 
-# Codex skills
+# Codex-specific/system skills
 mkdir -p "$HOME/.codex"
 link_file "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
 
