@@ -91,8 +91,8 @@ zstyle ':completion:*:*:cat:*:options' order '-n --number-lines -v --show-nonpri
 # General: prioritize options over files for predictable ghost text
 zstyle ':completion:*' group-order 'options arguments files'
 
-# Plugins - fzf-tab for enhanced completion
-plugins=(vi-mode brew coffee pip git fzf github fzf-tab)
+# Plugins - completion plus autosuggestions
+plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
 
 # Term
 export TERM=xterm-256color
