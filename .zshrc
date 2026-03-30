@@ -38,7 +38,7 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath 2>/d
 
 # Mobile-conditional fzf-tab navigation: Tab-to-accept for SSH sessions
 if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" ]]; then
-    # Mobile/SSH: Tab accepts, Shift-Tab cycles, arrows still work  
+    # Mobile/SSH: Tab accepts, Shift-Tab cycles, arrows still work
     zstyle ':fzf-tab:*' fzf-bindings 'tab:accept,shift-tab:down,ctrl-j:down,ctrl-k:up'
 else
     # Desktop: Keep standard Tab-cycling behavior
@@ -47,7 +47,7 @@ fi
 
 # ----------------------------------------------------------------------
 # Intelligent Completion Prioritization: Configure zsh completion system
-# to prioritize common options. zsh-autosuggestions will automatically 
+# to prioritize common options. zsh-autosuggestions will automatically
 # pick up the highest-priority completion as ghost text.
 # ----------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ zstyle ':completion:*:*:git-commit:*' tag-order 'options'
 zstyle ':completion:*:*:git-commit:*:options' order '-m --message -a --all --amend'
 zstyle ':completion:*:*:git-checkout:*' tag-order 'options'
 zstyle ':completion:*:*:git-checkout:*:options' order '-b --branch -t --track'
-zstyle ':completion:*:*:git-push:*' tag-order 'options'  
+zstyle ':completion:*:*:git-push:*' tag-order 'options'
 zstyle ':completion:*:*:git-push:*:options' order '-u --set-upstream -f --force'
 
 # Docker: prioritize common flags
@@ -76,7 +76,7 @@ zstyle ':completion:*:*:npm-install:*' tag-order 'options'
 zstyle ':completion:*:*:npm-install:*:options' order '--save-dev -D --global -g'
 zstyle ':completion:*:*:npm-run:*' tag-order 'options'
 
-# kubectl: prioritize common flags  
+# kubectl: prioritize common flags
 zstyle ':completion:*:*:kubectl-get:*' tag-order 'options'
 zstyle ':completion:*:*:kubectl-get:*:options' order '-o --output -w --watch'
 zstyle ':completion:*:*:kubectl-apply:*' tag-order 'options'
@@ -91,8 +91,8 @@ zstyle ':completion:*:*:cat:*:options' order '-n --number-lines -v --show-nonpri
 # General: prioritize options over files for predictable ghost text
 zstyle ':completion:*' group-order 'options arguments files'
 
-# Plugins - completion plus autosuggestions
-plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
+# Plugins - fzf-tab for enhanced completion
+plugins=(vi-mode brew coffee pip git fzf github fzf-tab)
 
 # Term
 export TERM=xterm-256color
@@ -106,7 +106,7 @@ source $ZSH/oh-my-zsh.sh
 # ----------------------------------------------------------------------
 function _smart_tab_handler {
   [[ -o zle ]] || return
-  
+
   # Trigger fzf-tab completion
   if (( $+widgets[fzf-tab-complete] )); then
     zle fzf-tab-complete
@@ -205,6 +205,8 @@ esac
 export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
+export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+
 # Docker CLI completions (fpath only - compinit handled by Oh-My-Zsh)
 fpath=($HOME/.docker/completions $fpath)
 
@@ -220,3 +222,7 @@ export PATH="$PATH:$HOME/github/ralph-playbook/files"
 
 # Deduplicate PATH (in case entries were added after .zshenv)
 typeset -U path
+export PATH="$HOME/.local/bin:$PATH"
+
+# pnpm (via corepack) injects npm_config_* vars that npm doesn't recognize
+unset npm_config__jsr_registry npm_config_verify_deps_before_run
