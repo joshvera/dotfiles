@@ -127,6 +127,42 @@ Example format:
   **Right**: Do Z instead because [reason]
 -->
 
+## gstack
+
+Use `/browse` from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
+
+Available skills:
+- `/office-hours` - YC Office Hours (startup diagnostic + builder brainstorm)
+- `/plan-ceo-review` - CEO/founder-mode plan review
+- `/plan-eng-review` - Eng manager-mode plan review
+- `/plan-design-review` - Designer's eye plan review
+- `/design-consultation` - Design system from scratch
+- `/design-shotgun` - Visual design exploration (multiple variants)
+- `/design-html` - Production HTML/CSS from approved mockups
+- `/review` - Pre-landing PR review
+- `/ship` - Ship workflow (tests, review, PR)
+- `/land-and-deploy` - Merge, deploy, canary verify
+- `/canary` - Post-deploy monitoring
+- `/benchmark` - Performance regression detection
+- `/browse` - Headless browser for QA and browsing
+- `/connect-chrome` - Headed Chrome with side panel
+- `/qa` - QA test and fix bugs
+- `/qa-only` - QA report only (no fixes)
+- `/design-review` - Visual QA and fix
+- `/setup-browser-cookies` - Import cookies for authenticated testing
+- `/setup-deploy` - Configure deploy settings
+- `/retro` - Weekly engineering retrospective
+- `/investigate` - Systematic root-cause debugging
+- `/document-release` - Post-ship doc updates
+- `/codex` - Multi-AI second opinion via Codex CLI
+- `/cso` - Security audit (OWASP + STRIDE)
+- `/autoplan` - Auto-review pipeline (CEO, design, eng)
+- `/careful` - Safety guardrails for destructive commands
+- `/freeze` / `/unfreeze` - Scope edits to a directory
+- `/guard` - Full safety mode (careful + freeze)
+- `/gstack-upgrade` - Upgrade gstack to latest
+- `/learn` - Manage project learnings
+
 ## Project-Specific Notes
 
 Check for a local `.claude/CLAUDE.md` or `CLAUDE.md` in the repo root for project-specific instructions. Those take precedence over these global defaults.
