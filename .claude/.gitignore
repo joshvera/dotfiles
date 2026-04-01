@@ -26,5 +26,16 @@ plugins/
 # macOS
 .DS_Store
 
+# Runtime state (continued)
+tasks/
+backups/
+sessions/
+rules/
+mcp-needs-auth-cache.json
+
+# omx backups
+hooks.pre-*/
+skills.pre-*/
+
 # Local settings (per-machine)
 settings.local.json
