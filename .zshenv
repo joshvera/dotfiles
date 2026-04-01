@@ -20,19 +20,24 @@ __git_files () {
 # Always pushd when changing directory
 setopt auto_pushd
 
-# Emacs bindings in vim insert mode
-bindkey -M viins '' forward-char
-bindkey -M viins '' backward-char
-bindkey -M viins '^A' beginning-of-line
-bindkey -M viins '^e' end-of-line
-bindkey -M viins '^k' delete-line
+# ZLE key bindings need a real terminal. `zsh -ic '...'` still loads `.zshenv`,
+# but shells started through pipes do not have an attached line editor.
+# Guard these bindings so non-TTY shells stay quiet.
+if [[ -t 0 && -t 1 ]]; then
+  # Emacs bindings in vim insert mode
+  bindkey -M viins '' forward-char
+  bindkey -M viins '' backward-char
+  bindkey -M viins '^A' beginning-of-line
+  bindkey -M viins '^e' end-of-line
+  bindkey -M viins '^k' delete-line
 
-# Bash style incremental search in vim insert mode
-bindkey -M viins '^r' history-incremental-search-backward
-bindkey -M viins '^s' history-incremental-search-forward
+  # Bash style incremental search in vim insert mode
+  bindkey -M viins '^r' history-incremental-search-backward
+  bindkey -M viins '^s' history-incremental-search-forward
 
-# jj to escape
-bindkey -M viins 'jj' vi-cmd-mode
+  # jj to escape
+  bindkey -M viins 'jj' vi-cmd-mode
+fi
 
 # Aliases
 source ~/github/dotfiles/zsh/aliases
@@ -45,9 +50,6 @@ export GPG_AGENT_INFO
 # zsh completions?
 fpath=(/usr/local/share/zsh-completions $fpath)
 
-
-# Get rid of fzf?
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Try autojump
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
@@ -110,7 +112,7 @@ export PATH="$HOME/github/HoTT:$PATH"                        # HoTT tools
 export PATH="/Applications/Isabelle2018.app/Isabelle/bin:$PATH"  # Isabelle prover
 
 # Deduplicate PATH (keeps first occurrence of each entry)
-typeset -U path
+typeset -U path PATH
+path=($path)
 
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-. "$HOME/.cargo/env"
