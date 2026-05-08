@@ -61,6 +61,42 @@ fi
 mkdir -p "$HOME/.agents"
 link_file "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
 
+# Codex-specific/system skills
+mkdir -p "$HOME/.codex"
+mkdir -p "$DOTFILES_DIR/.codex/skills"
+link_file "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
+
+# Expose repo-owned shared skills to Codex without duplicating the source.
+if [[ -d "$DOTFILES_DIR/.agents/skills" && -d "$DOTFILES_DIR/.codex/skills" ]]; then
+  shared_skills=(
+    codex-planner
+    codex-review
+    find-skills
+    gh-address-comments
+    gws-cli
+    playwriter
+    qodo-pr-resolver
+    sem
+    skill-creator
+  )
+  for skill_name in "${shared_skills[@]}"; do
+    [[ -d "$DOTFILES_DIR/.agents/skills/$skill_name" ]] || continue
+    target="$DOTFILES_DIR/.codex/skills/$skill_name"
+    rm -rf "$target"
+    ln -s "../../.agents/skills/$skill_name" "$target"
+  done
+
+  # Preserve Claude visibility for generated Codex-only skills, such as gstack,
+  # while keeping those generated installs out of Git.
+  for skill_path in "$DOTFILES_DIR"/.codex/skills/*; do
+    skill_name="${skill_path%/}"
+    skill_name="${skill_name##*/}"
+    [[ -e "$skill_path" || -L "$skill_path" ]] || continue
+    [[ -e "$DOTFILES_DIR/.agents/skills/$skill_name" && ! -L "$DOTFILES_DIR/.agents/skills/$skill_name" ]] && continue
+    ln -sfn "../../.codex/skills/$skill_name" "$DOTFILES_DIR/.agents/skills/$skill_name"
+  done
+fi
+
 # Claude Code config
 # If ~/.claude already points into the dotfiles repo, skip individual links
 # (hooks live directly in .claude/hooks/, skills symlink is committed to the repo)
@@ -77,10 +113,6 @@ else
   link_file "$HOME/.agents/skills" "$HOME/.claude/skills"
 fi
 
-# Codex-specific/system skills
-mkdir -p "$HOME/.codex"
-link_file "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
-
 # Ensure fzf itself is installed and generate baseline if missing
 if command -v fzf >/dev/null 2>&1; then
   if [[ ! -f "$DOTFILES_DIR/.fzf.zsh" ]] && [[ -x "$(brew --prefix)/opt/fzf/install" ]]; then
@@ -88,6 +120,11 @@ if command -v fzf >/dev/null 2>&1; then
     cp "$HOME/.fzf.zsh" "$DOTFILES_DIR/.fzf.zsh" || true
     link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
   fi
+fi
+
+# Spotlight exclusions for developer directories
+if [[ "$(uname)" == "Darwin" ]]; then
+  "$DOTFILES_DIR/scripts/spotlight-exclusions.sh" || echo "warning: spotlight exclusions failed" >&2
 fi
 
 echo "done"

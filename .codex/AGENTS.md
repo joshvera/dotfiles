@@ -265,6 +265,7 @@ Rules:
 - Prefer inheriting the leader model by omitting `spawn_agent.model` unless a task truly requires a different model.
 - Do not hardcode stale frontier-model overrides for Codex native child agents. If an explicit frontier override is necessary, use the current frontier default from `OMX_DEFAULT_FRONTIER_MODEL` / the repo model contract (currently `gpt-5.5`), not older values such as `gpt-5.2`.
 - Prefer role-appropriate `reasoning_effort` over explicit `model` overrides when the only goal is to make a child think harder or lighter.
+- Do not impose fixed short wait caps, including 5-minute / 300-second limits, on architect, critic, reviewer, or other child-agent completion. If a child-agent wait tool requires a timeout, treat it as a polling checkpoint and wait again until the agent completes, the user gives a deadline, or there is a real blocker. This does not remove bounded timeouts for local shell commands, hooks, tests, servers, or other command executions where a timeout is the operation boundary rather than an agent-completion poll.
 </child_agent_protocol>
 
 <invocation_conventions>
