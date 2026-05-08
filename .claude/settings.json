@@ -65,6 +65,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.gstack/repos/gstack/bin/gstack-session-update"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

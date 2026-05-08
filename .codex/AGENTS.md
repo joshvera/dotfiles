@@ -163,7 +163,7 @@ Before finishing a task:
 </semantic_diff_and_analysis>
 
 <dotfiles_repository_guidance>
-Apply this subsection when working in `/Users/vera/github/dotfiles`.
+Apply this subsection when working in `$HOME/github/dotfiles`.
 
 <project_structure>
 - Shell configurations: `.zshrc`, `.zshenv`, `.zprofile`, `zsh/`
