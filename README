@@ -29,7 +29,7 @@ Personal configuration files for macOS development environment.
    brew bundle --file Brewfile
    ```
 
-3. Link core dotfiles safely (backs up non-symlink files first, links Claude hooks, installs shared `~/.agents/skills`, mirrors `~/.claude/skills` to it, and installs Codex-specific skills):
+3. Bootstrap the toolchain and core dotfiles (updates OMX from `~/github/oh-my-codex`, installs GStack, backs up non-symlink files first, links Claude runtime files, installs shared `~/.agents/skills`, mirrors `~/.claude/skills` to it, and installs Codex-specific skills):
    ```bash
    ./scripts/bootstrap-core.sh
    ```
@@ -58,14 +58,9 @@ Personal configuration files for macOS development environment.
    # VS Code (macOS)
    ln -s ~/github/dotfiles/vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
    ln -s ~/github/dotfiles/vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
-
-   # Claude Code (backup existing first)
-   mv ~/.claude ~/.claude.bak  # if exists
-   ln -s ~/github/dotfiles/.claude ~/.claude
-   # Restore runtime state from backup
-   cp ~/.claude.bak/history.jsonl ~/.claude/
-   cp -r ~/.claude.bak/{todos,plans,plugins,cache,statsig} ~/.claude/
    ```
+
+   `bootstrap-core.sh` now keeps `~/.claude` as a runtime directory and links the repo-managed Claude files in place. It no longer expects you to replace `~/.claude` with a whole-repo symlink.
 
 ## Key Features
 
@@ -82,6 +77,10 @@ Personal configuration files for macOS development environment.
 - The repository includes a comprehensive `.gitignore` for security
 - `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
 - `bootstrap-core.sh` treats `.gitconfig` and `.fzf.zsh` as dotfiles-managed (when present in repo)
+- `bootstrap-core.sh` clones or updates `~/github/oh-my-codex` from `joshvera/oh-my-codex`, builds it, installs it globally, and runs `omx setup`
+- `bootstrap-core.sh` clones or updates `~/.gstack/repos/gstack`, runs its setup for Claude and Codex, and links the checkout into shared skills
+- `bootstrap-core.sh` links `~/.codex/AGENTS.md` to the repo-managed Codex contract
 - `bootstrap-core.sh` links `~/.agents/skills` to the repo-managed shared skills directory
 - `bootstrap-core.sh` mirrors `~/.claude/skills` to `~/.agents/skills`
 - `bootstrap-core.sh` links `~/.codex/skills` to the repo-managed Codex-specific skill directory
+- `bootstrap-core.sh` links repo-managed Claude files into an existing `~/.claude` runtime directory instead of replacing it

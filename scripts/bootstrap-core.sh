@@ -3,6 +3,10 @@ set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/github/dotfiles}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
+OMX_REPO_URL="${OMX_REPO_URL:-https://github.com/joshvera/oh-my-codex.git}"
+OMX_REPO_DIR="${OMX_REPO_DIR:-$HOME/github/oh-my-codex}"
+GSTACK_REPO_URL="${GSTACK_REPO_URL:-https://github.com/garrytan/gstack.git}"
+GSTACK_REPO_DIR="${GSTACK_REPO_DIR:-$HOME/.gstack/repos/gstack}"
 
 if [[ ! -d "$DOTFILES_DIR" ]]; then
   echo "dotfiles dir not found: $DOTFILES_DIR" >&2
@@ -17,9 +21,10 @@ backup_if_needed() {
   fi
 }
 
-link_file() {
+link_path() {
   local src="$1"
   local dst="$2"
+
   mkdir -p "$(dirname "$dst")"
   backup_if_needed "$dst"
   if [[ -L "$dst" ]]; then
@@ -29,85 +34,100 @@ link_file() {
   echo "linked $dst -> $src"
 }
 
-# Core shell files
-link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
-link_file "$DOTFILES_DIR/.zprofile" "$HOME/.zprofile"
-link_file "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
+ensure_git_checkout() {
+  local repo_url="$1"
+  local repo_dir="$2"
+  local branch="$3"
+  local label="$4"
 
-# Tmux config (new path first, legacy fallback)
-TMUX_SRC="$DOTFILES_DIR/tmux/tmux.conf"
-if [[ ! -f "$TMUX_SRC" && -f "$DOTFILES_DIR/.tmux.conf" ]]; then
-  TMUX_SRC="$DOTFILES_DIR/.tmux.conf"
-fi
-if [[ -f "$TMUX_SRC" ]]; then
-  link_file "$TMUX_SRC" "$HOME/.tmux.conf"
-else
-  echo "skip ~/.tmux.conf: no tmux config found in $DOTFILES_DIR" >&2
-fi
-
-# Git config (canonical in dotfiles when present)
-if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
-  link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
-else
-  echo "skip ~/.gitconfig: $DOTFILES_DIR/.gitconfig not found"
-fi
-
-# fzf shell setup tracked in dotfiles
-if [[ -f "$DOTFILES_DIR/.fzf.zsh" ]]; then
-  link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
-fi
-
-# Shared agent skills
-mkdir -p "$HOME/.agents"
-link_file "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
-
-# Codex-specific/system skills
-mkdir -p "$HOME/.codex"
-mkdir -p "$DOTFILES_DIR/.codex/skills"
-link_file "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
-
-link_external_gstack() {
-  local gstack_root="$HOME/.gstack/repos/gstack"
-  local target="$DOTFILES_DIR/.agents/skills/gstack"
-
-  [[ -d "$gstack_root/.git" ]] || return 0
-
-  if [[ -e "$target" && ! -L "$target" ]]; then
-    echo "gstack skill target is a real directory, not replacing: $target" >&2
-    echo "Move it aside, then rerun bootstrap to link $target -> $gstack_root" >&2
+  if [[ -e "$repo_dir" && ! -d "$repo_dir/.git" ]]; then
+    echo "$label path exists but is not a git checkout: $repo_dir" >&2
     exit 1
   fi
 
-  rm -f "$target"
-  ln -s "$gstack_root" "$target"
-  echo "linked $target -> $gstack_root"
+  if [[ ! -d "$repo_dir/.git" ]]; then
+    mkdir -p "$(dirname "$repo_dir")"
+    git clone --branch "$branch" "$repo_url" "$repo_dir"
+    return
+  fi
+
+  git -C "$repo_dir" remote set-url origin "$repo_url"
+
+  if [[ -n "$(git -C "$repo_dir" status --porcelain)" ]]; then
+    echo "skip updating $label checkout: local changes present in $repo_dir"
+    return
+  fi
+
+  git -C "$repo_dir" fetch origin --prune --tags
+  git -C "$repo_dir" checkout "$branch"
+  git -C "$repo_dir" pull --ff-only origin "$branch"
 }
 
-# Expose repo-owned shared skills to Codex without duplicating the source.
-if [[ -d "$DOTFILES_DIR/.agents/skills" && -d "$DOTFILES_DIR/.codex/skills" ]]; then
-  shared_skills=(
+install_omx_from_fork() {
+  if [[ "${BOOTSTRAP_SKIP_OMX:-0}" == "1" ]]; then
+    echo "skip OMX install/update: BOOTSTRAP_SKIP_OMX=1"
+    return
+  fi
+
+  ensure_git_checkout "$OMX_REPO_URL" "$OMX_REPO_DIR" "main" "OMX"
+
+  (
+    cd "$OMX_REPO_DIR"
+    npm install --package-lock=false
+    npm run build
+    npm install -g "$OMX_REPO_DIR"
+  )
+
+  omx setup --scope user --plugin
+}
+
+install_gstack_checkout() {
+  if [[ "${BOOTSTRAP_SKIP_GSTACK:-0}" == "1" ]]; then
+    echo "skip gstack install/update: BOOTSTRAP_SKIP_GSTACK=1"
+    return
+  fi
+
+  ensure_git_checkout "$GSTACK_REPO_URL" "$GSTACK_REPO_DIR" "main" "gstack"
+
+  (
+    cd "$GSTACK_REPO_DIR"
+    if [[ -x ./setup ]]; then
+      ./setup
+      ./setup --host codex
+    else
+      bash ./setup
+      bash ./setup --host codex
+    fi
+  )
+
+  mkdir -p "$DOTFILES_DIR/.agents/skills"
+  link_path "$GSTACK_REPO_DIR" "$DOTFILES_DIR/.agents/skills/gstack"
+}
+
+ensure_shared_skill_mirror() {
+  mkdir -p "$DOTFILES_DIR/.codex/skills"
+
+  local skill_name
+  local shared_skills=(
     codex-planner
     codex-review
     find-skills
     gh-address-comments
+    gstack
     gws-cli
     playwriter
     qodo-pr-resolver
     sem
     skill-creator
   )
+
   for skill_name in "${shared_skills[@]}"; do
     [[ -d "$DOTFILES_DIR/.agents/skills/$skill_name" ]] || continue
-    target="$DOTFILES_DIR/.codex/skills/$skill_name"
-    rm -rf "$target"
-    ln -s "../../.agents/skills/$skill_name" "$target"
+    link_path "../../.agents/skills/$skill_name" "$DOTFILES_DIR/.codex/skills/$skill_name"
   done
 
-  link_external_gstack
-
-  # Preserve Claude visibility for generated Codex-only skills while keeping
-  # those generated installs out of Git. gstack is managed by upstream setup:
-  # Claude needs its root skill to resolve to the git checkout for auto-update.
+  # Preserve Codex-only generated skills for Claude visibility while keeping
+  # the actual source of truth under .codex/skills.
   for skill_path in "$DOTFILES_DIR"/.codex/skills/*; do
     skill_name="${skill_path%/}"
     skill_name="${skill_name##*/}"
@@ -117,27 +137,73 @@ if [[ -d "$DOTFILES_DIR/.agents/skills" && -d "$DOTFILES_DIR/.codex/skills" ]]; 
       resolved="$(
         cd "$skill_path" 2>/dev/null && pwd -P
       )"
-      [[ "$resolved" == "$HOME/.gstack/repos/gstack"* ]] || continue
+      [[ "$resolved" == "$GSTACK_REPO_DIR"* ]] || continue
     fi
     [[ -e "$DOTFILES_DIR/.agents/skills/$skill_name" && ! -L "$DOTFILES_DIR/.agents/skills/$skill_name" ]] && continue
-    ln -sfn "../../.codex/skills/$skill_name" "$DOTFILES_DIR/.agents/skills/$skill_name"
+    link_path "../../.codex/skills/$skill_name" "$DOTFILES_DIR/.agents/skills/$skill_name"
   done
+}
+
+repair_claude_links() {
+  if [[ "$(readlink "$HOME/.claude" 2>/dev/null)" == "$DOTFILES_DIR/.claude" ]]; then
+    echo "~/.claude already linked to $DOTFILES_DIR/.claude"
+    link_path "$HOME/.agents/skills" "$DOTFILES_DIR/.claude/skills"
+    return
+  fi
+
+  mkdir -p "$HOME/.claude"
+  link_path "$DOTFILES_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+  link_path "$DOTFILES_DIR/.claude/aliases.sh" "$HOME/.claude/aliases.sh"
+  link_path "$DOTFILES_DIR/.claude/agents" "$HOME/.claude/agents"
+  link_path "$DOTFILES_DIR/.claude/commands" "$HOME/.claude/commands"
+  link_path "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
+  link_path "$DOTFILES_DIR/.claude/mcp.json" "$HOME/.claude/mcp.json"
+  link_path "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+  link_path "$HOME/.agents/skills" "$HOME/.claude/skills"
+}
+
+install_omx_from_fork
+install_gstack_checkout
+
+# Shared skill roots need to exist before we mirror generated skills into the
+# Codex view. Creating the home links here also repairs broken symlinks.
+mkdir -p "$HOME/.agents" "$HOME/.codex"
+link_path "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
+mkdir -p "$DOTFILES_DIR/.codex/skills"
+link_path "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
+
+ensure_shared_skill_mirror
+repair_claude_links
+
+# Codex top-level contract should point back at the repo-managed source.
+link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+
+# Core shell files
+link_path "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+link_path "$DOTFILES_DIR/.zprofile" "$HOME/.zprofile"
+link_path "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
+
+# Tmux config (new path first, legacy fallback)
+TMUX_SRC="$DOTFILES_DIR/tmux/tmux.conf"
+if [[ ! -f "$TMUX_SRC" && -f "$DOTFILES_DIR/.tmux.conf" ]]; then
+  TMUX_SRC="$DOTFILES_DIR/.tmux.conf"
+fi
+if [[ -f "$TMUX_SRC" ]]; then
+  link_path "$TMUX_SRC" "$HOME/.tmux.conf"
+else
+  echo "skip ~/.tmux.conf: no tmux config found in $DOTFILES_DIR" >&2
 fi
 
-# Claude Code config
-# If ~/.claude already points into the dotfiles repo, skip individual links
-# (hooks live directly in .claude/hooks/, skills symlink is committed to the repo)
-if [[ "$(readlink "$HOME/.claude" 2>/dev/null)" == "$DOTFILES_DIR/.claude" ]]; then
-  echo "~/.claude already linked to $DOTFILES_DIR/.claude"
-  # Ensure the skills symlink inside the repo points to .agents/skills
-  if [[ ! -L "$DOTFILES_DIR/.claude/skills" ]]; then
-    ln -sfn "$HOME/.agents/skills" "$DOTFILES_DIR/.claude/skills"
-    echo "linked $DOTFILES_DIR/.claude/skills -> $HOME/.agents/skills"
-  fi
+# Git config (canonical in dotfiles when present)
+if [[ -f "$DOTFILES_DIR/.gitconfig" ]]; then
+  link_path "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
 else
-  mkdir -p "$HOME/.claude"
-  link_file "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
-  link_file "$HOME/.agents/skills" "$HOME/.claude/skills"
+  echo "skip ~/.gitconfig: $DOTFILES_DIR/.gitconfig not found"
+fi
+
+# fzf shell setup tracked in dotfiles
+if [[ -f "$DOTFILES_DIR/.fzf.zsh" ]]; then
+  link_path "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
 fi
 
 # Ensure fzf itself is installed and generate baseline if missing
@@ -145,12 +211,12 @@ if command -v fzf >/dev/null 2>&1; then
   if [[ ! -f "$DOTFILES_DIR/.fzf.zsh" ]] && [[ -x "$(brew --prefix)/opt/fzf/install" ]]; then
     "$(brew --prefix)/opt/fzf/install" --key-bindings --completion --no-update-rc --no-bash --no-fish
     cp "$HOME/.fzf.zsh" "$DOTFILES_DIR/.fzf.zsh" || true
-    link_file "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
+    link_path "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
   fi
 fi
 
 # Spotlight exclusions for developer directories
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "${BOOTSTRAP_SKIP_SPOTLIGHT:-0}" != "1" && "$(uname)" == "Darwin" ]]; then
   "$DOTFILES_DIR/scripts/spotlight-exclusions.sh" || echo "warning: spotlight exclusions failed" >&2
 fi
 
