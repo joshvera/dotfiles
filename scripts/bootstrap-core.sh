@@ -81,6 +81,77 @@ install_omx_from_fork() {
   omx setup --scope user --plugin
 }
 
+install_local_omx_plugin_cache() {
+  local plugin_root="$OMX_REPO_DIR/plugins/oh-my-codex"
+  local cache_root="$HOME/.codex/plugins/cache/oh-my-codex-local/oh-my-codex/local"
+
+  if [[ ! -d "$plugin_root/.codex-plugin" ]]; then
+    echo "skip OMX plugin cache install: missing plugin root at $plugin_root" >&2
+    return
+  fi
+
+  mkdir -p "$(dirname "$cache_root")"
+
+  if [[ -L "$cache_root" ]]; then
+    rm -f "$cache_root"
+  elif [[ -e "$cache_root" ]]; then
+    mv "$cache_root" "${cache_root}.pre-dotfiles-${STAMP}"
+  fi
+
+  mkdir -p "$cache_root"
+  rsync -a --delete "$plugin_root/" "$cache_root/"
+  echo "installed local OMX plugin cache at $cache_root"
+}
+
+cleanup_stale_codex_skill_backups() {
+  local stale_path
+
+  shopt -s nullglob
+  for stale_path in "$DOTFILES_DIR/.codex/skills"/*.pre-dotfiles-*; do
+    [[ -e "$stale_path" || -L "$stale_path" ]] || continue
+    rm -rf "$stale_path"
+    echo "removed stale skill backup $stale_path"
+  done
+}
+
+cleanup_legacy_gstack_skill_duplicates() {
+  local skill_path
+  local skill_name
+
+  shopt -s nullglob
+  for skill_path in "$DOTFILES_DIR/.codex/skills"/gstack-*; do
+    [[ -d "$skill_path" ]] || continue
+    [[ -f "$skill_path/SKILL.md" || -L "$skill_path/SKILL.md" ]] || continue
+
+    skill_name="${skill_path##*/}"
+    [[ "$skill_name" == "gstack-upgrade" ]] && continue
+
+    rm -rf "$skill_path"
+    echo "removed legacy gstack duplicate ${skill_path##*/}"
+  done
+}
+
+install_local_omx_skills() {
+  local skill_root="$HOME/.codex/plugins/cache/oh-my-codex-local/oh-my-codex/local/skills"
+  local skill_path
+  local skill_name
+
+  if [[ ! -d "$skill_root" ]]; then
+    echo "skip OMX skill mirror: missing skill root at $skill_root" >&2
+    return
+  fi
+
+  mkdir -p "$DOTFILES_DIR/.codex/skills"
+
+  shopt -s nullglob
+  for skill_path in "$skill_root"/*; do
+    [[ -d "$skill_path" ]] || continue
+    [[ -f "$skill_path/SKILL.md" ]] || continue
+    skill_name="${skill_path##*/}"
+    link_path "$skill_path" "$DOTFILES_DIR/.codex/skills/$skill_name"
+  done
+}
+
 install_gstack_checkout() {
   if [[ "${BOOTSTRAP_SKIP_GSTACK:-0}" == "1" ]]; then
     echo "skip gstack install/update: BOOTSTRAP_SKIP_GSTACK=1"
@@ -163,6 +234,10 @@ repair_claude_links() {
 }
 
 install_omx_from_fork
+install_local_omx_plugin_cache
+cleanup_stale_codex_skill_backups
+install_local_omx_skills
+cleanup_legacy_gstack_skill_duplicates
 install_gstack_checkout
 
 # Shared skill roots need to exist before we mirror generated skills into the
@@ -171,12 +246,12 @@ mkdir -p "$HOME/.agents" "$HOME/.codex"
 link_path "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
 mkdir -p "$DOTFILES_DIR/.codex/skills"
 link_path "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
+# Keep the top-level Codex contract pointed at the repo copy so local setup
+# refreshes do not leave behind a stale standalone file.
+link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
 ensure_shared_skill_mirror
 repair_claude_links
-
-# Codex top-level contract should point back at the repo-managed source.
-link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
 # Core shell files
 link_path "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
