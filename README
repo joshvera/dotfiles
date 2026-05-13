@@ -1,86 +1,183 @@
-# Dotfiles
+# Dotfiles for a Keyboard-First, AI-Assisted macOS Setup
 
-Personal configuration files for macOS development environment.
+This repo is the development environment I actually use: a macOS-first shell, editor, and terminal stack built around fast navigation, tmux/dmux multiplexing, Zed editing, and workflow automation for Claude, Codex, and Wiggum. It is opinionated, personal, and tuned for my own habits, but it is also meant to be readable. Steal the parts that are useful.
 
-## Contents
+## Why This Repo Exists
 
-- **Brewfile** - Homebrew package management
-- **zsh/** - Shell configuration, aliases, and plugins (including `fzf-tab` submodule)
-- **git_template/** - Git hooks and configuration
-- **vscode/** - Visual Studio Code settings and keybindings
-- **zellij/** - Terminal multiplexer configuration (keyboard-driven, vim-style)
-- **.agents/** - Shared agent skills (canonical repo-backed source for model-agnostic skills)
-- **.claude/** - Claude Code configuration (commands, hooks, agents)
-- **.codex/** - Codex-specific and system skills tracked in-repo
-- **skills/** - Shared slash-command definitions
-- **emacs** - Emacs configuration
-- **DefaultKeyBinding.dict** - macOS key bindings
+- `t` is the tmux entrypoint, with device-aware behavior and a keyboard-first workflow.
+- [`joshvera/dmux`](https://github.com/joshvera/dmux) is the active multiplexing layer around tmux.
+- `z` opens Zed; Zed is the active editor path in this setup.
+- `zsh` is tuned for fast completion, `fzf-tab`, autosuggestions, and predictable PATH setup.
+- Claude, Codex, Oh My Codex, GStack, and Wiggum are wired into the environment with tracked commands, hooks, skills, and automation scripts.
 
-## Quick Setup
+Zellij and VS Code are deprecated in this setup. Their configs remain in the repo as historical/reference material, but new workflow docs should treat tmux/dmux and Zed as the current path.
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/dotfiles.git ~/github/dotfiles
-   cd ~/github/dotfiles
-   ```
+## Quick Start
 
-2. Install core command-center packages:
-   ```bash
-   brew bundle --file Brewfile
-   ```
+This repo assumes a macOS machine with Homebrew available. The bootstrap scripts default to `"$HOME/github/dotfiles"`, so clone it there unless you plan to override `DOTFILES_DIR`.
 
-3. Bootstrap the toolchain and core dotfiles (updates OMX from `~/github/oh-my-codex`, installs GStack, backs up non-symlink files first, links Claude runtime files, installs shared `~/.agents/skills`, mirrors `~/.claude/skills` to it, and installs Codex-specific skills):
-   ```bash
-   ./scripts/bootstrap-core.sh
-   ```
+```bash
+git clone https://github.com/joshvera/dotfiles.git "$HOME/github/dotfiles"
+cd "$HOME/github/dotfiles"
 
-4. Optional profiles:
-   ```bash
-   brew bundle --file Brewfile.dev
-   brew bundle --file Brewfile.desktop
-   ```
+brew bundle --file Brewfile
 
-5. Strict bootstrap (opinionated, fail-fast):
-   ```bash
-   ./scripts/bootstrap-strict.sh
-   ```
-   This enforces required shell deps, including:
-   - Java 21 (`temurin@21`)
-   - `fzf-tab` plugin submodule under `zsh/plugins/fzf-tab`
-   - clean interactive zsh startup
+# Optional but useful if you want the fuller dev environment
+brew bundle --file Brewfile.dev
 
-6. Optional extra symlinks:
-   ```bash
-   # Zellij config
-   mkdir -p ~/.config/zellij
-   ln -s ~/github/dotfiles/zellij/config.kdl ~/.config/zellij/config.kdl
+# Optional GUI/workstation apps
+brew bundle --file Brewfile.desktop
 
-   # VS Code (macOS)
-   ln -s ~/github/dotfiles/vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
-   ln -s ~/github/dotfiles/vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
-   ```
+git submodule update --init --recursive
 
-   `bootstrap-core.sh` now keeps `~/.claude` as a runtime directory and links the repo-managed Claude files in place. It no longer expects you to replace `~/.claude` with a whole-repo symlink.
+./scripts/bootstrap-core.sh
 
-## Key Features
+# Optional strict bootstrap: installs dev deps, validates plugins, Java 21,
+# and checks that interactive zsh starts cleanly
+./scripts/bootstrap-strict.sh
+```
 
-- Minimal, keyboard-driven Zellij configuration with vim-style navigation
-- Network utilities (sniff, httpdump) with interface selection
-- Git aliases and automatic ctags generation
-- VS Code with GitHub Light theme and extensive customizations
-- Organized package management via Brewfile
+If you clone this repo somewhere else, run the bootstrap scripts with `DOTFILES_DIR` set explicitly:
 
-## Usage Notes
+```bash
+DOTFILES_DIR="/path/to/dotfiles" ./scripts/bootstrap-core.sh
+```
 
-- Network sniffing functions (`sniff`, `httpdump`) now accept interface names as arguments
-- Zellij is aliased to `z` for quick access
-- The repository includes a comprehensive `.gitignore` for security
-- `bootstrap-core.sh` links `~/.tmux.conf` from `tmux/tmux.conf` (falls back to legacy `./.tmux.conf`)
-- `bootstrap-core.sh` treats `.gitconfig` and `.fzf.zsh` as dotfiles-managed (when present in repo)
-- `bootstrap-core.sh` clones or updates `~/github/oh-my-codex` from `joshvera/oh-my-codex`, builds it, installs it globally, and runs `omx setup`
-- `bootstrap-core.sh` clones or updates `~/.gstack/repos/gstack`, runs its setup for Claude and Codex, and links the checkout into shared skills
-- `bootstrap-core.sh` links `~/.codex/AGENTS.md` to the repo-managed Codex contract
-- `bootstrap-core.sh` links `~/.agents/skills` to the repo-managed shared skills directory
-- `bootstrap-core.sh` mirrors `~/.claude/skills` to `~/.agents/skills`
-- `bootstrap-core.sh` links `~/.codex/skills` to the repo-managed Codex-specific skill directory
-- `bootstrap-core.sh` links repo-managed Claude files into an existing `~/.claude` runtime directory instead of replacing it
+### Bootstrap Modes
+
+| Script | What it does | Use it when |
+| --- | --- | --- |
+| `scripts/bootstrap-core.sh` | Backs up existing non-symlink dotfiles, installs or updates Oh My Codex from `joshvera/oh-my-codex`, installs GStack, links core shell/git/tmux files, repairs Claude runtime links, links shared `~/.agents/skills`, mirrors Claude skills to the shared skill root, and links Codex skills plus `~/.codex/AGENTS.md`. | You want the normal setup path for this environment. |
+| `scripts/bootstrap-strict.sh` | Installs `Brewfile` and `Brewfile.dev`, syncs submodules, runs core bootstrap, verifies `fzf-tab`, checks for Java 21, and validates interactive `zsh` startup. | You want a fail-fast bootstrap that enforces the expected environment. |
+
+## What Gets Linked By Default
+
+`scripts/bootstrap-core.sh` links or repairs:
+
+- `~/.zshrc`
+- `~/.zprofile`
+- `~/.zshenv`
+- `~/.tmux.conf`
+- `~/.gitconfig`
+- `~/.fzf.zsh`
+- selected repo-managed Claude files inside `~/.claude`
+- `~/.agents/skills`
+- `~/.claude/skills`
+- `~/.codex/skills`
+- `~/.codex/AGENTS.md`
+
+The Claude setup is intentionally file-by-file. `bootstrap-core.sh` keeps `~/.claude` as a runtime directory and links the repo-managed Claude files into it instead of replacing the whole directory with a symlink.
+
+### About `.claude/`
+
+The tracked `.claude/` tree contains useful shared configuration such as commands, hooks, agents, `settings.json`, and `mcp.json`. It also has ignored runtime state on a real machine, such as history, sessions, caches, shell snapshots, and plugin data.
+
+Do not treat `ln -s "$HOME/github/dotfiles/.claude" "$HOME/.claude"` as the default setup. Full-directory linking is an advanced/manual choice if you understand which parts are portable config and which parts are machine-local state.
+
+## Daily Drivers
+
+These are the commands that define the day-to-day workflow.
+
+### `t`: tmux/dmux Multiplexing
+
+`t` launches tmux through the repo wrapper. The active multiplexing setup is tmux plus [`dmux`](https://github.com/joshvera/dmux), with dmux providing the higher-level workflow around tmux sessions and integrations.
+
+```bash
+t
+t --show-detection
+t attach -t main
+```
+
+More detail: [tmux/README.md](tmux/README.md)
+
+### `z`: Zed
+
+`z` opens Zed from the shell.
+
+```bash
+z .
+z README
+z "$HOME/github/dotfiles"
+```
+
+Zed config lives in `zed/`, including editor settings and the Solarized theme.
+
+### `tmux-obsidian-sync`: Session Sync From Notes
+
+`tmux-obsidian-sync` creates missing tmux sessions and windows from Obsidian project notes. It is conservative by default and only does cleanup when you ask for it.
+
+```bash
+tmux-obsidian-sync --today
+tmux-obsidian-sync --note "$HOME/github/aleph/Projects/Software - bankroll/README.md" --cleanup
+```
+
+### Legacy Zellij Helpers
+
+`zt` and the scripts under `zellij/` are legacy Zellij workflow helpers. They are kept for reference and migration history, but they are not the active daily-driver path.
+
+## What's In Here
+
+| Path | What it does |
+| --- | --- |
+| `zsh/` | Shell behavior, custom functions, completion tuning, `fzf-tab`, autosuggestions, and the core interactive UX. |
+| `tmux/` | The active terminal multiplexer config and the `t` wrapper; used with dmux. |
+| `zed/` | The active editor config, including Zed settings and theme files. |
+| `zellij/` | Deprecated Zellij configs and helpers retained as historical/reference material. |
+| `vscode/` | Deprecated VS Code settings and keybindings retained as historical/reference material. |
+| `nvim/` | A `lazy.nvim`-based Neovim config with modular options, keymaps, and plugin specs. |
+| `.agents/skills/` | Shared repo-backed skills for model-agnostic agent workflows. |
+| `.claude/` | Tracked Claude Code commands, hooks, agents, skills, MCP config, and shared settings. |
+| `.codex/` | Codex-specific guidance and skill links, including `AGENTS.md` and `.codex/skills/`. |
+| `hooks/` | Wiggum hooks for plan review, task review, notifications, final tests, and PR creation. |
+| `scripts/` | Bootstrap scripts and setup utilities. |
+
+Deeper docs:
+
+- [tmux/README.md](tmux/README.md)
+- [zellij/README.md](zellij/README.md)
+- [docs/hooks.md](docs/hooks.md)
+
+## AI Tooling
+
+This repo is not just shell config. It also carries a lot of workflow automation for LLM-driven development.
+
+### `.claude/`
+
+The tracked Claude setup includes:
+
+- command definitions under `.claude/commands/`
+- reusable agents under `.claude/agents/`
+- hook scripts under `.claude/hooks/`
+- Claude settings and MCP wiring in `.claude/settings.json` and `.claude/mcp.json`
+- shared guidance in `.claude/CLAUDE.md`
+
+The hooks are operational, not decorative. For example, this repo wires in idle detection, notification delivery, and TDD guard behavior.
+
+### `.agents/skills/` and `.codex/skills/`
+
+Shared skills live under `.agents/skills/`, while `.codex/skills/` provides the Codex-facing view and Codex-specific skills. Current examples include:
+
+- GitHub review comment handling
+- Qodo PR finding resolution
+- semantic impact analysis
+- GStack and Oh My Codex skill surfacing
+
+### `hooks/`
+
+The top-level `hooks/` directory is where Wiggum-oriented automation lives. That includes:
+
+- `review-plan.sh` to send plans through Codex review
+- `review-task.sh` to review implementation diffs against task specs
+- `notify.sh` to send task notifications
+- `create-pr.sh` to open a GitHub PR after a build completes
+- `run-final-tests.sh` for end-of-task validation
+
+If you want the deeper Claude hook model specifically, start with [docs/hooks.md](docs/hooks.md).
+
+## Notes
+
+- This repo is macOS-first and Homebrew-first.
+- tmux/dmux and Zed are the active terminal/editor path.
+- Zellij and VS Code are deprecated here but preserved as reference configs.
+- I prefer a small number of sharp tools over a huge kitchen-sink setup, so the repo is intentionally opinionated.
+- Existing subsystem docs are the source of truth for lower-level details; the top-level README is the map.

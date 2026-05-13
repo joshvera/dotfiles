@@ -103,7 +103,6 @@ export PATH="$HOME/miniconda3/bin:$PATH"                     # Miniconda
 # Project/development paths
 export PATH="./node_modules/.bin:$PATH"                      # Local npm binaries
 export PATH="$HOME/github/dotfiles/bin:$PATH"                # Dotfiles utilities
-export PATH="$HOME/github/dotfiles/zellij:$PATH"             # Smart zellij wrapper
 export PATH="$HOME/github/dotfiles/tmux:$PATH"               # Smart tmux wrapper
 
 # Specialized tools
