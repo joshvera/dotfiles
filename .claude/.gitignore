@@ -23,6 +23,19 @@ claude-powerline.json
 # Plugin runtime
 plugins/
 
+# Host-managed skills from external packages live here locally. Keep only the
+# dotfiles-owned shared skill links in git.
+skills/*
+!skills/codex-planner
+!skills/codex-review
+!skills/find-skills
+!skills/gh-address-comments
+!skills/gws-cli
+!skills/playwriter
+!skills/qodo-pr-resolver
+!skills/sem
+!skills/skill-creator
+
 # macOS
 .DS_Store
 

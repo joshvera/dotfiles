@@ -7,6 +7,17 @@ OMX_REPO_URL="${OMX_REPO_URL:-https://github.com/joshvera/oh-my-codex.git}"
 OMX_REPO_DIR="${OMX_REPO_DIR:-$HOME/github/oh-my-codex}"
 GSTACK_REPO_URL="${GSTACK_REPO_URL:-https://github.com/garrytan/gstack.git}"
 GSTACK_REPO_DIR="${GSTACK_REPO_DIR:-$HOME/.gstack/repos/gstack}"
+SHARED_SKILLS=(
+  codex-planner
+  codex-review
+  find-skills
+  gh-address-comments
+  gws-cli
+  playwriter
+  qodo-pr-resolver
+  sem
+  skill-creator
+)
 
 if [[ ! -d "$DOTFILES_DIR" ]]; then
   echo "dotfiles dir not found: $DOTFILES_DIR" >&2
@@ -171,58 +182,62 @@ install_gstack_checkout() {
     fi
   )
 
-  mkdir -p "$DOTFILES_DIR/.agents/skills"
-  link_path "$GSTACK_REPO_DIR" "$DOTFILES_DIR/.agents/skills/gstack"
+  echo "gstack installed; not linking it into .agents/skills"
 }
 
 ensure_shared_skill_mirror() {
   mkdir -p "$DOTFILES_DIR/.codex/skills"
 
   local skill_name
-  local shared_skills=(
-    codex-planner
-    codex-review
-    find-skills
-    gh-address-comments
-    gstack
-    gws-cli
-    playwriter
-    qodo-pr-resolver
-    sem
-    skill-creator
-  )
 
-  for skill_name in "${shared_skills[@]}"; do
+  for skill_name in "${SHARED_SKILLS[@]}"; do
     [[ -d "$DOTFILES_DIR/.agents/skills/$skill_name" ]] || continue
     link_path "../../.agents/skills/$skill_name" "$DOTFILES_DIR/.codex/skills/$skill_name"
   done
+}
 
-  # Preserve Codex-only generated skills for Claude visibility while keeping
-  # the actual source of truth under .codex/skills.
-  for skill_path in "$DOTFILES_DIR"/.codex/skills/*; do
-    skill_name="${skill_path%/}"
-    skill_name="${skill_name##*/}"
-    [[ -e "$skill_path" || -L "$skill_path" ]] || continue
-    [[ "$skill_name" == "gstack" ]] && continue
-    if [[ "$skill_name" == gstack-* ]]; then
-      resolved="$(
-        cd "$skill_path" 2>/dev/null && pwd -P
-      )"
-      [[ "$resolved" == "$GSTACK_REPO_DIR"* ]] || continue
-    fi
-    [[ -e "$DOTFILES_DIR/.agents/skills/$skill_name" && ! -L "$DOTFILES_DIR/.agents/skills/$skill_name" ]] && continue
-    link_path "../../.codex/skills/$skill_name" "$DOTFILES_DIR/.agents/skills/$skill_name"
+ensure_claude_skill_links() {
+  local skills_dir="$DOTFILES_DIR/.claude/skills"
+  local skill_name
+
+  mkdir -p "$DOTFILES_DIR/.claude"
+
+  if [[ -L "$skills_dir" ]]; then
+    rm -f "$skills_dir"
+  elif [[ -e "$skills_dir" && ! -d "$skills_dir" ]]; then
+    mv "$skills_dir" "${skills_dir}.pre-dotfiles-${STAMP}"
+    echo "backed up $skills_dir -> ${skills_dir}.pre-dotfiles-${STAMP}"
+  fi
+
+  mkdir -p "$skills_dir"
+
+  for skill_name in "${SHARED_SKILLS[@]}"; do
+    [[ -d "$DOTFILES_DIR/.agents/skills/$skill_name" ]] || continue
+    link_path "../../.agents/skills/$skill_name" "$skills_dir/$skill_name"
   done
+}
+
+cleanup_legacy_home_agent_skill_root() {
+  local legacy_root="$HOME/.agents/skills"
+  local archived_root="$HOME/.agents/skills.archived-omx-doctor-${STAMP}"
+
+  if [[ ! -L "$legacy_root" ]]; then
+    return
+  fi
+
+  mv "$legacy_root" "$archived_root"
+  echo "archived legacy Codex skill root $legacy_root -> $archived_root"
 }
 
 repair_claude_links() {
   if [[ "$(readlink "$HOME/.claude" 2>/dev/null)" == "$DOTFILES_DIR/.claude" ]]; then
     echo "~/.claude already linked to $DOTFILES_DIR/.claude"
-    link_path "$HOME/.agents/skills" "$DOTFILES_DIR/.claude/skills"
+    ensure_claude_skill_links
     return
   fi
 
   mkdir -p "$HOME/.claude"
+  ensure_claude_skill_links
   link_path "$DOTFILES_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
   link_path "$DOTFILES_DIR/.claude/aliases.sh" "$HOME/.claude/aliases.sh"
   link_path "$DOTFILES_DIR/.claude/agents" "$HOME/.claude/agents"
@@ -230,7 +245,7 @@ repair_claude_links() {
   link_path "$DOTFILES_DIR/.claude/hooks" "$HOME/.claude/hooks"
   link_path "$DOTFILES_DIR/.claude/mcp.json" "$HOME/.claude/mcp.json"
   link_path "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
-  link_path "$HOME/.agents/skills" "$HOME/.claude/skills"
+  link_path "$DOTFILES_DIR/.claude/skills" "$HOME/.claude/skills"
 }
 
 install_omx_from_fork
@@ -238,20 +253,18 @@ install_local_omx_plugin_cache
 cleanup_stale_codex_skill_backups
 install_local_omx_skills
 cleanup_legacy_gstack_skill_duplicates
-install_gstack_checkout
 
-# Shared skill roots need to exist before we mirror generated skills into the
-# Codex view. Creating the home links here also repairs broken symlinks.
 mkdir -p "$HOME/.agents" "$HOME/.codex"
-link_path "$DOTFILES_DIR/.agents/skills" "$HOME/.agents/skills"
 mkdir -p "$DOTFILES_DIR/.codex/skills"
 link_path "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
 # Keep the top-level Codex contract pointed at the repo copy so local setup
 # refreshes do not leave behind a stale standalone file.
 link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
+cleanup_legacy_home_agent_skill_root
 ensure_shared_skill_mirror
 repair_claude_links
+install_gstack_checkout
 
 # Core shell files
 link_path "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"

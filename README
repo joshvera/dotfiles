@@ -155,12 +155,14 @@ The hooks are operational, not decorative. For example, this repo wires in idle 
 
 ### `.agents/skills/` and `.codex/skills/`
 
-Shared skills live under `.agents/skills/`, while `.codex/skills/` provides the Codex-facing view and Codex-specific skills. Current examples include:
+Hand-maintained shared skills live under `.agents/skills/`, while `.codex/skills/` provides the Codex-facing view and generated Codex-specific skills. Package-managed skills from tools such as Oh My Codex and GStack should not be mirrored back into `.agents/skills/`; Claude Code gets shared skills through `.claude/skills/`, which may also contain ignored host-managed package links.
+
+Current shared examples include:
 
 - GitHub review comment handling
 - Qodo PR finding resolution
 - semantic impact analysis
-- GStack and Oh My Codex skill surfacing
+- Codex plan and review helpers
 
 ### `hooks/`
 
