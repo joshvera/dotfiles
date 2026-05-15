@@ -1,5 +1,6 @@
 # Runtime state
 history.jsonl
+.last-cleanup
 todos/
 plans/
 projects/

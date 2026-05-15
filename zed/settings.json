@@ -7,6 +7,34 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "ssh_connections": [
+    {
+      "host": "finn",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/Users/vera/github/bankroll"
+          ]
+        },
+        {
+          "paths": [
+            "/Users/vera/github/dmux"
+          ]
+        },
+        {
+          "paths": [
+            "/Users/vera/github/dotfiles"
+          ]
+        },
+        {
+          "paths": [
+            "/Users/vera/github/finn"
+          ]
+        }
+      ]
+    }
+  ],
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "dock": "left"
