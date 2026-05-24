@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = zed --wait
+	editor = gram --wait
 	excludesfile = ~/.gitignore
 	fsync = committed
 	preloadindex = true
@@ -82,10 +82,10 @@
 [gc]
 	auto = 0
 [credential "https://github.com"]
-	helper = 
+	helper =
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
+	helper =
 	helper = !gh auth git-credential
 [merge "weave"]
 	name = Entity-level semantic merge

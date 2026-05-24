@@ -108,5 +108,6 @@
   },
   "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "effortLevel": "high"
 }

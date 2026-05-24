@@ -99,6 +99,17 @@ If any recent Qodo summary or PR-level comment says the review is still in progr
 
 then stop and tell the user to wait for the review to finish.
 
+Exception: if this same skill invocation just requested `/agentic_review`, do not stop immediately on the
+first in-progress placeholder. Wait through Qodo's normal startup latency, then poll for up to 5 minutes
+before returning control to the user:
+- Do not poll for the first 2 minutes after posting `/agentic_review`; Qodo usually cannot finish that fast.
+- After the initial 2-minute quiet wait, poll every 20 seconds until the 5-minute deadline.
+- Stop polling early when the latest Qodo persistent review update references the current PR head SHA, or
+  when the in-progress placeholder is replaced by a completed Qodo review result.
+- If Qodo is still analyzing after 5 minutes, leave affected findings as `evidence_state=fixed` and
+  `qodo_state=needs_refresh`, report `refresh_pending`, and include the Qodo in-progress comment URL.
+- Do not mark findings `acknowledged` while the latest persistent review is still on an older commit.
+
 ### 5. Build one normalized finding list
 
 - Start from unresolved findings in the persistent review summary / audit trail.
@@ -152,7 +163,7 @@ Recommended action mapping:
 - Do not auto-reply on the inline review thread just because local evidence says the finding is fixed.
 - Do not call the finding stale yet just because the inline thread is outdated or the code now looks correct.
 - If the branch is fully pushed and Qodo is idle, request `/agentic_review`.
-- Re-fetch the persistent review after the refresh finishes.
+- Re-fetch the persistent review after the refresh finishes, using the 5-minute polling contract in step 4.
 - If the finding remains after refresh, ask a targeted `/ask` question with:
   - the exact Qodo title
   - the current file and line reference
