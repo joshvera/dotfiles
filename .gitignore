@@ -82,6 +82,12 @@ secrets.sh
 .metadata_never_index
 .claude/agents/council-*.md
 
+# OMC runtime artifacts
+.omc/
+.claude/.omc/
+.claude/CLAUDE.md.backup.*
+.claude/image-cache/
+
 # Agent skills: ignore all, un-ignore shared skills we own
 .agents/skills/*
 !.agents/skills/codex-planner/

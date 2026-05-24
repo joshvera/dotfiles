@@ -9,7 +9,7 @@
 [core]
 	autocrlf = input
 	quotepath = false
-	editor = code --wait
+	editor = zed --wait
 	excludesfile = ~/.gitignore
 	fsync = committed
 	preloadindex = true

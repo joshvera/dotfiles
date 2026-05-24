@@ -38,8 +38,15 @@ alias ohmyzsh="code ~/.oh-my-zsh"
 
 alias k='kubectl'
 
+alias gc='git checkout'
 alias gcm='git commit -m'
+alias gd='git diff --color'
+alias gl='git log --stat'
+alias glg='git log --graph'
+alias gmc='git commit -v -m'
+alias gra='git rebase --abort'
 alias gs='git status'
+alias gsb='git submodule'
 
 alias z='zed'
 

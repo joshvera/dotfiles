@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(python:*)",
@@ -35,6 +38,7 @@
       "Bash(git reset --hard:*)"
     ]
   },
+  "model": "claude-opus-4-6[1m]",
   "hooks": {
     "Stop": [
       {
@@ -79,13 +83,14 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node $HOME/github/claude-powerline/dist/index.mjs --style=powerline"
+    "command": "node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs"
   },
   "enabledPlugins": {
     "wiggum@wiggum-local": true,
     "claude-hud@claude-hud": false,
     "worktrunk@worktrunk": true,
-    "frontend-design@claude-plugins-official": true
+    "frontend-design@claude-plugins-official": true,
+    "oh-my-claudecode@omc": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -93,8 +98,15 @@
         "source": "github",
         "repo": "anthropics/claude-code"
       }
+    },
+    "omc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
+      }
     }
   },
+  "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true
 }
