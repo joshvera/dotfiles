@@ -188,7 +188,6 @@ trap sync_history_to_bash EXIT
 
 # Claude-Native integration
 export CLAUDE_NATIVE_HOME="$HOME/.claude-native"
-export PATH="$CLAUDE_NATIVE_HOME/scripts:$PATH"
 
 # Auto-sync on directory change (optional)
 claude_native_cd() {
@@ -205,15 +204,7 @@ claude_native_cd() {
 
 # pnpm
 export PNPM_HOME="$HOME/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
 # pnpm end
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:$HOME/.lmstudio/bin"
-# End of LM Studio CLI section
 
 export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
 
@@ -228,25 +219,42 @@ op-wintermute() {
   export OP_SERVICE_ACCOUNT_TOKEN="$(op item get 'Service Account Auth Token: Wintermute' --vault Personal --fields credential --reveal)"
   echo "1Password Wintermute service account activated"
 }
-export PATH="$PATH:$HOME/github/ralph-playbook/files"
-
-# Keep local developer overrides ahead of concrete tool installs added during
-# interactive shell startup and prompt-time environment refreshes. In
-# particular, `mise activate zsh` installs a `precmd` hook that can prepend
-# versioned tool bins again on every prompt, so a one-time reorder at the end
-# of `.zshrc` is not stable.
-_vera_local_path_overrides() {
-  typeset -gU path PATH
-  path=(
-    "$HOME/.local/bin"
-    "$HOME/.cargo/bin"
-    $path
-  )
-  export PATH
-}
-_vera_local_path_overrides
-autoload -U add-zsh-hook
-add-zsh-hook precmd _vera_local_path_overrides
 
 # pnpm (via corepack) injects npm_config_* vars that npm doesn't recognize
 unset npm_config__jsr_registry npm_config_verify_deps_before_run
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# Nix (Determinate) — kept here because macOS updates wipe the hook from /etc/zshrc
+if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+  . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+fi
+
+# Interactive integrations can prepend their own tool directories. Restore the
+# shared prefix now and after prompt-time environment refreshes from mise.
+_vera_apply_path_order
+autoload -U add-zsh-hook
+add-zsh-hook precmd _vera_apply_path_order
+
+# bankroll: its service scripts sanitize PATH
+# for service use; point them at the mise-managed uv (must come after mise activate).
+export BANKROLL_UV_BIN="$(command -v uv)"
+
+# OMC: route MEDIUM (Sonnet) tier to Claude Sonnet 5 for both /team and
+# delegation-routing agent defaults. Mirrors the unreleased upstream built-in
+# bump (dev PR #3370). Remove once OMC ships a release with the Sonnet 5 default.
+export OMC_MODEL_MEDIUM=claude-sonnet-5
+
+# >>> MathCode user bin >>>
+_mathcode_bin_dir="$HOME/.local/bin"
+if [ -d "$_mathcode_bin_dir" ]; then
+  case ":$PATH:" in
+    *:"$_mathcode_bin_dir":*) ;;
+    *) export PATH="$_mathcode_bin_dir:$PATH" ;;
+  esac
+fi
+unset _mathcode_bin_dir
+# <<< MathCode user bin <<<
+
+[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env" # ghcup-env
