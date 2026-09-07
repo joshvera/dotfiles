@@ -118,7 +118,12 @@ async function main() {
   const pluginCacheBase = join(configDir, "plugins", "cache", "omc", "oh-my-claudecode");
   if (existsSync(pluginCacheBase)) {
     try {
-      const versions = readdirSync(pluginCacheBase);
+      // Filter to strict semver dir names only — guards against accidental
+      // siblings like `4.14.1.backup`, `4.14.1.bak`, `_old`, etc. that the
+      // semver comparator below would otherwise rank ABOVE the real install
+      // (extra dotted segment counted as a higher version).
+      const SEMVER_DIR_RE = /^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/;
+      const versions = readdirSync(pluginCacheBase).filter((name) => SEMVER_DIR_RE.test(name));
       if (versions.length > 0) {
         // Semver-aware descending sort. Stable (no prerelease tag) ranks above any
         // prerelease with the same [major.minor.patch] so `1.0.1` beats `1.0.1-alpha`.
