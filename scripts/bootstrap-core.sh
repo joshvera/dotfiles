@@ -5,18 +5,9 @@ DOTFILES_DIR="${DOTFILES_DIR:-$HOME/github/dotfiles}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OMX_REPO_URL="${OMX_REPO_URL:-https://github.com/joshvera/oh-my-codex.git}"
 OMX_REPO_DIR="${OMX_REPO_DIR:-$HOME/github/oh-my-codex}"
-GSTACK_REPO_URL="${GSTACK_REPO_URL:-https://github.com/garrytan/gstack.git}"
-GSTACK_REPO_DIR="${GSTACK_REPO_DIR:-$HOME/.gstack/repos/gstack}"
 SHARED_SKILLS=(
-  codex-planner
-  codex-review
-  find-skills
-  gh-address-comments
   gws-cli
-  playwriter
-  qodo-pr-resolver
   sem
-  skill-creator
 )
 
 if [[ ! -d "$DOTFILES_DIR" ]]; then
@@ -125,23 +116,6 @@ cleanup_stale_codex_skill_backups() {
   done
 }
 
-cleanup_legacy_gstack_skill_duplicates() {
-  local skill_path
-  local skill_name
-
-  shopt -s nullglob
-  for skill_path in "$DOTFILES_DIR/.codex/skills"/gstack-*; do
-    [[ -d "$skill_path" ]] || continue
-    [[ -f "$skill_path/SKILL.md" || -L "$skill_path/SKILL.md" ]] || continue
-
-    skill_name="${skill_path##*/}"
-    [[ "$skill_name" == "gstack-upgrade" ]] && continue
-
-    rm -rf "$skill_path"
-    echo "removed legacy gstack duplicate ${skill_path##*/}"
-  done
-}
-
 install_local_omx_skills() {
   local skill_root="$HOME/.codex/plugins/cache/oh-my-codex-local/oh-my-codex/local/skills"
   local skill_path
@@ -161,28 +135,6 @@ install_local_omx_skills() {
     skill_name="${skill_path##*/}"
     link_path "$skill_path" "$DOTFILES_DIR/.codex/skills/$skill_name"
   done
-}
-
-install_gstack_checkout() {
-  if [[ "${BOOTSTRAP_SKIP_GSTACK:-0}" == "1" ]]; then
-    echo "skip gstack install/update: BOOTSTRAP_SKIP_GSTACK=1"
-    return
-  fi
-
-  ensure_git_checkout "$GSTACK_REPO_URL" "$GSTACK_REPO_DIR" "main" "gstack"
-
-  (
-    cd "$GSTACK_REPO_DIR"
-    if [[ -x ./setup ]]; then
-      ./setup
-      ./setup --host codex
-    else
-      bash ./setup
-      bash ./setup --host codex
-    fi
-  )
-
-  echo "gstack installed; not linking it into .agents/skills"
 }
 
 ensure_shared_skill_mirror() {
@@ -252,7 +204,6 @@ install_omx_from_fork
 install_local_omx_plugin_cache
 cleanup_stale_codex_skill_backups
 install_local_omx_skills
-cleanup_legacy_gstack_skill_duplicates
 
 mkdir -p "$HOME/.agents" "$HOME/.codex"
 mkdir -p "$DOTFILES_DIR/.codex/skills"
@@ -264,7 +215,6 @@ link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 cleanup_legacy_home_agent_skill_root
 ensure_shared_skill_mirror
 repair_claude_links
-install_gstack_checkout
 
 # Core shell files
 link_path "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
