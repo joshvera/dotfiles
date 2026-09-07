@@ -83,10 +83,10 @@
 	auto = 0
 [credential "https://github.com"]
 	helper = 
-	helper = !gh auth git-credential
+	helper = !/opt/homebrew/bin/gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = 
-	helper = !gh auth git-credential
+	helper = !/opt/homebrew/bin/gh auth git-credential
 [merge "weave"]
 	name = Entity-level semantic merge
 	driver = weave-driver %O %A %B %L %P
