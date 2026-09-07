@@ -99,3 +99,6 @@ secrets.sh
 !.agents/skills/qodo-pr-resolver/
 !.agents/skills/sem/
 !.agents/skills/skill-creator/
+
+# Local sed backup
+/.zshrc-e

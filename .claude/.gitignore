@@ -53,3 +53,14 @@ skills.pre-*/
 
 # Local settings (per-machine)
 settings.local.json
+
+# Machine-local setup, generated integrations, and operational data
+/.omc-config.json
+/.omc-version.json
+/.last-update-result.json
+/gh-pr-status-cache.json
+/chrome/
+/daemon/
+/daemon.log*
+/jobs/
+/teams/
