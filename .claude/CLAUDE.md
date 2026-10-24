@@ -1,5 +1,5 @@
 <!-- OMC:START -->
-<!-- OMC:VERSION:4.14.1 -->
+<!-- OMC:VERSION:4.15.1 -->
 
 # oh-my-claudecode - Intelligent Multi-Agent Orchestration
 
@@ -37,6 +37,12 @@ Verify before claiming completion. Size appropriately: small→haiku, standard�
 If verification fails, keep iterating.
 </verification>
 
+<failure_mode_guards>
+User input: when clarification, preference, or approval is required and AskUserQuestion is available, use AskUserQuestion instead of ending with a prose question; ask one focused question with 2-4 options. Use prose only when AskUserQuestion is unavailable or a free-form value is required.
+Session/worktree continuity: before editing after resume/compaction or inside a linked worktree, re-check `git status --short --branch`, current cwd, and relevant `.omc/state/` or `.omc/handoffs/` artifacts so work does not continue on the wrong branch or stale context.
+No fake completion: TODO-style placeholder notes, `test.skip`/`.only`, stub tests, and unimplemented branches are blockers, not evidence. Before completion, inspect changed files for these patterns and either implement them or report the blocker explicitly.
+</failure_mode_guards>
+
 <execution_protocols>
 Broad requests: explore first, then plan. 2+ independent tasks in parallel. `run_in_background` for builds/tests.
 Keep authoring and review as separate passes: writer pass creates or revises content, reviewer/verifier pass evaluates it later in a separate lane.
@@ -55,16 +61,15 @@ Kill switches: `DISABLE_OMC`, `OMC_SKIP_HOOKS` (comma-separated).
 </cancellation>
 
 <worktree_paths>
-State: `.omc/state/`, `.omc/state/sessions/{sessionId}/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`
+State root: `.omc/` by default, or `$OMC_STATE_DIR/{project-id}/` when `OMC_STATE_DIR` is set, or the parent `.omc/` when a `.omc-workspace` marker anchors a multi-repo workspace. Runtime state includes `.omc/state/`, `.omc/state/sessions/{sessionId}/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`, `.omc/artifacts/`, `.omc/handoffs/`, and `.omc/ultragoal/`. These are ignored operational artifacts by default; `.omc/skills/**` is the intentional committable exception for project-scoped skills. In linked git worktrees, local `.omc/` state is removed with the worktree unless centralized via `OMC_STATE_DIR`.
 </worktree_paths>
 
 ## Setup
 
 Say "setup omc" or run `/oh-my-claudecode:omc-setup`.
-
 <!-- OMC:END -->
 
-<!-- User customizations (migrated from previous CLAUDE.md) -->
+<!-- User customizations -->
 # Claude Global Configuration
 
 ## Workflow Principles
@@ -96,6 +101,21 @@ Triggers for `/codex-review`:
 - Standard plan validation → `medium`
 - Complex architectural review → `high`
 - Security-critical, high-stakes → `xhigh`
+
+### Subagent Model Routing
+
+Extends superpowers' **Model Selection** (subagent-driven-development): use the least powerful model that can do the role, and **always pass `model=` explicitly** — an omitted model silently inherits the session's most expensive one. Tiers, cheapest first:
+
+- **Haiku** — mechanical work: 1–2 files with a complete spec, tests/docs, mechanical refactor, isolated low-blast-radius fixes (the plan already contains the code → transcription).
+- **Sonnet (default)** — integration and judgment: multi-file coordination, debugging, standard implementation, and standard/review passes. Default for parallel executor lanes and for most reviews. Turn count beats token price, so Sonnet is the *floor* for reviewers and for implementers working from prose.
+- **Opus** — architecture/design, the adversarial critic, and the final whole-branch review. Promote exactly ONE "spine" executor lane to Opus when the task has shared-core risk (auth, persistence, concurrency, migrations, cross-cutting state).
+- **Fable** — only where judgment concentrates in a *decision*: deep-interview, and first-pass planning on genuinely large/ambiguous work. ~2× Opus ($10/$50 per MTok) — spend it only where it shapes the whole run. **Never default Fable on review loops, executor lanes, or security review.**
+
+Escalate a tier when a subagent returns BLOCKED. Keep **security review on Sonnet/Opus, never Fable** — its cybersecurity classifiers can refuse legitimate security analysis.
+
+**Mechanics (verified 2026-07-01):** "(inherit)" does NOT track the session model — an inherit-spawned planner self-reported `claude-opus-4-8[1m]` while the session ran Fable 5. Pin `model=` and verify by asking the agent to self-report its model ID. SendMessage-resume keeps context but DROPS the model pin; if a follow-up must run on a specific model, spawn a fresh agent with explicit `model=` rather than resuming.
+
+**Enforcement:** only `model=`-pinned spawns actually run the named model (e.g. ultrawork/ralph executor lanes). Session-loop surfaces (deep-interview, inline plan / ralplan / ultragoal / ultrawork) inherit the session model — `/model`-switch before invoking. Unpinned `Task(subagent_type=…)` spawns run OMC's inherit default (not Fable), pinned only by `/team` `roleRouting` in `~/.config/claude-omc/config.jsonc` (planner/architect/critic → `claude-fable-5`), which applies to `/team` spawns only.
 
 ### Ralph Workflow: Phase 1 (Define Requirements)
 

@@ -90,12 +90,8 @@ secrets.sh
 
 # Agent skills: ignore all, un-ignore shared skills we own
 .agents/skills/*
-!.agents/skills/codex-planner/
-!.agents/skills/codex-review/
-!.agents/skills/find-skills/
-!.agents/skills/gh-address-comments/
 !.agents/skills/gws-cli/
-!.agents/skills/playwriter/
-!.agents/skills/qodo-pr-resolver/
 !.agents/skills/sem/
-!.agents/skills/skill-creator/
+
+# Local sed backup
+/.zshrc-e
