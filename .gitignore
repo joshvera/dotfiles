@@ -95,3 +95,8 @@ secrets.sh
 
 # Local sed backup
 /.zshrc-e
+
+!.agents/skills/gh-review/
+.agents/skills/gh-review/**/.pytest_cache/
+.agents/skills/gh-review/**/.ruff_cache/
+.agents/skills/gh-review/**/__pycache__/

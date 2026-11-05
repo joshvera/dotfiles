@@ -8,6 +8,7 @@ OMX_REPO_DIR="${OMX_REPO_DIR:-$HOME/github/oh-my-codex}"
 SHARED_SKILLS=(
   gws-cli
   sem
+  gh-review
 )
 
 if [[ ! -d "$DOTFILES_DIR" ]]; then
