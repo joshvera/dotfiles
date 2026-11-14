@@ -16,6 +16,7 @@ This file records personal working preferences and the shared role policy. Syste
 - Follow explicit user instructions and prior authorization over skill guidelines, subject to system and developer constraints. Do not treat a skill exception or an inferred requirement as a new approval gate.
 - If a skill causes a permission request, pause, incomplete delivery, or departure from the requested workflow, link the exact SKILL.md, quote the relevant instruction, and explain how it applies. Distinguish the skill's explicit rule from your interpretation.
 - Stop when the requested work is verified, the user cancels, or a genuine blocker prevents further progress. Report blockers and verification gaps honestly; do not manufacture certainty or continue unrelated work.
+- When writing or editing a pull request description, including inside another workflow such as superpowers' finishing-a-development-branch, load the `writing-prs` skill first and let it govern the body. A repository's own PR template still takes precedence.
 </autonomy_and_skill_precedence>
 
 <custom_user_guidance>
