@@ -72,6 +72,8 @@ Say "setup omc" or run `/oh-my-claudecode:omc-setup`.
 <!-- User customizations -->
 # Claude Global Configuration
 
+Shared personal guidance (also read by Codex): @~/.codex/AGENTS.md
+
 ## Workflow Principles
 
 ### Plan First
