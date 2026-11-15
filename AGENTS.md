@@ -1,6 +1,6 @@
 # Dotfiles repository guidance
 
-Apply these instructions when working in this repository. Personal preferences and model routing are loaded through the global AGENTS.md symlink to `.codex/AGENTS.md`.
+Apply these instructions when working in this repository. Shared personal preferences are loaded through the global AGENTS.md symlink to `.codex/AGENTS.md`, which `~/.claude/CLAUDE.md` also imports. Codex-only role routing lives in `.codex/developer-instructions.md` and is injected into `~/.codex/config.toml` by `scripts/sync-codex-developer-instructions.sh`.
 
 <project_structure>
 - Shell configurations: `.zshrc`, `.zshenv`, `.zprofile`, `zsh/`

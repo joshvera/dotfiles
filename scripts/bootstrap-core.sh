@@ -211,6 +211,8 @@ link_path "$DOTFILES_DIR/.codex/skills" "$HOME/.codex/skills"
 # Keep the top-level Codex contract pointed at the repo copy so local setup
 # refreshes do not leave behind a stale standalone file.
 link_path "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+# Codex-only routing goes into config.toml, outside the shared AGENTS.md.
+DOTFILES_DIR="$DOTFILES_DIR" "$DOTFILES_DIR/scripts/sync-codex-developer-instructions.sh" || echo "warning: Codex developer_instructions not synced" >&2
 
 cleanup_legacy_home_agent_skill_root
 ensure_shared_skill_mirror
