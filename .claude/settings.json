@@ -1,156 +1,9 @@
 {
-  "effortLevel": "high",
-  "enabledPlugins": {
-    "claude-hud@claude-hud": false,
-    "frontend-design@claude-plugins-official": true,
-    "github@claude-plugins-official": true,
-    "oh-my-claudecode@omc": true,
-    "qodo-skills@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "superpowers@superpowers-marketplace": true,
-    "swift-lsp@claude-plugins-official": true,
-    "wiggum@wiggum-local": true,
-    "worktrunk@worktrunk": true
-  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
-  "extraKnownMarketplaces": {
-    "claude-code-plugins": {
-      "source": {
-        "repo": "anthropics/claude-code",
-        "source": "github"
-      }
-    },
-    "omc": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
-      }
-    },
-    "superpowers-marketplace": {
-      "source": {
-        "repo": "obra/superpowers-marketplace",
-        "source": "github"
-      }
-    }
-  },
-  "hooks": {
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/idle-detector.sh permission-request",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "async": false,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "timeout": 300,
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
-          }
-        ],
-        "matcher": "AskUserQuestion"
-      },
-      {
-        "hooks": [
-          {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
-          }
-        ],
-        "matcher": "ExitPlanMode"
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "$HOME/.gstack/repos/gstack/bin/gstack-session-update",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/herdr-agent-state.sh\" session",
-            "timeout": 10,
-            "type": "command"
-          }
-        ],
-        "matcher": "*"
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/idle-detector.sh claude-finished",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/idle-detector.sh user-activity",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
-          }
-        ]
-      }
-    ]
-  },
-  "model": "opus[1m]",
   "permissions": {
     "allow": [
-      "Bash(python:*)",
-      "Bash(python3:*)",
       "Bash(pip:*)",
       "Bash(pip3:*)",
       "Bash(uv:*)",
@@ -175,21 +28,250 @@
       "WebSearch",
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.python.org)"
+      "WebFetch(domain:docs.python.org)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Bash(git reset --hard:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "fable",
+  "skillOverrides": {
+    "pele-teach": "off"
+  },
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/idle-detector.sh permission-request"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "timeout": 300,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'rex __internal session-start --agent claude --feature-session-naming=false 2>/dev/null || true'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/idle-detector.sh claude-finished"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude Stop; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/idle-detector.sh user-activity"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude UserPromptSubmit; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude StopFailure; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude SessionEnd; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude Notification; fi",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
-  "skipAutoPermissionPrompt": true,
-  "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "effortLevel": "high",
-  "statusLine": {
-    "command": "sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud-cache.sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs",
-    "type": "command"
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": false,
+    "github@claude-plugins-official": true,
+    "pstack@cursor-plugins": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "superpowers@superpowers-marketplace": true,
+    "swift-lsp@claude-plugins-official": false,
+    "ruby-lsp@claude-plugins-official": true,
+    "starlight-eng@claudeai-get-starlight-starlight-skills": true,
+    "starlight-product@claudeai-get-starlight-starlight-skills": false,
+    "worktrunk@worktrunk": true
   },
-  "tui": "fullscreen"
+  "extraKnownMarketplaces": {
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "cursor-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "cursor/plugins"
+      }
+    },
+    "starlight": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/vera/github/starlight-skills"
+      }
+    },
+    "worktrunk": {
+      "source": {
+        "source": "github",
+        "repo": "max-sixty/worktrunk"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "medium"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "medium"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    },
+    "claude-fable-5-2": {
+      "effortLevel": "low"
+    }
+  },
+  "advisorModel": "fable",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "skipAutoPermissionPrompt": true
 }

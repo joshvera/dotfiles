@@ -8,6 +8,11 @@ OMX_REPO_DIR="${OMX_REPO_DIR:-$HOME/github/oh-my-codex}"
 SHARED_SKILLS=(
   gws-cli
   sem
+  contract-handoff
+  advisor
+  planner
+  reviewer
+  explorer
   gh-review
 )
 

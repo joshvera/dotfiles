@@ -100,8 +100,13 @@ if [[ -t 0 && -t 1 ]]; then
   # General: prioritize options over files for predictable ghost text
   zstyle ':completion:*' group-order 'options arguments files'
 
-  # Plugins - fzf-tab for enhanced completion
-  plugins=(vi-mode brew coffee pip git fzf github fzf-tab)
+  # Ghost text from history first, then from the completion system, so the
+  # tag-order/order zstyles above actually show up as suggestions.
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+  # Plugins - fzf-tab for enhanced completion. fzf-tab must load before
+  # zsh-autosuggestions (both live as submodules in $ZSH_CUSTOM/plugins).
+  plugins=(vi-mode brew coffee pip git fzf github fzf-tab zsh-autosuggestions)
 
   # Term
   export TERM=xterm-256color
@@ -211,8 +216,11 @@ export SSH_AUTH_SOCK=$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAge
 # Docker CLI completions (fpath only - compinit handled by Oh-My-Zsh)
 fpath=($HOME/.docker/completions $fpath)
 
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-export PATH="$JAVA_HOME/bin:$PATH"
+if _java21_home="$(/usr/libexec/java_home -v 21 2>/dev/null)"; then
+  export JAVA_HOME="$_java21_home"
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
+unset _java21_home
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 
 op-wintermute() {
@@ -241,11 +249,6 @@ add-zsh-hook precmd _vera_apply_path_order
 # for service use; point them at the mise-managed uv (must come after mise activate).
 export BANKROLL_UV_BIN="$(command -v uv)"
 
-# OMC: route MEDIUM (Sonnet) tier to Claude Sonnet 5 for both /team and
-# delegation-routing agent defaults. Mirrors the unreleased upstream built-in
-# bump (dev PR #3370). Remove once OMC ships a release with the Sonnet 5 default.
-export OMC_MODEL_MEDIUM=claude-sonnet-5
-
 # >>> MathCode user bin >>>
 _mathcode_bin_dir="$HOME/.local/bin"
 if [ -d "$_mathcode_bin_dir" ]; then
@@ -258,3 +261,12 @@ unset _mathcode_bin_dir
 # <<< MathCode user bin <<<
 
 [ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env" # ghcup-env
+export PATH="$HOME/.bend/bin:$PATH"
+
+# Added by the Qodo CLI installer
+case ":$PATH:" in *":$HOME/.qodo/bin:"*|*":$HOME/.qodo/bin/:"*) ;; *) export PATH="$HOME/.qodo/bin:$PATH" ;; esac
+
+# asdf
+export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.local/share/asdf}"
+export ASDF_CONFIG_FILE="${ASDF_CONFIG_FILE:-$HOME/.config/asdf/asdfrc}"
+export PATH="${ASDF_DATA_DIR}/shims:$PATH"

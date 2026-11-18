@@ -8,7 +8,7 @@ This repo is the development environment I actually use: a macOS-first shell, ed
 - [`joshvera/dmux`](https://github.com/joshvera/dmux) is the active multiplexing layer around tmux.
 - `z` opens Zed; Zed is the active editor path in this setup.
 - `zsh` is tuned for fast completion, `fzf-tab`, autosuggestions, and predictable PATH setup.
-- Claude, Codex, Oh My Codex, GStack, and Wiggum are wired into the environment with tracked commands, hooks, skills, and automation scripts.
+- Claude, Codex, Oh My Codex, and Wiggum are wired into the environment with tracked commands, hooks, skills, and automation scripts.
 
 Zellij and VS Code are deprecated in this setup. Their configs remain in the repo as historical/reference material, but new workflow docs should treat tmux/dmux and Zed as the current path.
 
@@ -47,7 +47,7 @@ DOTFILES_DIR="/path/to/dotfiles" ./scripts/bootstrap-core.sh
 
 | Script | What it does | Use it when |
 | --- | --- | --- |
-| `scripts/bootstrap-core.sh` | Backs up existing non-symlink dotfiles, installs or updates Oh My Codex from `joshvera/oh-my-codex`, installs GStack, links core shell/git/tmux files, repairs Claude runtime links, links shared `~/.agents/skills`, mirrors Claude skills to the shared skill root, and links Codex skills plus `~/.codex/AGENTS.md`. | You want the normal setup path for this environment. |
+| `scripts/bootstrap-core.sh` | Backs up existing non-symlink dotfiles, installs or updates Oh My Codex from `joshvera/oh-my-codex`, links core shell/git/tmux files, repairs Claude runtime links, links shared `~/.agents/skills`, mirrors Claude skills to the shared skill root, and links Codex skills plus `~/.codex/AGENTS.md`. | You want the normal setup path for this environment. |
 | `scripts/bootstrap-strict.sh` | Installs `Brewfile` and `Brewfile.dev`, syncs submodules, runs core bootstrap, verifies `fzf-tab`, checks for Java 21, and validates interactive `zsh` startup. | You want a fail-fast bootstrap that enforces the expected environment. |
 
 ## What Gets Linked By Default
@@ -155,7 +155,7 @@ The hooks are operational, not decorative. For example, this repo wires in idle 
 
 ### `.agents/skills/` and `.codex/skills/`
 
-Hand-maintained shared skills live under `.agents/skills/`, while `.codex/skills/` provides the Codex-facing view and generated Codex-specific skills. Package-managed skills from tools such as Oh My Codex and GStack should not be mirrored back into `.agents/skills/`; Claude Code gets shared skills through `.claude/skills/`, which may also contain ignored host-managed package links.
+Hand-maintained shared skills live under `.agents/skills/`, while `.codex/skills/` provides the Codex-facing view and generated Codex-specific skills. Package-managed skills from tools such as Oh My Codex should not be mirrored back into `.agents/skills/`; Claude Code gets shared skills through `.claude/skills/`, which may also contain ignored host-managed package links.
 
 Current shared examples include:
 

@@ -48,8 +48,6 @@ skills.pre-*/
 settings.local.json
 
 # Machine-local setup, generated integrations, and operational data
-/.omc-config.json
-/.omc-version.json
 /.last-update-result.json
 /gh-pr-status-cache.json
 /chrome/
@@ -57,3 +55,12 @@ settings.local.json
 /daemon.log*
 /jobs/
 /teams/
+
+# Claude Code account/runtime state (userID, machineID, usage stats)
+/.claude.json
+/.claude.json.*
+/.session-stats.json*
+/bridge-spawn/
+/uploads/
+/state/
+/settings.json.bak*

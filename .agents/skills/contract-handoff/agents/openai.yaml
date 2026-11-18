@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contract Handoff"
+  short_description: "Keep contracts and acceptance handoffs concise"
+  default_prompt: "Use $contract-handoff to prepare a concise handoff from the existing contract and acceptance ledger."

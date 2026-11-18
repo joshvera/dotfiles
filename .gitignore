@@ -82,9 +82,6 @@ secrets.sh
 .metadata_never_index
 .claude/agents/council-*.md
 
-# OMC runtime artifacts
-.omc/
-.claude/.omc/
 .claude/CLAUDE.md.backup.*
 .claude/image-cache/
 
@@ -92,10 +89,19 @@ secrets.sh
 .agents/skills/*
 !.agents/skills/gws-cli/
 !.agents/skills/sem/
+!.agents/skills/contract-handoff/
 
 # Local sed backup
 /.zshrc-e
 
+# Personal role skills
+!.agents/skills/advisor/
+!.agents/skills/planner/
+!.agents/skills/reviewer/
+!.agents/skills/explorer/
+!.agents/skills/herdr-swe/
+!.agents/skills/herdr-swe-worker/
+!.agents/skills/codex-delegation/
 !.agents/skills/gh-review/
 .agents/skills/gh-review/**/.pytest_cache/
 .agents/skills/gh-review/**/.ruff_cache/

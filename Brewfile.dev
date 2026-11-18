@@ -13,6 +13,10 @@ brew 'rbenv'
 brew 'sqlite'
 brew 'ssh-copy-id'
 brew 'the_silver_searcher'
+brew 'googleworkspace-cli'
+
+# Google Cloud
+cask 'gcloud-cli'
 
 # Strict bootstrap runtime deps
 cask 'temurin@21'

@@ -12,7 +12,7 @@ This file records personal working preferences shared by Codex and Claude Code (
 <autonomy_and_skill_precedence>
 - Before editing or reporting completion, refresh the relevant working-tree status and diff. Other agents or the user may have changed files or committed work. Preserve changes outside your ownership; investigate unexpected differences instead of silently overwriting, reverting, or claiming them.
 - Infer intent and scope from the current request and prior conversation. Complete authorized work; make reasonable assumptions for routine, reversible decisions and continue independent work while resolving genuine blockers.
-- Ask only when missing information or authority materially affects the outcome, or a destructive or irreversible action lacks authorization. Prior authorization persists: do not ask again for an already approved action. Prepare the concrete, reviewable result before seeking any required final approval.
+- Ask only when missing information or authority materially affects the outcome, or a destructive or irreversible action lacks authorization. Approval covers the action, target and scope it was given for: do not ask again within that scope, and ask again when the target, scope or risk changes. Prepare the concrete, reviewable result before seeking any required final approval.
 - Follow explicit user instructions and prior authorization over skill guidelines, subject to system and developer constraints. Do not treat a skill exception or an inferred requirement as a new approval gate.
 - If a skill causes a permission request, pause, incomplete delivery, or departure from the requested workflow, link the exact SKILL.md, quote the relevant instruction, and explain how it applies. Distinguish the skill's explicit rule from your interpretation.
 - Stop when the requested work is verified, the user cancels, or a genuine blocker prevents further progress. Report blockers and verification gaps honestly; do not manufacture certainty or continue unrelated work.
@@ -26,7 +26,7 @@ Preserve these personal operator preferences when updating workflow guidance.
 - For Rust schemas we own, build fixtures with the actual domain types and assert typed fields or equality. Exercise serialization through those types rather than recreating their shape with arbitrary JSON. Use raw JSON for dynamic boundaries or malformed-input cases that cannot be represented by the valid type.
 - Test observable outcomes and contracts we own. Assert results, persisted state, and failure semantics; avoid coupling tests to private helpers or incidental call sequences.
 - Prefer real components in unit, integration, and end-to-end tests. Avoid mock-heavy tests that can pass while the real integration breaks. When an external dependency cannot practically run, confine any test double to that boundary and state what remains unverified.
-- Prove bug regressions: run the same new test against the relevant pre-fix revision and the fix. Confirm an assertion exposes the intended bug before accepting the passing result. Compilation errors, missing fixtures, and environment failures do not prove the regression. For a PR, identify its actual target branch and merge base; do not assume `main`. Use an isolated checkout for baseline checks and report any inability to demonstrate failure before the fix.
+- Prove bug regressions: show the new test failing on the pre-fix code and passing with the fix, either by running it red before the change or by running it in a separate checkout (such as a worktree) of the base. Never swap files in the working tree to get a baseline. Confirm an assertion exposes the intended bug before accepting the passing result. Compilation errors, missing fixtures, and environment failures do not prove the regression. For a PR, identify its actual target branch and merge base; do not assume `main`. Report any inability to demonstrate failure before the fix. Repository instructions may narrow which tests need this.
 - Select credible failure cases: empty or invalid input, limits, partial failures, cleanup, ordering, and compatibility. For concurrent or resource-owning code, test the relevant lifecycle invariant.
 - Keep tests repeatable and independent: control clocks and randomness when relevant, avoid arbitrary sleeps, isolate temporary state, and release resources. Investigate flakes instead of masking them with retries.
 - Use descriptive test names and failures that explain the violated contract. Prefer reusable fixtures that preserve realistic behavior; do not add production complexity solely to support a convenient test.
@@ -93,7 +93,6 @@ Before finishing a task:
 - Rust default commands: use `just` targets if present. Otherwise run `cargo fmt`, not `cargo fmt --all`, then `cargo clippy --all --benches --tests --examples --all-features`, then the targeted `cargo test` commands.
 - TypeScript default commands: use `just` targets. If none exist, inspect the relevant `npm` or `pnpm` script and run it when within the authorized scope; apply the autonomy policy if its side effects require additional authority.
 - Python default commands: use `just` targets. If absent, run the relevant `uv run` commands defined in `pyproject.toml`.
-- For GitHub operations, use the `gh` CLI instead of any GitHub MCP server. Do not install, configure, or rely on a repo-local GitHub MCP in this repo. If `gh` is not available in the current environment, tell the user instead of installing local tooling.
 - For Google Workspace operations, use the `gws` CLI. If `gws` is not available in the current environment, tell the user instead of installing repo-local tooling or guessing.
 </tooling_workflow>
 
@@ -153,12 +152,21 @@ Not-tested: <known gaps in verification>
 - Use `Rejected:` for alternatives future agents should not re-explore.
 - Use `Directive:` for warnings, `Constraint:` for external forces, and `Not-tested:` for known verification gaps.
 - Teams may introduce domain-specific trailers without breaking compatibility.
+- An agent's required attribution trailers (such as `Co-Authored-By:`) go after the Lore trailers.
 </lore_commit_protocol>
+
 
 ---
 
+<independent_review>
+- Keep authoring and review separate; do not approve your own substantive work in the same context. A second opinion that reads the author's context or reasoning (a consult that inherits the conversation, a self-review checklist, a forked or resumed agent) is not independent review.
+- Require independent review for substantive milestones, regardless of author: behavior or contract changes with meaningful correctness risk. A plan or written contract is a milestone when it settles such a change, or when another agent, session or person will build on it; get it reviewed before handing it off. Money, migration, identity, concurrency and recovery contract changes qualify even with small diffs or no diff. Batch related repairs; small, low-risk work may finish with the author's own verification. A final whole-branch review is warranted only for cross-milestone interactions or unreviewed consequential changes.
+- After review, verify corrections and close resolved findings. Return to the reviewer only for consequential contract changes, disputed or unresolved findings, or insufficient evidence.
+- Operational checkpoints and new evidence from reviewed procedures need the applicable author checks, not renewed review or acceptance of unchanged source. Establish the need for review before selecting a reviewer.
+</independent_review>
+
 <verification>
-- Consult the repository CI configuration, such as `.github/workflows`, to identify required checks, toolchain versions, and environment assumptions. Reuse its commands where practical; explain local differences and select checks according to the impact rules below.
+- Repository instructions name the required gate. Consult the CI configuration, such as `.github/workflows`, for checks, toolchain versions, and environment assumptions, as a hint rather than the authority when the repository says CI is not the gate. Reuse its commands where practical; explain local differences and select checks according to the impact rules below.
 - Read and apply the testing_philosophy section of this file when selecting or reviewing tests, including when this section is loaded through the global policy reference.
 - Define the claim and run checks appropriate to the changed behavior, completing required repository checks. Use relevant existing tests as well as added or modified tests; a full suite is warranted when required or justified by impact.
 - For behavior changes, add meaningful regression coverage. For refactors, establish coverage for the behavior being preserved when it is missing. Do not add tests that merely mirror implementation or provide little value for simple reversible documentation or configuration edits.
